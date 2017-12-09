@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "LiteRGSS"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.tcc": "cpp",
+			"rope": "cpp",
+			"slist": "cpp",
+			"system_error": "cpp",
+			"string_view": "cpp"
+		}
+	}
+}
