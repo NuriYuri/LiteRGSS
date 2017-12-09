@@ -6,6 +6,13 @@
 VALUE rb_cSprite = Qnil;
 ID rb_Sprite_ivViewport = Qnil;
 ID rb_Sprite_ivBitmap = Qnil;
+ID rb_Sprite_ivX = Qnil;
+ID rb_Sprite_ivY = Qnil;
+ID rb_Sprite_ivOX = Qnil;
+ID rb_Sprite_ivOY = Qnil;
+ID rb_Sprite_ivAngle = Qnil;
+ID rb_Sprite_ivZoomX = Qnil;
+ID rb_Sprite_ivZoomY = Qnil;
 
 #define SPRITE_PROTECT if(RDATA(self)->data == nullptr) \
 {\
@@ -35,13 +42,43 @@ void Init_Sprite() {
 
     rb_define_method(rb_cSprite, "initialize", _rbf rb_Sprite_Initialize, -1);
     rb_define_method(rb_cSprite, "dispose", _rbf rb_Sprite_Dispose, 0);
+    rb_define_method(rb_cSprite, "bitmap", _rbf rb_Sprite_getBitmap, 0);
     rb_define_method(rb_cSprite, "bitmap=", _rbf rb_Sprite_setBitmap, 1);
+    rb_define_method(rb_cSprite, "x", _rbf rb_Sprite_getX, 0);
+    rb_define_method(rb_cSprite, "x=", _rbf rb_Sprite_setX, 1);
+    rb_define_method(rb_cSprite, "y", _rbf rb_Sprite_getY, 0);
+    rb_define_method(rb_cSprite, "y=", _rbf rb_Sprite_setY, 1);
+    rb_define_method(rb_cSprite, "ox", _rbf rb_Sprite_getOX, 0);
+    rb_define_method(rb_cSprite, "ox=", _rbf rb_Sprite_setOX, 1);
+    rb_define_method(rb_cSprite, "oy", _rbf rb_Sprite_getOY, 0);
+    rb_define_method(rb_cSprite, "oy=", _rbf rb_Sprite_setOY, 1);
+    rb_define_method(rb_cSprite, "visible", _rbf rb_Sprite_getVisible, 0);
+    rb_define_method(rb_cSprite, "visible=", _rbf rb_Sprite_setVisible, 1);
+    rb_define_method(rb_cSprite, "angle", _rbf rb_Sprite_getAngle, 0);
+    rb_define_method(rb_cSprite, "angle=", _rbf rb_Sprite_setAngle, 1);
+    rb_define_method(rb_cSprite, "zoom_x", _rbf rb_Sprite_getZoomX, 0);
+    rb_define_method(rb_cSprite, "zoom_x=", _rbf rb_Sprite_setZoomX, 1);
+    rb_define_method(rb_cSprite, "zoom_y", _rbf rb_Sprite_getZoomY, 0);
+    rb_define_method(rb_cSprite, "zoom_y=", _rbf rb_Sprite_setZoomY, 1);
+    rb_define_method(rb_cSprite, "set_position", _rbf rb_Sprite_setPosition, 2);
+    rb_define_method(rb_cSprite, "set_origin", _rbf rb_Sprite_setOrigin, 2);
+    rb_define_method(rb_cSprite, "zoom=", _rbf rb_Sprite_setZoom, 1);
+    rb_define_method(rb_cSprite, "opacity", _rbf rb_Sprite_getOpacity, 0);
+    rb_define_method(rb_cSprite, "opacity=", _rbf rb_Sprite_setOpacity, 1);
 
     rb_define_method(rb_cSprite, "clone", _rbf rb_Sprite_Copy, 0);
     rb_define_method(rb_cSprite, "dup", _rbf rb_Sprite_Copy, 0);
 
     rb_Sprite_ivViewport = rb_intern("@viewport");
     rb_Sprite_ivBitmap = rb_intern("@bitmap");
+    /* I use instance variable for performance and to have right values */
+    rb_Sprite_ivX = rb_intern("@x");
+    rb_Sprite_ivY = rb_intern("@y");
+    rb_Sprite_ivOX = rb_intern("@ox");
+    rb_Sprite_ivOY = rb_intern("@oy");
+    rb_Sprite_ivAngle = rb_intern("@angle");
+    rb_Sprite_ivZoomX = rb_intern("@zoom_x");
+    rb_Sprite_ivZoomY = rb_intern("@zoom_y");
 }
 
 VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
@@ -66,7 +103,14 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
     }
     /* Ajout à la table de sauvegarde */
     rb_ary_push(table, self);
-
+    /* Initializing Instance variables */
+    rb_ivar_set(self, rb_Sprite_ivX, LONG2FIX(0));
+    rb_ivar_set(self, rb_Sprite_ivY, LONG2FIX(0));
+    rb_ivar_set(self, rb_Sprite_ivOX, LONG2FIX(0));
+    rb_ivar_set(self, rb_Sprite_ivOY, LONG2FIX(0));
+    rb_ivar_set(self, rb_Sprite_ivAngle, LONG2FIX(0));
+    rb_ivar_set(self, rb_Sprite_ivZoomX, LONG2FIX(1));
+    rb_ivar_set(self, rb_Sprite_ivZoomY, LONG2FIX(1));
     return self;
 }
 
@@ -127,4 +171,207 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
     // TODO
     rb_ivar_set(self, rb_Sprite_ivBitmap, bitmap);
     return self;
+}
+
+VALUE rb_Sprite_getBitmap(VALUE self)
+{
+    SPRITE_PROTECT
+    return rb_ivar_get(self, rb_Sprite_ivBitmap);
+}
+
+VALUE rb_Sprite_setX(VALUE self, VALUE val)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sf::Sprite* sp = sprite->getSprite();
+    const sf::Vector2f vect = sp->getPosition();
+    sp->setPosition(static_cast<float>(rb_num2long(val)), vect.y);
+    rb_ivar_set(self, rb_Sprite_ivX, val);
+    return val;
+}
+
+VALUE rb_Sprite_getX(VALUE self)
+{
+    SPRITE_PROTECT
+    return rb_ivar_get(self, rb_Sprite_ivX);
+}
+
+VALUE rb_Sprite_setY(VALUE self, VALUE val)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sf::Sprite* sp = sprite->getSprite();
+    const sf::Vector2f vect = sp->getPosition();
+    sp->setPosition(vect.x, static_cast<float>(rb_num2long(val)));
+    rb_ivar_set(self, rb_Sprite_ivY, val);
+    return val;
+}
+
+VALUE rb_Sprite_getY(VALUE self)
+{
+    SPRITE_PROTECT
+    return rb_ivar_get(self, rb_Sprite_ivY);
+}
+
+VALUE rb_Sprite_setOX(VALUE self, VALUE val)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sf::Sprite* sp = sprite->getSprite();
+    const sf::Vector2f vect = sp->getOrigin();
+    sp->setOrigin(static_cast<float>(rb_num2long(val)), vect.y);
+    rb_ivar_set(self, rb_Sprite_ivOX, val);
+    return val;
+}
+
+VALUE rb_Sprite_getOX(VALUE self)
+{
+    SPRITE_PROTECT
+    return rb_ivar_get(self, rb_Sprite_ivOX);
+}
+
+VALUE rb_Sprite_setOY(VALUE self, VALUE val)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sf::Sprite* sp = sprite->getSprite();
+    const sf::Vector2f vect = sp->getOrigin();
+    sp->setOrigin(vect.x, static_cast<float>(rb_num2long(val)));
+    rb_ivar_set(self, rb_Sprite_ivOY, val);
+    return val;
+}
+
+VALUE rb_Sprite_getOY(VALUE self)
+{
+    SPRITE_PROTECT
+    return rb_ivar_get(self, rb_Sprite_ivOY);
+}
+
+VALUE rb_Sprite_setVisible(VALUE self, VALUE val)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sprite->setVisible(RTEST(val));
+    return val;
+}
+
+VALUE rb_Sprite_getVisible(VALUE self)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    return sprite->getVisible() ? Qtrue : Qfalse;
+}
+
+VALUE rb_Sprite_setAngle(VALUE self, VALUE val)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sprite->getSprite()->setRotation(static_cast<float>(rb_num2dbl(val)));
+    rb_ivar_set(self, rb_Sprite_ivAngle, val);
+    return val;
+}
+
+VALUE rb_Sprite_getAngle(VALUE self)
+{
+    SPRITE_PROTECT
+    return rb_ivar_get(self, rb_Sprite_ivAngle);
+}
+
+VALUE rb_Sprite_setZoomX(VALUE self, VALUE val)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sf::Sprite* sp = sprite->getSprite();
+    const sf::Vector2f vect = sp->getScale();
+    sp->setScale(static_cast<float>(rb_num2dbl(val)), vect.y);
+    rb_ivar_set(self, rb_Sprite_ivZoomX, val);
+    return val;
+}
+
+VALUE rb_Sprite_getZoomX(VALUE self)
+{
+    SPRITE_PROTECT
+    return rb_ivar_get(self, rb_Sprite_ivZoomX);
+}
+
+VALUE rb_Sprite_setZoomY(VALUE self, VALUE val)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sf::Sprite* sp = sprite->getSprite();
+    const sf::Vector2f vect = sp->getScale();
+    sp->setScale(vect.x, static_cast<float>(rb_num2dbl(val)));
+    rb_ivar_set(self, rb_Sprite_ivZoomY, val);
+    return val;
+}
+
+VALUE rb_Sprite_getZoomY(VALUE self)
+{
+    SPRITE_PROTECT
+    return rb_ivar_get(self, rb_Sprite_ivZoomY);
+}
+
+
+VALUE rb_Sprite_setPosition(VALUE self, VALUE x, VALUE y)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sprite->getSprite()->setPosition(static_cast<float>(rb_num2long(x)), static_cast<float>(rb_num2long(y)));
+    rb_ivar_set(self, rb_Sprite_ivY, y);
+    rb_ivar_set(self, rb_Sprite_ivX, x);
+    return self;
+}
+
+VALUE rb_Sprite_setOrigin(VALUE self, VALUE x, VALUE y)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sprite->getSprite()->setOrigin(static_cast<float>(rb_num2long(x)), static_cast<float>(rb_num2long(y)));
+    rb_ivar_set(self, rb_Sprite_ivOY, y);
+    rb_ivar_set(self, rb_Sprite_ivOX, x);
+    return self;
+}
+
+VALUE rb_Sprite_setZoom(VALUE self, VALUE zoom)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    float scale = static_cast<float>(rb_num2dbl(zoom));
+    sprite->getSprite()->setScale(scale, scale);
+    rb_ivar_set(self, rb_Sprite_ivZoomY, zoom);
+    rb_ivar_set(self, rb_Sprite_ivZoomX, zoom);
+    return zoom;
+}
+
+VALUE rb_Sprite_setOpacity(VALUE self, VALUE val)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sf::Sprite* sp = sprite->getSprite();
+    const sf::Color col = sp->getColor();
+    sp->setColor(sf::Color(col.r, col.g, col.b, normalize_long(rb_num2long(val), 0, 255)));
+    return val;
+}
+
+VALUE rb_Sprite_getOpacity(VALUE self)
+{
+    SPRITE_PROTECT
+    CSprite_Element* sprite;
+    Data_Get_Struct(self, CSprite_Element, sprite);
+    sf::Sprite* sp = sprite->getSprite();
+    const sf::Color col = sp->getColor();
+    return rb_int2inum(col.r);
 }
