@@ -1,6 +1,7 @@
 #files being edited
 *~
 
+
 # make and build files
 *.lst
 *.o
@@ -11,3 +12,6 @@
 
 # Resources
 *.bmp
+
+# Other things
+.vscode
