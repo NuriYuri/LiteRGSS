@@ -1,0 +1,13 @@
+#files being edited
+*~
+
+# make and build files
+*.lst
+*.o
+*.eep
+*.lss
+*.map
+*.sym
+
+# Resources
+*.bmp
