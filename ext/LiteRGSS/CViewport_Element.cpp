@@ -8,3 +8,13 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
         (*sp)->draw(target);
     }
 }
+
+void CViewport_Element::bindSprite(CSprite_Element* sprite)
+{
+    stack.push_back(sprite);
+}
+
+void CViewport_Element::clearStack() 
+{
+    stack.clear();
+}

@@ -17,5 +17,6 @@ extern "C" {
     Init_Bitmap();
     Init_Sprite();
     Init_Rect();
+    Init_Viewport();
   }
 }

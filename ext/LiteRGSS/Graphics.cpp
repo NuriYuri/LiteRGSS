@@ -8,6 +8,8 @@
 VALUE rb_mGraphics = Qnil;
 VALUE rb_eStoppedGraphics = Qnil;
 VALUE rb_eClosedWindow = Qnil;
+long ScreenWidth = 640;
+long ScreenHeight = 480;
 sf::RenderWindow* game_window = nullptr;
 bool InsideGraphicsUpdate = false;
 std::vector<CDrawable_Element*> Graphics_stack;
@@ -186,6 +188,8 @@ void __LoadVideoModeFromConfigs(sf::VideoMode& vmode)
     /* Adjust Height */
     if(rb_const_defined(rb_mConfig, sheight))
         vmode.height = normalize_long(rb_num2long(rb_const_get(rb_mConfig, sheight)), 144, max_height);
+    ScreenWidth = vmode.width;
+    ScreenHeight = vmode.height;
 }
 
 const sf::String __LoadTitleFromConfigs()

@@ -18,5 +18,6 @@ class CViewport_Element : public CDrawable_Element {
     void setOx(long nox) {ox = nox;};
     void setOy(long noy) {oy = noy;};
     void bindSprite(CSprite_Element* sprite);
+    void clearStack();
 };
 #endif

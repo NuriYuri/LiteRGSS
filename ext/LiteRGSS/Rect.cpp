@@ -3,6 +3,7 @@
 #include "CRect_Element.h"
 #include "CViewport_Element.h"
 #include "Rect.h"
+#include "Viewport.h"
 #include <string>
 
 VALUE rb_cRect = Qnil;
@@ -98,12 +99,7 @@ VALUE rb_Rect_initialize_copy(VALUE self, VALUE other)
     Data_Get_Struct(self, CRect_Element, rect);
     CRect_Element* rect2;
     Data_Get_Struct(other, CRect_Element, rect2);
-    sf::IntRect* srect = rect->getRect();
-    sf::IntRect* srect2 = rect2->getRect();
-    srect->left = srect2->left;
-    srect->top = srect2->top;
-    srect->width = srect2->width;
-    srect->height = srect2->height;
+    rect_copy(rect->getRect(), rect2->getRect());
     rect2->setElement(nullptr);
     return self;
 }
@@ -315,7 +311,9 @@ void __Rect_Check_LinkedObject(CRect_Element* rect)
     /* Viewport processing */
     if(el->isViewport())
     {
-
+        sf::IntRect* srect = rect->getRect();
+        Viewport_SetView(reinterpret_cast<CViewport_Element*>(el), 
+            srect->left, srect->top, srect->width, srect->height);
     }
     /* Sprite Processing */
     else if(el->isPureSprite())

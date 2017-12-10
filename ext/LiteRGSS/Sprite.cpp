@@ -69,6 +69,7 @@ void Init_Sprite() {
     rb_define_method(rb_cSprite, "opacity=", _rbf rb_Sprite_setOpacity, 1);
     rb_define_method(rb_cSprite, "src_rect", _rbf rb_Sprite_getRect, 0);
     rb_define_method(rb_cSprite, "src_rect=", _rbf rb_Sprite_setRect, 1);
+    rb_define_method(rb_cSprite, "disposed?", _rbf rb_Sprite_Disposed, 0);
 
     rb_define_method(rb_cSprite, "clone", _rbf rb_Sprite_Copy, 0);
     rb_define_method(rb_cSprite, "dup", _rbf rb_Sprite_Copy, 0);
@@ -92,7 +93,7 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
     Data_Get_Struct(self, CSprite_Element, sprite);
     VALUE table;
     /* If a viewport was specified */
-    if(argc == 1 /*&& rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue)//rb_class_of(argv[0]) == rb_cViewport*/ && false)
+    if(argc == 1 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue)//rb_class_of(argv[0]) == rb_cViewport*/ && false)
     {
         CViewport_Element* viewport;
         Data_Get_Struct(argv[0], CViewport_Element, viewport);
@@ -142,6 +143,12 @@ VALUE rb_Sprite_Dispose(VALUE self)
     sprite->setOriginStack(nullptr);
     delete sprite;
     return self;
+}
+
+VALUE rb_Sprite_Disposed(VALUE self)
+{
+    rb_check_type(self, T_DATA);
+    return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
 }
 
 VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
@@ -397,12 +404,8 @@ VALUE rb_Sprite_getRect(VALUE self)
     CSprite_Element* sprite;
     Data_Get_Struct(self, CSprite_Element, sprite);
     /* Setting rect parameter */
-    sf::IntRect orect = sprite->getSprite()->getTextureRect();
-    sf::IntRect* nrect = rect->getRect();
-    nrect->left = orect.left;
-    nrect->top = orect.top;
-    nrect->width = orect.width;
-    nrect->height = orect.height;
+    const sf::IntRect rectorigin = sprite->getSprite()->getTextureRect();
+    rect_copy(rect->getRect(), &rectorigin);
     /* Linking Rect */
     rect->setElement(sprite);
     rb_ivar_set(self, rb_Sprite_ivRect, rc);
@@ -424,16 +427,12 @@ VALUE rb_Sprite_setRect(VALUE self, VALUE val)
     /* Getting data to update the rect */
     CRect_Element* rect1;
     Data_Get_Struct(val, CRect_Element, rect1);
-    sf::IntRect* srecto = rect1->getRect();
     CRect_Element* rect2;
     Data_Get_Struct(rc, CRect_Element, rect2);
-    sf::IntRect* srectt = rect2->getRect();
-    /* Updating the value */
-    srectt->left = srecto->left;
-    srectt->top = srecto->top;
-    srectt->width = srecto->width;
-    srectt->height = srecto->height;
+    /* Copying the rect */
+    sf::IntRect* rect_target = rect2->getRect();
+    rect_copy(rect_target, rect1->getRect());
     /* Updating the texture rect */
-    sprite->getSprite()->setTextureRect(*srectt);
+    sprite->getSprite()->setTextureRect(*rect_target);
     return val;
 }
