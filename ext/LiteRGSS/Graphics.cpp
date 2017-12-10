@@ -3,6 +3,7 @@
 #include "ruby/thread.h"
 #include "LiteRGSS.h"
 #include "Graphics.h"
+#include "CViewport_Element.h"
 
 /* Variables definition */
 VALUE rb_mGraphics = Qnil;
@@ -50,6 +51,11 @@ VALUE rb_Graphics_start(VALUE self)
 {
     if(game_window != nullptr)
         return Qnil;
+    /* Shader Loading */
+    if (!sf::Shader::isAvailable())
+        rb_raise(rb_eRGSSError, "Shaders are not available :(");
+    CViewport_Element::load_globalshader();
+    /* Window Loading */
     sf::VideoMode vmode(640, 480, 32);
     __LoadVideoModeFromConfigs(vmode);
     game_window = new sf::RenderWindow(vmode, __LoadTitleFromConfigs());
@@ -158,6 +164,7 @@ VALUE __Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message)
 void __Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 {
     bool was_viewport = true;
+    CViewport_Element::reset_globalshader();
     for(auto element = stack->begin();element != stack->end(); element++)
     {
         if(was_viewport && !(*element)->isViewport())

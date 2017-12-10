@@ -19,6 +19,7 @@ bmp = Bitmap.new("cb.bmp")
 @a.angle = 45
 @a.x = w / 2
 @a.y = h / 2
+@a.opacity = 50
 @running = true
 i = 0
 Graphics.instance_variable_set(:@on_close, proc { @running = false }) # The block returns false, it's important !
