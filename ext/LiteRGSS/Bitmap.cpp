@@ -33,7 +33,7 @@ void Init_Bitmap()
     rb_cBitmap = rb_define_class_under(rb_mLiteRGSS, "Bitmap", rb_cObject);
     rb_define_alloc_func(rb_cBitmap, rb_Bitmap_Alloc);
     rb_define_method(rb_cBitmap, "initialize", _rbf rb_Bitmap_Initialize, -1);
-    rb_define_method(rb_cBitmap, "initialize_copy", _rbf rb_Bitmap_Initialize_Copy, -1);
+    rb_define_method(rb_cBitmap, "initialize_copy", _rbf rb_Bitmap_Initialize_Copy, 1);
     rb_define_method(rb_cBitmap, "dispose", _rbf rb_Bitmap_Dispose, 0);
 }
 
@@ -77,14 +77,24 @@ VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self)
 
 VALUE rb_Bitmap_Initialize_Copy(VALUE self, VALUE other)
 {
+    //rb_notimplement();
     rb_check_frozen(self);
+    if(rb_obj_is_kind_of(other, rb_cBitmap) != Qtrue)
+    {
+        rb_raise(rb_eTypeError, "Cannot clone %s into Bitmap.", RSTRING_PTR(rb_class_name(CLASS_OF(other))));
+        return self;
+    }
     CBitmap_Element* bitmap;
     CBitmap_Element* bitmapo;
     Data_Get_Struct(self, CBitmap_Element, bitmap);
-    Data_Get_Struct(self, CBitmap_Element, bitmapo);
+    Data_Get_Struct(other, CBitmap_Element, bitmapo);
     if(bitmapo == nullptr)
         rb_raise(rb_eRGSSError, "Disposed Bitmap.");
-    
+    sf::Image* img = bitmap->getImage();
+    sf::Image* oimg = bitmapo->getImage();
+    sf::Vector2u sz = oimg->getSize();
+    img->create(sz.x, sz.y, oimg->getPixelsPtr());
+    bitmap->getTexture()->loadFromImage(*img);
     return self;
 }
 

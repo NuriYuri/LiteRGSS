@@ -11,5 +11,6 @@ class CDrawable_Element {
     void setOriginStack(std::vector<CDrawable_Element*> *o);
     virtual void draw(sf::RenderTarget& target) const = 0;
     virtual bool isViewport() const = 0;
+    virtual bool isPureSprite() const = 0;
 };
 #endif

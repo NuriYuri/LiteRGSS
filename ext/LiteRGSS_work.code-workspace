@@ -10,7 +10,8 @@
 			"rope": "cpp",
 			"slist": "cpp",
 			"system_error": "cpp",
-			"string_view": "cpp"
+			"string_view": "cpp",
+			"scoped_allocator": "cpp"
 		}
 	}
 }

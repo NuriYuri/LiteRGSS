@@ -28,4 +28,6 @@ VALUE rb_Sprite_setOrigin(VALUE self, VALUE x, VALUE y);
 VALUE rb_Sprite_setZoom(VALUE self, VALUE zoom);
 VALUE rb_Sprite_setOpacity(VALUE self, VALUE val);
 VALUE rb_Sprite_getOpacity(VALUE self);
+VALUE rb_Sprite_getRect(VALUE self);
+VALUE rb_Sprite_setRect(VALUE self, VALUE val);
 #endif
