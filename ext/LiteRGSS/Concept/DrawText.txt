@@ -1,0 +1,75 @@
+Draw text ne sera pas assuré par la classe Bitmap (après discussions) mais par un équivalent du Sprite :
+Text
+Propriété des textes :
+- Ils peuvent être affichés dans un Viewport mais ne sont pas affecté par les shaders
+- Ils contiennent le texte à afficher plutôt que l'image à afficher.
+- Ils chargent le font par un ID
+- Ils ont une propriété d'alignement
+- Ils ont une propriété de nombre de caractères affichés (max par défaut)
+- Ils ont leur taille globale (width / height) en plus de leur coordonnées
+
+Les fonts
+Les fonts sont chargés à l'aide d'un module "Fonts" qui a les fonctions suivantes :
+Fonts.load_font(id, filename)
+Fonts.set_default_size(id, size) #Taille par défaut
+
+Tous les Texts chargent le Font 0 s'il n'est pas demandé au chargement.
+
+Tests réalisés pour jauger des performences :
+Un font a été chargé
+
+sf::Font font;
+[...]
+    font.loadFromFile("PokemonDS.ttf"); // TEST<>
+
+Un tableau de text a été définit (UTF-8 en théorie)
+const char* strs[20] = {
+    "Bulbizarre passe son temps à faire la sieste sous le soleil. Il y a une graine sur son dos. Il absorbe les rayons du soleil pour faire doucement pousser la graine.",
+    "La flamme qui brûle au bout de sa queue indique l’humeur de ce Pokémon. Elle vacille lorsque Salamèche est content. En revanche, lorsqu’il s’énerve, la flamme prend de l’importance et brûle plus ardemment.",
+    "La carapace de Carapuce ne sert pas qu’à le protéger. La forme ronde de sa carapace et ses rainures lui permettent d’améliorer son hydrodynamisme. Ce Pokémon nage extrêmement vite.",
+    "Chenipan a un appétit d’ogre. Il peut engloutir des feuilles plus grosses que lui. Les antennes de ce Pokémon dégagent une odeur particulièrement entêtante.",
+    "L’odorat d’Aspicot est extrêmement développé. Il lui suffit de renifler ses feuilles préférées avec son gros appendice nasal pour les reconnaître entre mille.",
+    "Roucool a un excellent sens de l’orientation. Il est capable de retrouver son nid sans jamais se tromper, même s’il est très loin de chez lui et dans un environnement qu’il ne connaît pas.",
+    "Rattata est extrêmement prudent. Même lorsqu’il est endormi, il fait pivoter ses oreilles pour écouter autour de lui. En ce qui concerne son habitat, il n’est vraiment pas difficile. Il peut faire son nid n’importe où.",
+    "Piafabec crie tellement fort qu’il peut être entendu à 1 km de distance. Ces Pokémon se préviennent d’un danger en entonnant une mélopée très aiguë, qu’ils se renvoient les uns les autres, comme un écho.",
+    "Abo s’enroule en spirale pour dormir. Sa tête reste relevée de telle sorte que cette position lui permette de réagir rapidement si une menace survenait.",
+    "Ce Pokémon libère un faible champ électrique tout autour de son corps, ce qui le rend légèrement lumineux dans le noir. Raichu plante sa queue dans le sol pour évacuer de l’électricité.",
+    "Sabelette a une peau très sèche et extrêmement dure. Ce Pokémon peut s’enrouler sur lui-même pour repousser les attaques. La nuit, il s’enterre dans le sable du désert pour dormir.",
+    "Nidoran♀ est couvert de pointes qui sécrètent un poison puissant. On pense que ce petit Pokémon a développé ces pointes pour se défendre. Lorsqu’il est en colère, une horrible toxine sort de sa corne.",
+    "Nidoran♂ a développé des muscles pour bouger ses oreilles. Ainsi, il peut les orienter à sa guise. Ce Pokémon peut entendre le plus discret des bruits.",
+    "Les nuits de pleine lune, des groupes de ces Pokémon sortent jouer. Lorsque l’aube commence à poindre, les Mélofée fatigués rentrent dans leur retraite montagneuse et vont dormir, blottis les uns contre les autres.",
+    "À l’intérieur du corps de Goupix se trouve une flamme qui ne s’éteint jamais. Pendant la journée, lorsque la température augmente, ce Pokémon crache des flammes pour éviter que son corps ne devienne trop chaud.",
+    "Lorsque ce Pokémon chante, il ne s’arrête pas pour respirer. Quand il se bat contre un adversaire qu’il ne peut pas facilement endormir, Rondoudou reste donc sans respirer, mettant sa vie en danger.",
+    "Nosferapti évite la lumière du soleil, car ça le rend malade. Pendant la journée, il reste dans les cavernes ou à l’ombre des vieilles maisons, où il dort, la tête à l’envers.",
+    "Mystherbe cherche un sol fertile et riche en nutriments, pour s’y planter. Pendant la journée, quand il est planté, les pieds de ce Pokémon changent de forme et deviennent similaires à des racines.",
+    "Paras accueille des champignons parasites appelés tochukaso qui poussent sur son dos. Ils grandissent grâce aux nutriments trouvés sur le dos de ce Pokémon Insecte. Ils peuvent rallonger l’espérance de vie.",
+    "Miaouss peut rentrer ses griffes dans ses pattes pour rôder gracieusement sans laisser de traces. Étrangement, ce Pokémon raffole des pièces d’or qui brillent à la lumière."
+};
+
+Ce tableau de text a été rendu sur l'écran puis plus tard dans une RenderTexture
+
+sf::RenderTexture rtext;
+[...]
+    rtext.create(1280, 640); // Test<>
+[...]
+    rtext.clear(sf::Color(0, 0, 0, 0));
+    for(int i = 0;i < 20; i++)
+    {
+        std::string str(strs[i%20]);
+        sf::Text text(sf::String::fromUtf8(str.begin(), str.end()), font, 13);
+        text.setFillColor(sf::Color(0x5E5E5EFF));
+        text.setPosition(1, 16*i);
+        rtext.draw(text);//game_window->draw(text);
+        text.setPosition(1, 1+16*i);
+        rtext.draw(text);//game_window->draw(text);
+        text.setPosition(0, 1+16*i);
+        rtext.draw(text);//game_window->draw(text);
+        text.setFillColor(sf::Color::White);
+        text.setPosition(0, 16*i);
+        rtext.draw(text);//game_window->draw(text);
+    }
+    rtext.display();
+    sf::Sprite sp(rtext.getTexture());
+    game_window->draw(sp);
+
+Sur ces configurations : 0 pertes de FPS, alors qu'en RGSS ça tournerait plutôt autour de 30 FPS voir 10 vu le volume de texte.

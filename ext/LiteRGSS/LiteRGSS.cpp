@@ -18,5 +18,6 @@ extern "C" {
     Init_Sprite();
     Init_Rect();
     Init_Viewport();
+    Init_Color();
   }
 }

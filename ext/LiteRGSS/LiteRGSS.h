@@ -14,6 +14,7 @@ extern VALUE rb_cBitmap;
 extern VALUE rb_cSprite;
 extern VALUE rb_cRect;
 extern VALUE rb_cViewport;
+extern VALUE rb_cColor;
 
 extern VALUE rb_eRGSSError;
 
@@ -25,6 +26,7 @@ void Init_Bitmap();
 void Init_Sprite();
 void Init_Rect();
 void Init_Viewport();
+void Init_Color();
 
 inline long normalize_long(long value, long min, long max) {
     if(value < min)

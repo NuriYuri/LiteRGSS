@@ -83,6 +83,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     /* Viewport setting */
     CViewport_Element* viewport;
     Data_Get_Struct(self, CViewport_Element, viewport);
+    VIEWPORT_PROTECT
     VALUE table;
     __Graphics_Bind(viewport);
     table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
@@ -115,9 +116,9 @@ void __Viewport_Dispose_AllSprite(VALUE table)
 
 VALUE rb_Viewport_Dispose(VALUE self)
 {
-    VIEWPORT_PROTECT
     CViewport_Element* viewport;
     Data_Get_Struct(self, CViewport_Element, viewport);
+    VIEWPORT_PROTECT
     RDATA(self)->data = nullptr;
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_delete(table, self);
@@ -148,17 +149,17 @@ void Viewport_AdjustOXY(CViewport_Element* viewport, VALUE rect)
 
 VALUE rb_Viewport_getOX(VALUE self)
 {
-    VIEWPORT_PROTECT
     CViewport_Element* viewport;
     Data_Get_Struct(self, CViewport_Element, viewport);
+    VIEWPORT_PROTECT
     return rb_int2inum(viewport->getOx());
 }
 
 VALUE rb_Viewport_setOX(VALUE self, VALUE val)
 {
-    VIEWPORT_PROTECT
     CViewport_Element* viewport;
     Data_Get_Struct(self, CViewport_Element, viewport);
+    VIEWPORT_PROTECT
     viewport->setOx(rb_num2long(val));
     Viewport_AdjustOXY(viewport, rb_ivar_get(self, rb_Viewport_ivRect));
     return val;
@@ -166,17 +167,17 @@ VALUE rb_Viewport_setOX(VALUE self, VALUE val)
 
 VALUE rb_Viewport_getOY(VALUE self)
 {
-    VIEWPORT_PROTECT
     CViewport_Element* viewport;
     Data_Get_Struct(self, CViewport_Element, viewport);
+    VIEWPORT_PROTECT
     return rb_int2inum(viewport->getOx());
 }
 
 VALUE rb_Viewport_setOY(VALUE self, VALUE val)
 {
-    VIEWPORT_PROTECT
     CViewport_Element* viewport;
     Data_Get_Struct(self, CViewport_Element, viewport);
+    VIEWPORT_PROTECT
     viewport->setOy(rb_num2long(val));
     Viewport_AdjustOXY(viewport, rb_ivar_get(self, rb_Viewport_ivRect));
     return val;
@@ -184,6 +185,7 @@ VALUE rb_Viewport_setOY(VALUE self, VALUE val)
 
 VALUE rb_Viewport_getRect(VALUE self)
 {
+    rb_check_type(self, T_DATA);
     VIEWPORT_PROTECT
     return rb_ivar_get(self, rb_Viewport_ivRect);
 }

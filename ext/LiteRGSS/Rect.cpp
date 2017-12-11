@@ -65,6 +65,7 @@ VALUE rb_Rect_initialize(int argc, VALUE* argv, VALUE self)
     rb_scan_args(argc, argv, "22", &x, &y, &width, &height);
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     /* Parameter normalization */
     if(NIL_P(width))
     {
@@ -92,13 +93,12 @@ VALUE rb_Rect_initialize(int argc, VALUE* argv, VALUE self)
 
 VALUE rb_Rect_initialize_copy(VALUE self, VALUE other)
 {
-    RECT_PROTECT
-    rb_check_type(other, T_DATA);
-    if(RDATA(other)->data == nullptr) { return Qnil; }
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     CRect_Element* rect2;
     Data_Get_Struct(other, CRect_Element, rect2);
+    if(RDATA(other)->data == nullptr) { return Qnil; }
     rect_copy(rect->getRect(), rect2->getRect());
     rect2->setElement(nullptr);
     return self;
@@ -112,11 +112,11 @@ VALUE rb_Rect_initialize_copy(VALUE self, VALUE other)
  */
 VALUE rb_Rect_set(int argc, VALUE* argv, VALUE self)
 {
-    RECT_PROTECT
     VALUE x, y, width, height;
     rb_scan_args(argc, argv, "13", &x, &y, &width, &height);
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     sf::IntRect* srect = rect->getRect();
     if(!NIL_P(x))
         srect->left = rb_num2long(x);
@@ -132,17 +132,17 @@ VALUE rb_Rect_set(int argc, VALUE* argv, VALUE self)
 
 VALUE rb_Rect_getX(VALUE self)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     return rb_int2inum(rect->getRect()->left);
 }
 
 VALUE rb_Rect_setX(VALUE self, VALUE val)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     rect->getRect()->left = rb_num2long(val);
     __Rect_Check_LinkedObject(rect);
     return val;
@@ -150,17 +150,17 @@ VALUE rb_Rect_setX(VALUE self, VALUE val)
 
 VALUE rb_Rect_getY(VALUE self)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     return rb_int2inum(rect->getRect()->top);
 }
 
 VALUE rb_Rect_setY(VALUE self, VALUE val)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     rect->getRect()->top = rb_num2long(val);
     __Rect_Check_LinkedObject(rect);
     return val;
@@ -168,17 +168,17 @@ VALUE rb_Rect_setY(VALUE self, VALUE val)
 
 VALUE rb_Rect_getWidth(VALUE self)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     return rb_int2inum(rect->getRect()->width);
 }
 
 VALUE rb_Rect_setWidth(VALUE self, VALUE val)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     rect->getRect()->width = rb_num2long(val);
     __Rect_Check_LinkedObject(rect);
     return val;
@@ -186,17 +186,17 @@ VALUE rb_Rect_setWidth(VALUE self, VALUE val)
 
 VALUE rb_Rect_getHeight(VALUE self)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     return rb_int2inum(rect->getRect()->height);
 }
 
 VALUE rb_Rect_setHeight(VALUE self, VALUE val)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     rect->getRect()->height = rb_num2long(val);
     __Rect_Check_LinkedObject(rect);
     return val;
@@ -221,9 +221,9 @@ VALUE rb_Rect_load(VALUE self, VALUE str)
 
 VALUE rb_Rect_save(VALUE self, VALUE limit)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     sf::IntRect* srect = rect->getRect();
     int rc[4];
     rc[0] = srect->left;
@@ -235,9 +235,9 @@ VALUE rb_Rect_save(VALUE self, VALUE limit)
 
 VALUE rb_Rect_eql_rect(CRect_Element* rect, VALUE self)
 {
-    RECT_PROTECT
     CRect_Element* rect2;
     Data_Get_Struct(self, CRect_Element, rect2);
+    RECT_PROTECT
     sf::IntRect* or1 = rect->getRect();
     sf::IntRect* or2 = rect2->getRect();
     if(or1->left != or2->left)
@@ -270,9 +270,9 @@ VALUE rb_Rect_eql_array(CRect_Element* rect, VALUE oth)
 
 VALUE rb_Rect_eql(VALUE self, VALUE other)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     if(rb_obj_is_kind_of(other, rb_cRect) == Qtrue)
     {
         return rb_Rect_eql_rect(rect, other);
@@ -286,9 +286,9 @@ VALUE rb_Rect_eql(VALUE self, VALUE other)
 
 VALUE rb_Rect_empty(VALUE self)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     sf::IntRect* srect = rect->getRect();
     srect->left = srect->top = srect->width = srect->height = 0;
     return self;
@@ -296,9 +296,9 @@ VALUE rb_Rect_empty(VALUE self)
 
 VALUE rb_Rect_to_s(VALUE self)
 {
-    RECT_PROTECT
     CRect_Element* rect;
     Data_Get_Struct(self, CRect_Element, rect);
+    RECT_PROTECT
     sf::IntRect* srect = rect->getRect();
     return rb_sprintf("(%d, %d, %d, %d)", srect->left, srect->top, srect->width, srect->height);
 }

@@ -3,7 +3,6 @@
 #include "Bitmap.h"
 #include "CBitmap_Element.h"
 #include <SFML/Graphics.hpp>
-#include <iostream>
 
 VALUE rb_cBitmap = Qnil;
 
@@ -35,37 +34,37 @@ void Init_Bitmap()
     rb_define_method(rb_cBitmap, "initialize", _rbf rb_Bitmap_Initialize, -1);
     rb_define_method(rb_cBitmap, "initialize_copy", _rbf rb_Bitmap_Initialize_Copy, 1);
     rb_define_method(rb_cBitmap, "dispose", _rbf rb_Bitmap_Dispose, 0);
+    rb_define_method(rb_cBitmap, "disposed?", _rbf rb_Bitmap_Disposed, 0);
 }
 
 VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self)
 {
-    VALUE width, height;
+    VALUE string, fromMemory;
     CBitmap_Element* bitmap;
     Data_Get_Struct(self, CBitmap_Element, bitmap);
+    BITMAP_PROTECT
+    rb_scan_args(argc, argv, "11", &string, &fromMemory);
     sf::Texture* text = bitmap->getTexture();
-    rb_scan_args(argc, argv, "11", &width, &height);
     /* Load From filename */
-    if(NIL_P(height))
+    if(NIL_P(fromMemory))
     {
-        rb_check_type(width, T_STRING);
-        if(!text->loadFromFile(RSTRING_PTR(width)))
+        rb_check_type(string, T_STRING);
+        if(!text->loadFromFile(RSTRING_PTR(string)))
         {
             errno = ENOENT;
-            rb_sys_fail(RSTRING_PTR(width));
+            rb_sys_fail(RSTRING_PTR(string));
         }
     }
     /* Load From Memory */
-    else if(width == Qtrue)
+    else if(fromMemory == Qtrue)
     {
-        rb_check_type(width, T_STRING);
-        if(!text->loadFromMemory(RSTRING_PTR(width), RSTRING_LEN(width)))
+        rb_check_type(string, T_STRING);
+        if(!text->loadFromMemory(RSTRING_PTR(string), RSTRING_LEN(string)))
             rb_raise(rb_eRGSSError, "Failed to load bitmap from memory.");
     }
-    /* Create a new Bitmap */
     else
     {
-        if(!text->create(rb_num2ulong(width), rb_num2ulong(height)))
-            rb_raise(rb_eRGSSError, "Failed to create bitmap with such dimentions. (max: 8192x8192)");
+        rb_raise(rb_eRGSSError, "Bitmap no longer allow drawing, thus Bitmap.new(width, height) is not allowed.");
     }
     return self;
 }
@@ -93,7 +92,14 @@ VALUE rb_Bitmap_Dispose(VALUE self)
 {
     CBitmap_Element* bitmap;
     Data_Get_Struct(self, CBitmap_Element, bitmap);
+    BITMAP_PROTECT
     delete bitmap;
     RDATA(self)->data = nullptr;
     return self;
+}
+
+VALUE rb_Bitmap_Disposed(VALUE self)
+{
+    rb_check_type(self, T_DATA);
+    return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
 }
