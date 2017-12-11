@@ -5,6 +5,7 @@
 # make and build files
 *.lst
 *.o
+*.so
 *.eep
 *.lss
 *.map
@@ -12,7 +13,10 @@
 
 # Resources
 *.bmp
+*.ttf
 
 # Other things
 .vscode
+*.code-workspace
+*.directory
 tmp
