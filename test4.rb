@@ -33,7 +33,10 @@ puts rc == [1] # false
 #> Graphic Test
 bmp = Bitmap.new("cb.bmp")
 @a = Sprite.new
+t = Time.new
 @a.bitmap = bmp.clone
+p Time.new - t
+bmp = nil
 @a.ox = 75 / 2
 @a.oy = 60 / 2
 @a.angle = 45
@@ -46,6 +49,7 @@ bmp = Bitmap.new("cb.bmp")
 @running = true
 i = 0
 Graphics.instance_variable_set(:@on_close, proc { @running = false }) # The block returns false, it's important !
+GC.start
 t = Time.new
 while @running
   Graphics.update

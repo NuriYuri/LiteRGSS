@@ -42,13 +42,13 @@ VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self)
     VALUE width, height;
     CBitmap_Element* bitmap;
     Data_Get_Struct(self, CBitmap_Element, bitmap);
-    sf::Image* img = bitmap->getImage();
+    sf::Texture* text = bitmap->getTexture();
     rb_scan_args(argc, argv, "11", &width, &height);
     /* Load From filename */
     if(NIL_P(height))
     {
         rb_check_type(width, T_STRING);
-        if(!img->loadFromFile(RSTRING_PTR(width)))
+        if(!text->loadFromFile(RSTRING_PTR(width)))
         {
             errno = ENOENT;
             rb_sys_fail(RSTRING_PTR(width));
@@ -58,19 +58,14 @@ VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self)
     else if(width == Qtrue)
     {
         rb_check_type(width, T_STRING);
-        if(!img->loadFromMemory(RSTRING_PTR(width), RSTRING_LEN(width)))
-        {
+        if(!text->loadFromMemory(RSTRING_PTR(width), RSTRING_LEN(width)))
             rb_raise(rb_eRGSSError, "Failed to load bitmap from memory.");
-        }
     }
     /* Create a new Bitmap */
     else
     {
-        img->create(rb_num2ulong(width), rb_num2ulong(height));
-    }
-    if(!bitmap->getTexture()->loadFromImage(*img))
-    {
-        rb_raise(rb_eRGSSError, "Failed to create bitmap with such dimentions. (max: 8192x8192)");
+        if(!text->create(rb_num2ulong(width), rb_num2ulong(height)))
+            rb_raise(rb_eRGSSError, "Failed to create bitmap with such dimentions. (max: 8192x8192)");
     }
     return self;
 }
@@ -90,11 +85,7 @@ VALUE rb_Bitmap_Initialize_Copy(VALUE self, VALUE other)
     Data_Get_Struct(other, CBitmap_Element, bitmapo);
     if(bitmapo == nullptr)
         rb_raise(rb_eRGSSError, "Disposed Bitmap.");
-    sf::Image* img = bitmap->getImage();
-    sf::Image* oimg = bitmapo->getImage();
-    sf::Vector2u sz = oimg->getSize();
-    img->create(sz.x, sz.y, oimg->getPixelsPtr());
-    bitmap->getTexture()->loadFromImage(*img);
+    bitmap->copy(bitmapo);
     return self;
 }
 

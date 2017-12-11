@@ -6,7 +6,6 @@ class CSprite_Element : public CDrawable_Element {
     sf::Sprite sprite;
     bool drawable;
     bool visible;
-    sf::Shader shader;
     public:
     CSprite_Element() : CDrawable_Element(), drawable(false), visible(true) {};
     void draw(sf::RenderTarget& target) const override;
@@ -16,6 +15,5 @@ class CSprite_Element : public CDrawable_Element {
     void setDrawable(bool value) { drawable = value;};
     void setVisible(bool value) { visible = value;};
     bool getVisible() { return visible; };
-    void load_shader();
 };
 #endif

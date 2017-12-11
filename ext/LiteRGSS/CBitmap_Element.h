@@ -3,12 +3,16 @@
 #include <SFML/Graphics.hpp>
 
 class CBitmap_Element {
-    sf::Texture text;
-    sf::Image img;
+    sf::Texture* text;
+    sf::RenderTexture* render;
     public:
-    sf::Texture* getTexture();
-    sf::Image* getImage();
-    void copy(CBitmap_Element* original);
+        CBitmap_Element();
+        ~CBitmap_Element();
+        sf::Texture* getTexture();
+        sf::RenderTexture* getRender();
+        void copy(CBitmap_Element* original);
+    private:
+        void create_render();
 };
 
 #endif
