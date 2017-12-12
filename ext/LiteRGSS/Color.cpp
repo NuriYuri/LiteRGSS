@@ -11,6 +11,10 @@ VALUE rb_cColor = Qnil;
     return self; \
 }
 
+#define GET_COLOR sf::Color* color; \
+    Data_Get_Struct(self, sf::Color, color); \
+    COLOR_PROTECT
+
 void rb_Color_Free(void* data)
 {
     sf::Color* color = reinterpret_cast<sf::Color*>(data);
@@ -48,9 +52,7 @@ VALUE rb_Color_Initialize(int argc, VALUE* argv, VALUE self)
 {
     VALUE red, green, blue, alpha;
     rb_scan_args(argc, argv, "13", &red, &green, &blue, &alpha);
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
-    COLOR_PROTECT
+    GET_COLOR
     if(RTEST(red))
         color->r = normalize_long(rb_num2long(red), 0, 255);
     if(RTEST(green))
@@ -64,11 +66,9 @@ VALUE rb_Color_Initialize(int argc, VALUE* argv, VALUE self)
 
 VALUE rb_Color_InitializeCopy(VALUE self, VALUE original)
 {
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
+    GET_COLOR
     sf::Color* coloro;
     Data_Get_Struct(original, sf::Color, coloro);
-    COLOR_PROTECT
     if(RDATA(original)->data == nullptr)
         rb_raise(rb_eRGSSError, "Freed Color.");
     color->r = coloro->r;
@@ -80,68 +80,52 @@ VALUE rb_Color_InitializeCopy(VALUE self, VALUE original)
 
 VALUE rb_Color_getRed(VALUE self)
 {
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
-    COLOR_PROTECT
+    GET_COLOR
     return rb_int2inum(color->r);
 }
 
 VALUE rb_Color_setRed(VALUE self, VALUE red)
 {
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
-    COLOR_PROTECT
+    GET_COLOR
     color->r = normalize_long(rb_num2long(red), 0, 255);
     return self;
 }
 
 VALUE rb_Color_getGreen(VALUE self)
 {
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
-    COLOR_PROTECT
+    GET_COLOR
     return rb_int2inum(color->g);
 }
 
 VALUE rb_Color_setGreen(VALUE self, VALUE red)
 {
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
-    COLOR_PROTECT
+    GET_COLOR
     color->g = normalize_long(rb_num2long(red), 0, 255);
     return self;
 }
 
 VALUE rb_Color_getBlue(VALUE self)
 {
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
-    COLOR_PROTECT
+    GET_COLOR
     return rb_int2inum(color->b);
 }
 
 VALUE rb_Color_setBlue(VALUE self, VALUE red)
 {
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
-    COLOR_PROTECT
+    GET_COLOR
     color->b = normalize_long(rb_num2long(red), 0, 255);
     return self;
 }
 
 VALUE rb_Color_getAlpha(VALUE self)
 {
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
-    COLOR_PROTECT
+    GET_COLOR
     return rb_int2inum(color->a);
 }
 
 VALUE rb_Color_setAlpha(VALUE self, VALUE red)
 {
-    sf::Color* color;
-    Data_Get_Struct(self, sf::Color, color);
-    COLOR_PROTECT
+    GET_COLOR
     color->a = normalize_long(rb_num2long(red), 0, 255);
     return self;
 }

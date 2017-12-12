@@ -2,12 +2,14 @@
 #include "LiteRGSS.h"
 #include "CViewport_Element.h"
 #include "CRect_Element.h"
+#include "CTone_Element.h"
 #include "Graphics.h"
 #include "Sprite.h"
 #include "Viewport.h"
 
 VALUE rb_cViewport = Qnil;
 ID rb_Viewport_ivRect = Qnil;
+ID rb_Viewport_ivTone = Qnil;
 
 
 #define VIEWPORT_PROTECT if(RDATA(self)->data == nullptr) \
@@ -16,12 +18,26 @@ ID rb_Viewport_ivRect = Qnil;
     return self; \
 }
 
+#define GET_VIEWPORT CViewport_Element* viewport; \
+    Data_Get_Struct(self, CViewport_Element, viewport); \
+    VIEWPORT_PROTECT
+
 void rb_Viewport_Free(void* data)
 {
     CViewport_Element* viewport = reinterpret_cast<CViewport_Element*>(data);
     if(viewport)
     {
         viewport->setOriginStack(nullptr);
+        CRect_Element* rect = viewport->getLinkedRect();
+        if(rect != nullptr)
+        {
+            rect->setElement(nullptr);
+        }
+        CTone_Element* tone = viewport->getLinkedTone();
+        if(tone != nullptr)
+        {
+            tone->setElement(nullptr);
+        }
         delete viewport;
     }
 }
@@ -29,6 +45,8 @@ void rb_Viewport_Free(void* data)
 VALUE rb_Viewport_Alloc(VALUE klass)
 {
     CViewport_Element* viewport = new CViewport_Element();
+    viewport->setLinkedRect(nullptr);
+    viewport->setLinkedTone(nullptr);
     return Data_Wrap_Struct(klass, NULL, rb_Viewport_Free, viewport);
 }
 
@@ -47,11 +65,14 @@ void Init_Viewport()
     rb_define_method(rb_cViewport, "rect=", _rbf rb_Viewport_setRect, 1);
     rb_define_method(rb_cViewport, "dispose", _rbf rb_Viewport_Dispose, 0);
     rb_define_method(rb_cViewport, "disposed?", _rbf rb_Viewport_Disposed, 0);
+    rb_define_method(rb_cViewport, "tone", _rbf rb_Viewport_getTone, 0);
+    rb_define_method(rb_cViewport, "tone=", _rbf rb_Viewport_setTone, 1);
 
     rb_define_method(rb_cViewport, "clone", _rbf rb_Viewport_Copy, 0);
     rb_define_method(rb_cViewport, "dup", _rbf rb_Viewport_Copy, 0);
 
     rb_Viewport_ivRect = rb_intern("@rect");
+    rb_Viewport_ivTone = rb_intern("@tone");
 }
 
 VALUE rb_Viewport_Copy(VALUE self)
@@ -81,9 +102,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     /* Sprite table creation */
     rb_ivar_set(self, rb_iElementTable, rb_ary_new());
     /* Viewport setting */
-    CViewport_Element* viewport;
-    Data_Get_Struct(self, CViewport_Element, viewport);
-    VIEWPORT_PROTECT
+    GET_VIEWPORT
     VALUE table;
     __Graphics_Bind(viewport);
     table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
@@ -97,6 +116,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     CRect_Element* rect;
     Data_Get_Struct(rc, CRect_Element, rect);
     rect->setElement(viewport);
+    viewport->setLinkedRect(rect);
     rb_ivar_set(self, rb_Viewport_ivRect, rc);
     return self;
 }
@@ -116,16 +136,14 @@ void __Viewport_Dispose_AllSprite(VALUE table)
 
 VALUE rb_Viewport_Dispose(VALUE self)
 {
-    CViewport_Element* viewport;
-    Data_Get_Struct(self, CViewport_Element, viewport);
-    VIEWPORT_PROTECT
+    GET_VIEWPORT
     RDATA(self)->data = nullptr;
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_delete(table, self);
     viewport->setOriginStack(nullptr);
     viewport->clearStack();
     __Viewport_Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-    delete viewport;
+    rb_Viewport_Free(reinterpret_cast<void*>(viewport));
     return self;
 }
 
@@ -149,17 +167,13 @@ void Viewport_AdjustOXY(CViewport_Element* viewport, VALUE rect)
 
 VALUE rb_Viewport_getOX(VALUE self)
 {
-    CViewport_Element* viewport;
-    Data_Get_Struct(self, CViewport_Element, viewport);
-    VIEWPORT_PROTECT
+    GET_VIEWPORT
     return rb_int2inum(viewport->getOx());
 }
 
 VALUE rb_Viewport_setOX(VALUE self, VALUE val)
 {
-    CViewport_Element* viewport;
-    Data_Get_Struct(self, CViewport_Element, viewport);
-    VIEWPORT_PROTECT
+    GET_VIEWPORT
     viewport->setOx(rb_num2long(val));
     Viewport_AdjustOXY(viewport, rb_ivar_get(self, rb_Viewport_ivRect));
     return val;
@@ -167,17 +181,13 @@ VALUE rb_Viewport_setOX(VALUE self, VALUE val)
 
 VALUE rb_Viewport_getOY(VALUE self)
 {
-    CViewport_Element* viewport;
-    Data_Get_Struct(self, CViewport_Element, viewport);
-    VIEWPORT_PROTECT
+    GET_VIEWPORT
     return rb_int2inum(viewport->getOx());
 }
 
 VALUE rb_Viewport_setOY(VALUE self, VALUE val)
 {
-    CViewport_Element* viewport;
-    Data_Get_Struct(self, CViewport_Element, viewport);
-    VIEWPORT_PROTECT
+    GET_VIEWPORT
     viewport->setOy(rb_num2long(val));
     Viewport_AdjustOXY(viewport, rb_ivar_get(self, rb_Viewport_ivRect));
     return val;
@@ -216,6 +226,40 @@ VALUE rb_Viewport_setRect(VALUE self, VALUE val)
 
 }
 
+VALUE rb_Viewport_getTone(VALUE self)
+{
+    GET_VIEWPORT
+    VALUE tn = rb_ivar_get(self, rb_Viewport_ivTone);
+    if(!NIL_P(tn))
+        return tn;
+    /* New tone */
+    VALUE argv[4] = {LONG2FIX(0)};
+    tn = rb_class_new_instance(4, argv, rb_cTone);
+    CTone_Element* tone;
+    Data_Get_Struct(tn, CTone_Element, tone);
+    tone->setElement(viewport);
+    viewport->setLinkedTone(tone);
+    return tn;
+}
+
+VALUE rb_Viewport_setTone(VALUE self, VALUE val)
+{
+    VALUE tn = rb_Viewport_getTone(self);
+    if(RDATA(tn)->data == nullptr) { return Qnil; }
+    if(rb_obj_is_kind_of(val, rb_cTone) != Qtrue)
+    {
+        rb_raise(rb_eTypeError, "Expected Tone, got %s", RSTRING_PTR(rb_class_name(CLASS_OF(val))));
+        return Qnil;
+    }
+    if(RDATA(val)->data == nullptr) { return Qnil; }
+    GET_VIEWPORT
+    CTone_Element* tonesrc;
+    Data_Get_Struct(val, CTone_Element, tonesrc);
+    CTone_Element* tonedest;
+    Data_Get_Struct(self, CTone_Element, tonedest);
+    tone_copy(tonedest->getTone(), tonesrc->getTone());
+    return val;
+}
 
 void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, long height)
 {

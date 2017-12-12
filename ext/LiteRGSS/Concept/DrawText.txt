@@ -4,14 +4,24 @@ Propriété des textes :
 - Ils peuvent être affichés dans un Viewport mais ne sont pas affecté par les shaders
 - Ils contiennent le texte à afficher plutôt que l'image à afficher.
 - Ils chargent le font par un ID
+- Ils chargent une couleur par id
+- On peut changer la fillColor et la outlineColor
+- On peut changer la outlinethickness
 - Ils ont une propriété d'alignement
-- Ils ont une propriété de nombre de caractères affichés (max par défaut)
 - Ils ont leur taille globale (width / height) en plus de leur coordonnées
+- On peut permettre l'affichage d'ombre sur le texte en définissant la couleur de l'ombre à un id > 0
+
+ExtendedText
+- Ils ont une propriété de nombre de caractères affichés (max par défaut)
+- Ils gère l'affichage de couleurs différentes
 
 Les fonts
 Les fonts sont chargés à l'aide d'un module "Fonts" qui a les fonctions suivantes :
 Fonts.load_font(id, filename)
 Fonts.set_default_size(id, size) #Taille par défaut
+Fonts.define_fill_color(id, color) # Définit une nouvelle couleur de remplissage
+Fonts.define_outline_color(id, color) # Définit une nouvelle couleur
+Fonts.define_shadow_color(id, color) # Définit une nouvelle couleur d'ombre
 
 Tous les Texts chargent le Font 0 s'il n'est pas demandé au chargement.
 

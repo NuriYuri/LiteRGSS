@@ -22,12 +22,24 @@ ID rb_Sprite_ivRect = Qnil;
     return self; \
 }
 
+#define GET_SPRITE CSprite_Element* sprite; \
+    Data_Get_Struct(self, CSprite_Element, sprite); \
+    SPRITE_PROTECT
+
+#define SPRITE_PROTECT_SAFE rb_check_type(self, T_DATA); \
+    SPRITE_PROTECT
+
 void rb_Sprite_Free(void* data)
 {
     CSprite_Element* sprite = reinterpret_cast<CSprite_Element*>(data);
     if(sprite)
     {
         sprite->setOriginStack(nullptr);
+        CRect_Element* rect = sprite->getLinkedRect();
+        if(rect != nullptr)
+        {
+            rect->setElement(nullptr);
+        }
         delete sprite;
     }
 }
@@ -36,6 +48,7 @@ VALUE rb_Sprite_Alloc(VALUE klass)
 {
     CSprite_Element* sprite = new CSprite_Element();
     sprite->getSprite()->setColor(sf::Color(0, 0, 0, 255));
+    sprite->setLinkedRect(nullptr);
     return Data_Wrap_Struct(klass, NULL, rb_Sprite_Free, sprite);
 }
 
@@ -90,9 +103,7 @@ void Init_Sprite() {
 
 VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     VALUE table;
     /* If a viewport was specified */
     if(argc == 1 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue)//rb_class_of(argv[0]) == rb_cViewport*/ && false)
@@ -130,9 +141,7 @@ VALUE rb_Sprite_Copy(VALUE self)
 
 VALUE rb_Sprite_Dispose(VALUE self)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     RDATA(self)->data = nullptr;
     /* Suppression du sprite de ses stacks */
     VALUE viewport = rb_ivar_get(self, rb_Sprite_ivViewport);
@@ -143,7 +152,7 @@ VALUE rb_Sprite_Dispose(VALUE self)
         table = rb_ivar_get(viewport, rb_iElementTable);
     rb_ary_delete(table, self);
     sprite->setOriginStack(nullptr);
-    delete sprite;
+    rb_Sprite_Free(reinterpret_cast<void*>(sprite));
     return self;
 }
 
@@ -155,9 +164,7 @@ VALUE rb_Sprite_Disposed(VALUE self)
 
 VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     if(rb_obj_is_kind_of(bitmap, rb_cBitmap) == Qfalse)//rb_class_of(bitmap) != rb_cBitmap)
     {
         if(bitmap == Qnil)
@@ -181,24 +188,19 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
     sf::Sprite* sp = sprite->getSprite();
     sp->setTexture(*bmp->getTexture(), true);
     sprite->setDrawable(true);
-    /* resseting the SRC_RECT */
-    // TODO
     rb_ivar_set(self, rb_Sprite_ivBitmap, bitmap);
     return self;
 }
 
 VALUE rb_Sprite_getBitmap(VALUE self)
 {
-    rb_check_type(self, T_DATA);
-    SPRITE_PROTECT
+    SPRITE_PROTECT_SAFE
     return rb_ivar_get(self, rb_Sprite_ivBitmap);
 }
 
 VALUE rb_Sprite_setX(VALUE self, VALUE val)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sf::Sprite* sp = sprite->getSprite();
     const sf::Vector2f vect = sp->getPosition();
     sp->setPosition(static_cast<float>(rb_num2long(val)), vect.y);
@@ -208,16 +210,13 @@ VALUE rb_Sprite_setX(VALUE self, VALUE val)
 
 VALUE rb_Sprite_getX(VALUE self)
 {
-    rb_check_type(self, T_DATA);
-    SPRITE_PROTECT
+    SPRITE_PROTECT_SAFE
     return rb_ivar_get(self, rb_Sprite_ivX);
 }
 
 VALUE rb_Sprite_setY(VALUE self, VALUE val)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sf::Sprite* sp = sprite->getSprite();
     const sf::Vector2f vect = sp->getPosition();
     sp->setPosition(vect.x, static_cast<float>(rb_num2long(val)));
@@ -227,16 +226,13 @@ VALUE rb_Sprite_setY(VALUE self, VALUE val)
 
 VALUE rb_Sprite_getY(VALUE self)
 {
-    rb_check_type(self, T_DATA);
-    SPRITE_PROTECT
+    SPRITE_PROTECT_SAFE
     return rb_ivar_get(self, rb_Sprite_ivY);
 }
 
 VALUE rb_Sprite_setOX(VALUE self, VALUE val)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sf::Sprite* sp = sprite->getSprite();
     const sf::Vector2f vect = sp->getOrigin();
     sp->setOrigin(static_cast<float>(rb_num2long(val)), vect.y);
@@ -246,16 +242,13 @@ VALUE rb_Sprite_setOX(VALUE self, VALUE val)
 
 VALUE rb_Sprite_getOX(VALUE self)
 {
-    rb_check_type(self, T_DATA);
-    SPRITE_PROTECT
+    SPRITE_PROTECT_SAFE
     return rb_ivar_get(self, rb_Sprite_ivOX);
 }
 
 VALUE rb_Sprite_setOY(VALUE self, VALUE val)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sf::Sprite* sp = sprite->getSprite();
     const sf::Vector2f vect = sp->getOrigin();
     sp->setOrigin(vect.x, static_cast<float>(rb_num2long(val)));
@@ -265,33 +258,26 @@ VALUE rb_Sprite_setOY(VALUE self, VALUE val)
 
 VALUE rb_Sprite_getOY(VALUE self)
 {
-    rb_check_type(self, T_DATA);
-    SPRITE_PROTECT
+    SPRITE_PROTECT_SAFE
     return rb_ivar_get(self, rb_Sprite_ivOY);
 }
 
 VALUE rb_Sprite_setVisible(VALUE self, VALUE val)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sprite->setVisible(RTEST(val));
     return val;
 }
 
 VALUE rb_Sprite_getVisible(VALUE self)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     return sprite->getVisible() ? Qtrue : Qfalse;
 }
 
 VALUE rb_Sprite_setAngle(VALUE self, VALUE val)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sprite->getSprite()->setRotation(static_cast<float>(rb_num2dbl(val)));
     rb_ivar_set(self, rb_Sprite_ivAngle, val);
     return val;
@@ -299,16 +285,13 @@ VALUE rb_Sprite_setAngle(VALUE self, VALUE val)
 
 VALUE rb_Sprite_getAngle(VALUE self)
 {
-    rb_check_type(self, T_DATA);
-    SPRITE_PROTECT
+    SPRITE_PROTECT_SAFE
     return rb_ivar_get(self, rb_Sprite_ivAngle);
 }
 
 VALUE rb_Sprite_setZoomX(VALUE self, VALUE val)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sf::Sprite* sp = sprite->getSprite();
     const sf::Vector2f vect = sp->getScale();
     sp->setScale(static_cast<float>(rb_num2dbl(val)), vect.y);
@@ -318,16 +301,13 @@ VALUE rb_Sprite_setZoomX(VALUE self, VALUE val)
 
 VALUE rb_Sprite_getZoomX(VALUE self)
 {
-    rb_check_type(self, T_DATA);
-    SPRITE_PROTECT
+    SPRITE_PROTECT_SAFE
     return rb_ivar_get(self, rb_Sprite_ivZoomX);
 }
 
 VALUE rb_Sprite_setZoomY(VALUE self, VALUE val)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sf::Sprite* sp = sprite->getSprite();
     const sf::Vector2f vect = sp->getScale();
     sp->setScale(vect.x, static_cast<float>(rb_num2dbl(val)));
@@ -337,8 +317,7 @@ VALUE rb_Sprite_setZoomY(VALUE self, VALUE val)
 
 VALUE rb_Sprite_getZoomY(VALUE self)
 {
-    rb_check_type(self, T_DATA);
-    SPRITE_PROTECT
+    SPRITE_PROTECT_SAFE
     return rb_ivar_get(self, rb_Sprite_ivZoomY);
 }
 
@@ -356,9 +335,7 @@ VALUE rb_Sprite_setPosition(VALUE self, VALUE x, VALUE y)
 
 VALUE rb_Sprite_setOrigin(VALUE self, VALUE x, VALUE y)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sprite->getSprite()->setOrigin(static_cast<float>(rb_num2long(x)), static_cast<float>(rb_num2long(y)));
     rb_ivar_set(self, rb_Sprite_ivOY, y);
     rb_ivar_set(self, rb_Sprite_ivOX, x);
@@ -367,9 +344,7 @@ VALUE rb_Sprite_setOrigin(VALUE self, VALUE x, VALUE y)
 
 VALUE rb_Sprite_setZoom(VALUE self, VALUE zoom)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     float scale = static_cast<float>(rb_num2dbl(zoom));
     sprite->getSprite()->setScale(scale, scale);
     rb_ivar_set(self, rb_Sprite_ivZoomY, zoom);
@@ -379,9 +354,7 @@ VALUE rb_Sprite_setZoom(VALUE self, VALUE zoom)
 
 VALUE rb_Sprite_setOpacity(VALUE self, VALUE val)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sf::Sprite* sp = sprite->getSprite();
     const sf::Color col = sp->getColor();
     sp->setColor(sf::Color(col.r, col.g, col.b, normalize_long(rb_num2long(val), 0, 255)));
@@ -390,9 +363,7 @@ VALUE rb_Sprite_setOpacity(VALUE self, VALUE val)
 
 VALUE rb_Sprite_getOpacity(VALUE self)
 {
-    CSprite_Element* sprite;
-    Data_Get_Struct(self, CSprite_Element, sprite);
-    SPRITE_PROTECT
+    GET_SPRITE
     sf::Sprite* sp = sprite->getSprite();
     const sf::Color col = sp->getColor();
     return rb_int2inum(col.r);
@@ -400,8 +371,7 @@ VALUE rb_Sprite_getOpacity(VALUE self)
 
 VALUE rb_Sprite_getRect(VALUE self)
 {
-    rb_check_type(self, T_DATA);
-    SPRITE_PROTECT
+    SPRITE_PROTECT_SAFE
     VALUE rc = rb_ivar_get(self, rb_Sprite_ivRect);
     if(!NIL_P(rc))
         return rc;
@@ -419,6 +389,7 @@ VALUE rb_Sprite_getRect(VALUE self)
     rect_copy(rect->getRect(), &rectorigin);
     /* Linking Rect */
     rect->setElement(sprite);
+    sprite->setLinkedRect(rect);
     rb_ivar_set(self, rb_Sprite_ivRect, rc);
     return rc;
 }

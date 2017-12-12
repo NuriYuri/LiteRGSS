@@ -19,5 +19,6 @@ extern "C" {
     Init_Rect();
     Init_Viewport();
     Init_Color();
+    Init_Tone();
   }
 }

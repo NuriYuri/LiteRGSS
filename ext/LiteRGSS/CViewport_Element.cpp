@@ -4,6 +4,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 {
     target.setView(view);
     globalshader->setUniform("tone", tone);
+    CSprite_Element* sprite;
     for(auto sp = stack.begin();sp != stack.end();sp++)
     {
         (*sp)->draw(target);

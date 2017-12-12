@@ -12,6 +12,10 @@ VALUE rb_cBitmap = Qnil;
     return self; \
 }
 
+#define GET_BITMAP CBitmap_Element* bitmap; \
+    Data_Get_Struct(self, CBitmap_Element, bitmap); \
+    BITMAP_PROTECT \
+
 void rb_Bitmap_Free(void* data)
 {
     CBitmap_Element* bitmap = reinterpret_cast<CBitmap_Element*>(data);
@@ -40,9 +44,7 @@ void Init_Bitmap()
 VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self)
 {
     VALUE string, fromMemory;
-    CBitmap_Element* bitmap;
-    Data_Get_Struct(self, CBitmap_Element, bitmap);
-    BITMAP_PROTECT
+    GET_BITMAP
     rb_scan_args(argc, argv, "11", &string, &fromMemory);
     sf::Texture* text = bitmap->getTexture();
     /* Load From filename */
@@ -90,9 +92,7 @@ VALUE rb_Bitmap_Initialize_Copy(VALUE self, VALUE other)
 
 VALUE rb_Bitmap_Dispose(VALUE self)
 {
-    CBitmap_Element* bitmap;
-    Data_Get_Struct(self, CBitmap_Element, bitmap);
-    BITMAP_PROTECT
+    GET_BITMAP
     delete bitmap;
     RDATA(self)->data = nullptr;
     return self;

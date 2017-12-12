@@ -11,6 +11,8 @@ VALUE rb_Viewport_getRect(VALUE self);
 VALUE rb_Viewport_setRect(VALUE self, VALUE val);
 VALUE rb_Viewport_Dispose(VALUE self);
 VALUE rb_Viewport_Disposed(VALUE self);
+VALUE rb_Viewport_getTone(VALUE self);
+VALUE rb_Viewport_setTone(VALUE self, VALUE val);
 
 
 void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, long height);
