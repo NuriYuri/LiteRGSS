@@ -28,10 +28,9 @@ end
 @a.x = w / 2
 @a.y = h / 2
 @a.opacity = 200
-
-
 @running = true
 i = 0
+GC.start
 Graphics.instance_variable_set(:@on_close, proc { @running = false }) # The block returns false, it's important !
 t = Time.new
 while @running
@@ -39,6 +38,9 @@ while @running
   add = 1 - rand(3)
   @a.angle = (@a.angle + (10 + 10 * Math::cos(i * Math::PI / 20))) % 360
   i += 1
+  if(i == 120)
+    @v.rect.width = w
+  end
 end
 dt = (Time.new - t)
 p 1 / (dt / i)

@@ -5,17 +5,15 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
     target.setView(view);
     if(linkedTone)
     {
+        if(!render)
+            return;
         globalshader->setUniform("tone", tone);
-        /*render->clear(sf::Color(0,0,0,0)); // Test perf
+        render->clear(sf::Color(0,0,0,0));
         for(auto sp = stack.begin();sp != stack.end();sp++)
             (*sp)->drawFast(*render);
         render->display();
         sf::Sprite sp(render->getTexture());
-        target.draw(sp, globalshader);*/
-        for(auto sp = stack.begin();sp != stack.end();sp++)
-        {
-            (*sp)->draw(target);
-        }
+        target.draw(sp, globalshader);
         reset_globalshader();
     }
     else
@@ -76,4 +74,19 @@ sf::Glsl::Vec4 __Viewport_reset_tone(0.0f, 0.0f, 0.0f, 0.0f);
 void CViewport_Element::reset_globalshader()
 {
     globalshader->setUniform("tone", __Viewport_reset_tone);
+}
+
+void CViewport_Element::reset_render()
+{
+    if(render == nullptr)
+        return;
+    const sf::Vector2f sz = getView()->getSize();
+    render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));
+}
+
+void CViewport_Element::create_render()
+{
+    render = new sf::RenderTexture();
+    const sf::Vector2f sz = getView()->getSize();
+    render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));
 }

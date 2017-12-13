@@ -1,5 +1,6 @@
 #ifndef CSprite_Element_H
 #define CSprite_Element_H
+#include "ruby.h"
 #include "CDrawable_Element.h"
 
 class CSprite_Element : public CDrawable_Element {
@@ -18,5 +19,17 @@ class CSprite_Element : public CDrawable_Element {
         bool getDrawable() { return drawable; };
         void setVisible(bool value) { visible = value;};
         bool getVisible() { return visible; };
+        /* Instance variable for Ruby */
+        VALUE rViewport;
+        VALUE rBitmap;
+        VALUE rX;
+        VALUE rY;
+        VALUE rZ;
+        VALUE rOX;
+        VALUE rOY;
+        VALUE rAngle;
+        VALUE rZoomX;
+        VALUE rZoomY;
+        VALUE rRect;
 };
 #endif

@@ -23,9 +23,7 @@ void rb_Rect_Free(void* data)
     {
         CDrawable_Element* element = rect->getElement();
         if(element != nullptr)
-        {
             element->setLinkedRect(nullptr);
-        }
         delete rect;
     }
 }

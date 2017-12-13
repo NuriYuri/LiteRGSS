@@ -12,6 +12,8 @@ VALUE rb_Sprite_setX(VALUE self, VALUE val);
 VALUE rb_Sprite_getX(VALUE self);
 VALUE rb_Sprite_setY(VALUE self, VALUE val);
 VALUE rb_Sprite_getY(VALUE self);
+VALUE rb_Sprite_setZ(VALUE self, VALUE val);
+VALUE rb_Sprite_getZ(VALUE self);
 VALUE rb_Sprite_setOX(VALUE self, VALUE val);
 VALUE rb_Sprite_getOX(VALUE self);
 VALUE rb_Sprite_setOY(VALUE self, VALUE val);
