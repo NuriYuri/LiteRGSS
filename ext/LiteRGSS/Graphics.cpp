@@ -169,8 +169,7 @@ void __Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
     {
         if(was_viewport && !(*element)->isViewport())
             game_window->setView(game_window->getDefaultView());
-        else
-            was_viewport = (*element)->isViewport();
+        was_viewport = (*element)->isViewport();
         (*element)->draw(*game_window);
     }
 }

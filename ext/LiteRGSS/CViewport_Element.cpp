@@ -3,13 +3,31 @@
 void CViewport_Element::draw(sf::RenderTarget& target) const
 {
     target.setView(view);
-    globalshader->setUniform("tone", tone);
-    CSprite_Element* sprite;
+    if(linkedTone)
+    {
+        globalshader->setUniform("tone", tone);
+        /*render->clear(sf::Color(0,0,0,0)); // Test perf
+        for(auto sp = stack.begin();sp != stack.end();sp++)
+            (*sp)->drawFast(*render);
+        render->display();
+        sf::Sprite sp(render->getTexture());
+        target.draw(sp, globalshader);*/
+        for(auto sp = stack.begin();sp != stack.end();sp++)
+        {
+            (*sp)->draw(target);
+        }
+        reset_globalshader();
+    }
+    else
+        drawFast(target);
+}
+
+void CViewport_Element::drawFast(sf::RenderTarget& target) const 
+{
     for(auto sp = stack.begin();sp != stack.end();sp++)
     {
-        (*sp)->draw(target);
+        (*sp)->drawFast(target);
     }
-    reset_globalshader();
 }
 
 void CViewport_Element::bindSprite(CSprite_Element* sprite)

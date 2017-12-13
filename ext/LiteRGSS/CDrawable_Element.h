@@ -15,6 +15,7 @@ class CDrawable_Element {
         CDrawable_Element() {origin_stack = nullptr;}
         void setOriginStack(std::vector<CDrawable_Element*> *o);
         virtual void draw(sf::RenderTarget& target) const = 0;
+        virtual void drawFast(sf::RenderTarget& target) const = 0;
         virtual bool isViewport() const = 0;
         virtual bool isPureSprite() const = 0;
         void setLinkedRect(CRect_Element* _rect) { linkedRect = _rect; };

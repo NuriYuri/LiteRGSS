@@ -13,6 +13,7 @@ class CViewport_Element : public CDrawable_Element {
     public:
         CViewport_Element() : CDrawable_Element() {};
         void draw(sf::RenderTarget& target) const override;
+        void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return true; };
         bool isPureSprite() const override { return false; };
         sf::View* getView() {return &view;};

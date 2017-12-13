@@ -47,7 +47,7 @@ void rb_Sprite_Free(void* data)
 VALUE rb_Sprite_Alloc(VALUE klass)
 {
     CSprite_Element* sprite = new CSprite_Element();
-    sprite->getSprite()->setColor(sf::Color(0, 0, 0, 255));
+    sprite->getSprite()->setColor(sf::Color(255, 255, 255, 255));
     sprite->setLinkedRect(nullptr);
     return Data_Wrap_Struct(klass, NULL, rb_Sprite_Free, sprite);
 }
