@@ -27,6 +27,7 @@ void rb_Color_Free(void* data)
 VALUE rb_Color_Alloc(VALUE klass)
 {
     sf::Color* color = new sf::Color();
+    color->a = 255;
     return Data_Wrap_Struct(klass, NULL, rb_Color_Free, color);
 }
 
@@ -46,6 +47,13 @@ void Init_Color()
     rb_define_method(rb_cColor, "blue=", _rbf rb_Color_setBlue, 1);
     rb_define_method(rb_cColor, "alpha", _rbf rb_Color_getAlpha, 0);
     rb_define_method(rb_cColor, "alpha=", _rbf rb_Color_setAlpha, 1);
+    rb_define_method(rb_cColor, "==", _rbf rb_Color_eql, 1);
+    rb_define_method(rb_cColor, "===", _rbf rb_Color_eql, 1);
+    rb_define_method(rb_cColor, "eql?", _rbf rb_Color_eql, 1);
+    rb_define_method(rb_cColor, "to_s", _rbf rb_Color_to_s, 0);
+    rb_define_method(rb_cColor, "inspect", _rbf rb_Color_to_s, 0);
+    rb_define_method(rb_cColor, "_dump", _rbf rb_Color_Save, 1);
+    rb_define_singleton_method(rb_cColor, "_load", _rbf rb_Color_Load, 1);
 }
 
 VALUE rb_Color_Initialize(int argc, VALUE* argv, VALUE self)
@@ -128,4 +136,53 @@ VALUE rb_Color_setAlpha(VALUE self, VALUE red)
     GET_COLOR
     color->a = normalize_long(rb_num2long(red), 0, 255);
     return self;
+}
+
+
+VALUE rb_Color_eql(VALUE self, VALUE other)
+{
+    if(rb_obj_is_kind_of(other, rb_cColor) != Qtrue)
+        return Qfalse;
+    GET_COLOR
+    sf::Color* color2;
+    Data_Get_Struct(other, sf::Color, color2);
+    if(color2 == nullptr)
+        return Qfalse;
+    if(*color != *color2)
+        return Qfalse;
+    return Qtrue;
+}
+
+VALUE rb_Color_Load(VALUE self, VALUE str)
+{
+    rb_check_type(str, T_STRING);
+    VALUE arr[4];
+    if(RSTRING_LEN(str) < (sizeof(double) * 4))
+    {
+        arr[2] = arr[1] = arr[0] = LONG2FIX(1);
+        return rb_class_new_instance(3, arr, self);
+    }
+    double* color_data = reinterpret_cast<double*>(RSTRING_PTR(str));
+    arr[0] = rb_int2inum(static_cast<long>(color_data[0]));
+    arr[1] = rb_int2inum(static_cast<long>(color_data[1]));
+    arr[2] = rb_int2inum(static_cast<long>(color_data[2]));
+    arr[3] = rb_int2inum(static_cast<long>(color_data[3]));
+    return rb_class_new_instance(4, arr, self);
+}
+
+VALUE rb_Color_Save(VALUE self, VALUE limit)
+{
+    GET_COLOR
+    double color_data[4];
+    color_data[0] = static_cast<double>(color->r);
+    color_data[1] = static_cast<double>(color->g);
+    color_data[2] = static_cast<double>(color->b);
+    color_data[3] = static_cast<double>(color->a);
+    return rb_str_new(reinterpret_cast<const char*>(color_data), sizeof(double) * 4);
+}
+
+VALUE rb_Color_to_s(VALUE self)
+{
+    GET_COLOR
+    return rb_sprintf("(%d, %d, %d, %d)", color->r, color->g, color->b, color->a);
 }

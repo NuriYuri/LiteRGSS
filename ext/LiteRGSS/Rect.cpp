@@ -52,6 +52,7 @@ void Init_Rect()
     rb_define_method(rb_cRect, "height", _rbf rb_Rect_getHeight, 0);
     rb_define_method(rb_cRect, "height=", _rbf rb_Rect_setHeight, 1);
     rb_define_method(rb_cRect, "==", _rbf rb_Rect_eql, 1);
+    rb_define_method(rb_cRect, "===", _rbf rb_Rect_eql, 1);
     rb_define_method(rb_cRect, "eql?", _rbf rb_Rect_eql, 1);
     rb_define_method(rb_cRect, "to_s", _rbf rb_Rect_to_s, 0);
     rb_define_method(rb_cRect, "inspect", _rbf rb_Rect_to_s, 0);

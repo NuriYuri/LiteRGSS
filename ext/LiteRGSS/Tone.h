@@ -11,5 +11,9 @@ VALUE rb_Tone_getBlue(VALUE self);
 VALUE rb_Tone_setBlue(VALUE self, VALUE val);
 VALUE rb_Tone_getGray(VALUE self);
 VALUE rb_Tone_setGray(VALUE self, VALUE val);
+VALUE rb_Tone_eql(VALUE self, VALUE other);
+VALUE rb_Tone_to_s(VALUE self);
+VALUE rb_Tone_Load(VALUE self, VALUE str);
+VALUE rb_Tone_Save(VALUE self, VALUE limit);
 
 #endif
