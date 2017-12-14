@@ -4,6 +4,7 @@
 #include "LiteRGSS.h"
 #include "Graphics.h"
 #include "CViewport_Element.h"
+#include "CBitmap_Element.h"
 
 /* Variables definition */
 VALUE rb_mGraphics = Qnil;
@@ -43,6 +44,7 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "start", _rbf rb_Graphics_start, 0);
     rb_define_module_function(rb_mGraphics, "stop", _rbf rb_Graphics_stop, 0);
     rb_define_module_function(rb_mGraphics, "update", _rbf rb_Graphics_update, 0);
+    rb_define_module_function(rb_mGraphics, "snap_to_bitmap", _rbf rb_Graphics_snap_to_bitmap, 0);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 }
@@ -73,6 +75,23 @@ VALUE rb_Graphics_stop(VALUE self)
     game_window->close();
     delete game_window;
     game_window = nullptr;
+}
+
+VALUE rb_Graphics_snap_to_bitmap(VALUE self)
+{
+    GRAPHICS_PROTECT
+    if(InsideGraphicsUpdate)
+        return Qnil;
+    VALUE bmp = rb_obj_alloc(rb_cBitmap);
+    CBitmap_Element* bitmap;
+    Data_Get_Struct(bmp, CBitmap_Element, bitmap);
+    if(bitmap == nullptr)
+        return Qnil;
+    sf::Texture* text = bitmap->getTexture();
+    text->create(ScreenWidth, ScreenHeight);
+    //rb_Graphics_update(self); // -> Had to call this because update needs two Graphics.update :/
+    text->update(*game_window, 0, 17); // Why 17 ?
+    return bmp;
 }
 
 VALUE rb_Graphics_update(VALUE self)
