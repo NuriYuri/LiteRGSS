@@ -28,6 +28,7 @@ t = Time.new
 p @b.bitmap = Graphics.snap_to_bitmap
 p Time.new - t
 t = Time.new
+Graphics.freeze
 @v.dispose
 p Time.new - t
 t = Time.new
@@ -49,6 +50,7 @@ t = Time.new
 i = 0
 GC.start
 Graphics.instance_variable_set(:@on_close, proc { @running = false }) # The block returns false, it's important !
+Graphics.transition(120)
 t = Time.new
 while @running
   Graphics.update

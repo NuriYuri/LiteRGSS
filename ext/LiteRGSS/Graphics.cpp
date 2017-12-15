@@ -10,11 +10,17 @@
 VALUE rb_mGraphics = Qnil;
 VALUE rb_eStoppedGraphics = Qnil;
 VALUE rb_eClosedWindow = Qnil;
+
 long ScreenWidth = 640;
 long ScreenHeight = 480;
+
 sf::RenderWindow* game_window = nullptr;
 bool InsideGraphicsUpdate = false;
 std::vector<CDrawable_Element*> Graphics_stack;
+
+sf::Texture* Graphics_freeze_texture = nullptr;
+sf::Sprite* Graphics_freeze_sprite = nullptr;
+
 /* Structure definition */
 struct GraphicUpdateMessage {
     VALUE errorObject;
@@ -34,6 +40,7 @@ void __Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack);
     rb_raise(rb_eStoppedGraphics, "Graphics is not started, window closed thus no Graphics operation allowed. Please call Graphics.start before using other Graphics functions."); \
     return self; \
 }
+
 void Init_Graphics()
 {
     rb_mGraphics = rb_define_module_under(rb_mLiteRGSS, "Graphics");
@@ -45,6 +52,8 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "stop", _rbf rb_Graphics_stop, 0);
     rb_define_module_function(rb_mGraphics, "update", _rbf rb_Graphics_update, 0);
     rb_define_module_function(rb_mGraphics, "snap_to_bitmap", _rbf rb_Graphics_snap_to_bitmap, 0);
+    rb_define_module_function(rb_mGraphics, "freeze", _rbf rb_Graphics_freeze, 0);
+    rb_define_module_function(rb_mGraphics, "transition", _rbf rb_Graphics_transition, -1);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 }
@@ -75,6 +84,14 @@ VALUE rb_Graphics_stop(VALUE self)
     game_window->close();
     delete game_window;
     game_window = nullptr;
+    /* Unfreezing Graphics */
+    if(Graphics_freeze_texture != nullptr)
+    {
+        delete Graphics_freeze_sprite;
+        Graphics_freeze_sprite = nullptr;
+        delete Graphics_freeze_texture;
+        Graphics_freeze_texture = nullptr;
+    }
 }
 
 VALUE rb_Graphics_snap_to_bitmap(VALUE self)
@@ -92,6 +109,42 @@ VALUE rb_Graphics_snap_to_bitmap(VALUE self)
     //rb_Graphics_update(self); // -> Had to call this because update needs two Graphics.update :/
     text->update(*game_window, 0, 17); // Why 17 ?
     return bmp;
+}
+
+VALUE rb_Graphics_freeze(VALUE self)
+{
+    if(Graphics_freeze_texture != nullptr)
+        return self;
+    rb_Graphics_update(self);
+    Graphics_freeze_texture = new sf::Texture();
+    Graphics_freeze_texture->create(ScreenWidth, ScreenHeight);
+    Graphics_freeze_texture->update(*game_window, 0, 17);
+    Graphics_freeze_sprite = new sf::Sprite(*Graphics_freeze_texture);
+    return self;
+}
+
+VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self)
+{
+    if(Graphics_freeze_sprite == nullptr)
+        return self;
+    long time = __LoadFrameRateFromConfigs();
+    sf::Color freeze_color(255,255,225,255);
+    if(argc >= 1)
+    {
+        time = rb_num2long(argv[0]);
+    }
+    time = normalize_long(time, 1, 0xFFFF);
+    for(long i = 1; i <= time; i++)
+    {
+        freeze_color.a = 255 * (time - i) / time;
+        Graphics_freeze_sprite->setColor(freeze_color);
+        rb_Graphics_update(self);
+    }
+    delete Graphics_freeze_sprite;
+    Graphics_freeze_sprite = nullptr;
+    delete Graphics_freeze_texture;
+    Graphics_freeze_texture = nullptr;
+    return self;
 }
 
 VALUE rb_Graphics_update(VALUE self)
@@ -182,7 +235,7 @@ VALUE __Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message)
 
 void __Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 {
-    bool was_viewport = true;
+    bool was_viewport = false;
     CViewport_Element::reset_globalshader();
     for(auto element = stack->begin();element != stack->end(); element++)
     {
@@ -191,6 +244,9 @@ void __Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
         was_viewport = (*element)->isViewport();
         (*element)->draw(*game_window);
     }
+    game_window->setView(game_window->getDefaultView());
+    if(Graphics_freeze_sprite != nullptr)
+        game_window->draw(*Graphics_freeze_sprite);
 }
 
 void __LoadVideoModeFromConfigs(sf::VideoMode& vmode)
