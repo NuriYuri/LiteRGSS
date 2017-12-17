@@ -5,6 +5,7 @@
 #include "CTone_Element.h"
 #include "Graphics.h"
 #include "Sprite.h"
+#include "Text.h"
 #include "Viewport.h"
 
 VALUE rb_cViewport = Qnil;
@@ -125,12 +126,14 @@ void __Viewport_Dispose_AllSprite(VALUE table)
     rb_check_type(table, T_ARRAY);
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
-    VALUE* copy = new VALUE[sz];
-    for(long i = 0; i < sz; i++) // To prevent data conflict with rb_ary_delete()
-        copy[i] = ori[i];
-    for(long i = 0; i < sz; i++) // To dispose the sprites
-        rb_Sprite_Dispose(copy[i]);
-    delete[] copy;
+    for(long i = 0; i < sz; i++)
+    {
+        if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
+            rb_Sprite_DisposeFromViewport(ori[i]);
+        else
+            rb_Text_DisposeFromViewport(ori[i]);
+    }
+    rb_ary_clear(table);
 }
 
 VALUE rb_Viewport_Dispose(VALUE self)

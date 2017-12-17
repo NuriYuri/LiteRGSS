@@ -13,7 +13,7 @@ Graphics.start
 #> Graphic Test
 bmp = Bitmap.new("cb.bmp")
 t = Time.new
-arr = Array.new(1000) do #4000 -> down
+arr = Array.new(10000) do #4000 -> down
   sp = Sprite.new(@v)
   sp.bitmap = bmp
   sp.zoom = rand / 2

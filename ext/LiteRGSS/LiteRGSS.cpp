@@ -20,5 +20,7 @@ extern "C" {
     Init_Viewport();
     Init_Color();
     Init_Tone();
+    Init_Fonts();
+    Init_Text();
   }
 }

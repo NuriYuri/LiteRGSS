@@ -16,6 +16,8 @@ extern VALUE rb_cRect;
 extern VALUE rb_cViewport;
 extern VALUE rb_cColor;
 extern VALUE rb_cTone;
+extern VALUE rb_mFonts;
+extern VALUE rb_cText;
 
 extern VALUE rb_eRGSSError;
 
@@ -29,6 +31,8 @@ void Init_Rect();
 void Init_Viewport();
 void Init_Color();
 void Init_Tone();
+void Init_Fonts();
+void Init_Text();
 
 inline long normalize_long(long value, long min, long max) {
     if(value < min)

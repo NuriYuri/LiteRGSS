@@ -23,7 +23,7 @@ class CViewport_Element : public CDrawable_Element {
         long getOy() {return oy;};
         void setOx(long nox) {ox = nox;};
         void setOy(long noy) {oy = noy;};
-        void bindSprite(CSprite_Element* sprite);
+        void bind(CDrawable_Element* sprite);
         void clearStack();
         sf::Glsl::Vec4* getTone() {return &tone;};
         void setLinkedTone(CTone_Element* _tone) {linkedTone = _tone;};

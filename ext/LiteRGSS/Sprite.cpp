@@ -102,7 +102,7 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
     {
         CViewport_Element* viewport;
         Data_Get_Struct(argv[0], CViewport_Element, viewport);
-        viewport->bindSprite(sprite);
+        viewport->bind(sprite);
         table = rb_ivar_get(argv[0], rb_iElementTable);
         sprite->rViewport = argv[0];
     }
@@ -147,7 +147,14 @@ VALUE rb_Sprite_Dispose(VALUE self)
     else
         table = rb_ivar_get(viewport, rb_iElementTable);
     rb_ary_delete(table, self);
-    sprite->setOriginStack(nullptr);
+    rb_Sprite_Free(reinterpret_cast<void*>(sprite));
+    return self;
+}
+
+VALUE rb_Sprite_DisposeFromViewport(VALUE self)
+{
+    GET_SPRITE
+    RDATA(self)->data = nullptr;
     rb_Sprite_Free(reinterpret_cast<void*>(sprite));
     return self;
 }

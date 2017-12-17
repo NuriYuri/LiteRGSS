@@ -28,7 +28,7 @@ void CViewport_Element::drawFast(sf::RenderTarget& target) const
     }
 }
 
-void CViewport_Element::bindSprite(CSprite_Element* sprite)
+void CViewport_Element::bind(CDrawable_Element* sprite)
 {
     stack.push_back(sprite);
 }

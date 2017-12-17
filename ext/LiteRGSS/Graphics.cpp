@@ -6,6 +6,7 @@
 #include "CViewport_Element.h"
 #include "CBitmap_Element.h"
 
+
 /* Variables definition */
 VALUE rb_mGraphics = Qnil;
 VALUE rb_eStoppedGraphics = Qnil;
@@ -35,6 +36,7 @@ void* __Graphics_Update_Internal(void* data);
 VALUE __Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message);
 void __Graphics_Update_Process_Event(GraphicUpdateMessage*& message);
 void __Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack);
+void __Graphics_Take_Snapshot(sf::Texture* text);
 /* Macro Definition */
 #define GRAPHICS_PROTECT if(game_window == nullptr) { \
     rb_raise(rb_eStoppedGraphics, "Graphics is not started, window closed thus no Graphics operation allowed. Please call Graphics.start before using other Graphics functions."); \
@@ -105,9 +107,7 @@ VALUE rb_Graphics_snap_to_bitmap(VALUE self)
     if(bitmap == nullptr)
         return Qnil;
     sf::Texture* text = bitmap->getTexture();
-    text->create(ScreenWidth, ScreenHeight);
-    //rb_Graphics_update(self); // -> Had to call this because update needs two Graphics.update :/
-    text->update(*game_window, 0, 17); // Why 17 ?
+    __Graphics_Take_Snapshot(text);
     return bmp;
 }
 
@@ -117,8 +117,7 @@ VALUE rb_Graphics_freeze(VALUE self)
         return self;
     rb_Graphics_update(self);
     Graphics_freeze_texture = new sf::Texture();
-    Graphics_freeze_texture->create(ScreenWidth, ScreenHeight);
-    Graphics_freeze_texture->update(*game_window, 0, 17);
+    __Graphics_Take_Snapshot(Graphics_freeze_texture);
     Graphics_freeze_sprite = new sf::Sprite(*Graphics_freeze_texture);
     return self;
 }
@@ -305,4 +304,29 @@ bool __LoadVSYNCFromConfigs()
 void __Graphics_Bind(CDrawable_Element* element)
 {
     element->setOriginStack(&Graphics_stack);
+}
+
+
+void __Graphics_Take_Snapshot(sf::Texture* text)
+{
+    sf::Vector2u sc_sz = game_window->getSize();
+    int x = 0;
+    int y = 0;
+    int sw, sh;
+    if(sc_sz.x < ScreenWidth)
+    {
+        sw = ScreenWidth;
+        x = sw - sc_sz.x;
+    }
+    else
+        sw = sc_sz.x;
+    if(sc_sz.y < ScreenHeight)
+    {
+        sh = ScreenHeight;
+        y = sh - sc_sz.y;
+    }
+    else
+        sh = sc_sz.y;
+    text->create(sw, sh);
+    text->update(*game_window, x, y);
 }
