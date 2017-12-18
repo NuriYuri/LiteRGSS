@@ -75,6 +75,7 @@ VALUE rb_Graphics_start(VALUE self)
     game_window->setFramerateLimit(__LoadFrameRateFromConfigs());
     game_window->setMouseCursorVisible(false);
     game_window->setVerticalSyncEnabled(__LoadVSYNCFromConfigs());
+    game_window->setActive();
     return self;
 }
 

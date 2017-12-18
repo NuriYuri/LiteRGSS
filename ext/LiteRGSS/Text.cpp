@@ -2,6 +2,7 @@
 #include "LiteRGSS.h"
 #include "Fonts.h"
 #include "Text.h"
+#include <cmath>
 
 VALUE rb_cText = Qnil;
 
@@ -352,32 +353,32 @@ VALUE rb_Text_set_Text(VALUE self, VALUE str)
 VALUE rb_Text_UpdateI(CText_Element* text)
 {
     sf::Text* sftext = text->getText();
-    long x, y, width, align;
+    float x, y, width, height, ox;
+    long align;
     VALUE zero = LONG2FIX(0);
     x = rb_num2long(text->rX);
     y = rb_num2long(text->rY);
-    sftext->setPosition(static_cast<float>(x), static_cast<float>(y));
-    return Qnil;
     sf::FloatRect bounds = sftext->getLocalBounds();
     align = rb_num2long(text->rAlign);
-    /* X Alignment */
-    if(text->rwidth != zero)
+    width = rb_num2long(text->rwidth);
+    height = static_cast<float>(rb_num2long(text->rheight)) / 2;
+    switch(align)
     {
-        width = rb_num2long(text->rwidth);
-        if(align == 1)
-            x += (width - bounds.width) / 2;
-        else if(align == 2)
-            x += (width - bounds.width);
+        case 1: /* Center */
+            ox = round(bounds.width / 2);
+            x = round(x + width / 2);
+            break;
+        case 2: /* Right */
+            ox = round(bounds.width);
+            x = round(x + width);
+            break;
+        default: /* Left */
+            ox = 0.0f;
     }
-    else
-    {
-        if(align == 2) /* Right */
-            x -= bounds.width;
-    }
-    /* Y alignment */
-    if(text->rheight != zero)
-        y += (rb_num2long(text->rheight) - bounds.height) / 2;
+    y = round(y + height);
     /* Position update */
-    //sftext->setPosition(static_cast<float>(x), static_cast<float>(y));
+    sftext->setPosition(x, y);
+    sftext->setOrigin(ox, round(height));
+    //std::cout << "(" << x << "," << y << ") / (" << ox << ", " << height << ") ->" << sftext->getCharacterSize() << " // " << bounds.height << std::endl;
     return Qnil;
 }
