@@ -20,3 +20,5 @@
 *.code-workspace
 *.directory
 tmp
+ext/LiteRGSS/ruby
+ext/LiteRGSS/ruby.h

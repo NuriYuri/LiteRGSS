@@ -10,6 +10,7 @@ VALUE rb_Graphics_update(VALUE self);
 VALUE rb_Graphics_snap_to_bitmap(VALUE self);
 VALUE rb_Graphics_freeze(VALUE self);
 VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self);
+VALUE rb_Graphics_list_res(VALUE self);
 
 void __Graphics_Bind(CDrawable_Element* element);
 

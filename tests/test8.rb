@@ -2,11 +2,12 @@ require "./lib/LiteRGSS.so"
 include LiteRGSS
 w = Config::ScreenWidth = 1280
 h = Config::ScreenHeight = 720
+Config::Vsync = false
 Config::Title = "Text Test"
 $LOAD_PATH << "."
 Graphics.start
 @v = Viewport.new(w, h)
-@v.tone.set(0,0,0,0) #> Moins de pb avec les textes ?
+#@v.tone.set(0,0,0,0) #> Moins de pb avec les textes ?
 bmp = Bitmap.new("cb.bmp")
 =begin
 arr = Array.new(10000) do #4000 -> down

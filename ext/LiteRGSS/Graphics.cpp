@@ -3,6 +3,7 @@
 #include "ruby/thread.h"
 #include "LiteRGSS.h"
 #include "Graphics.h"
+#include "Input.h"
 #include "CViewport_Element.h"
 #include "CBitmap_Element.h"
 
@@ -32,6 +33,7 @@ void __LoadVideoModeFromConfigs(sf::VideoMode& vmode);
 const sf::String __LoadTitleFromConfigs();
 unsigned int __LoadFrameRateFromConfigs();
 bool __LoadVSYNCFromConfigs();
+bool __LoadFullScreenFromConfigs();
 void* __Graphics_Update_Internal(void* data);
 VALUE __Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message);
 void __Graphics_Update_Process_Event(GraphicUpdateMessage*& message);
@@ -56,12 +58,14 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "snap_to_bitmap", _rbf rb_Graphics_snap_to_bitmap, 0);
     rb_define_module_function(rb_mGraphics, "freeze", _rbf rb_Graphics_freeze, 0);
     rb_define_module_function(rb_mGraphics, "transition", _rbf rb_Graphics_transition, -1);
+    rb_define_module_function(rb_mGraphics, "list_resolutions", _rbf rb_Graphics_list_res, 0);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 }
 
 VALUE rb_Graphics_start(VALUE self)
 {
+    unsigned int framerate;
     if(game_window != nullptr)
         return Qnil;
     /* Shader Loading */
@@ -71,11 +75,16 @@ VALUE rb_Graphics_start(VALUE self)
     /* Window Loading */
     sf::VideoMode vmode(640, 480, 32);
     __LoadVideoModeFromConfigs(vmode);
-    game_window = new sf::RenderWindow(vmode, __LoadTitleFromConfigs());
-    game_window->setFramerateLimit(__LoadFrameRateFromConfigs());
+    sf::Uint32 style = sf::Style::Close | sf::Style::Titlebar; // sf::Style::Resize = text issues !
+    if(__LoadFullScreenFromConfigs())
+        style = sf::Style::Fullscreen;
+    game_window = new sf::RenderWindow(vmode, __LoadTitleFromConfigs(), style);
+    game_window->setFramerateLimit(framerate = __LoadFrameRateFromConfigs());
     game_window->setMouseCursorVisible(false);
     game_window->setVerticalSyncEnabled(__LoadVSYNCFromConfigs());
     game_window->setActive();
+    L_Input_Reset_Clocks();
+    L_Input_Setusec_threshold(1000000 / framerate);
     return self;
 }
 
@@ -147,6 +156,19 @@ VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self)
     return self;
 }
 
+
+VALUE rb_Graphics_list_res(VALUE self)
+{
+    VALUE array = rb_ary_new();
+    auto modes = sf::VideoMode::getFullscreenModes();
+    for(int i = 0; i < modes.size(); i++)
+    {
+        if(modes[i].bitsPerPixel == 32)
+            rb_ary_push(array, rb_ary_new3(2, rb_int2inum(modes[i].width), rb_int2inum(modes[i].height)));
+    }
+    return array;
+}
+
 VALUE rb_Graphics_update(VALUE self)
 {
     GRAPHICS_PROTECT
@@ -156,6 +178,8 @@ VALUE rb_Graphics_update(VALUE self)
     /* Graphics.update real process */
     GraphicUpdateMessage* message = 
         reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(__Graphics_Update_Internal, (void*)&Graphics_stack, NULL, NULL));
+    /* Message Processing */
+    __Graphics_Update_Process_Event(message); // Here because I need to access to Ruby Data
     if(message != nullptr)
         return __Graphics_Update_RaiseError(self, message);
     /* End of Graphics.update process */
@@ -172,8 +196,6 @@ void* __Graphics_Update_Internal(void* data)
         game_window->clear();
         __Graphics_Update_Draw((std::vector<CDrawable_Element*>*)data);
         game_window->display();
-        /* Message Processing */
-        __Graphics_Update_Process_Event(message);
     }
     else
     {
@@ -193,12 +215,28 @@ void __Graphics_Update_Process_Event(GraphicUpdateMessage*& message)
     {
         switch(event.type)
         {
-            case sf::Event::Closed:
+            case sf::Event::EventType::Closed:
                 message = new GraphicUpdateMessage();
                 message->errorObject = rb_eClosedWindow;
                 message->message = "Game Window has been closed by user.";
                 return;
-            
+            case sf::Event::EventType::KeyPressed:
+                L_Input_Update_Key(event.key.code, true);
+                break;
+            case sf::Event::EventType::KeyReleased:
+                L_Input_Update_Key(event.key.code, false);
+                break;
+            case sf::Event::EventType::JoystickButtonPressed:
+                L_Input_Update_Joy(event.joystickButton.joystickId, event.joystickButton.button, true);
+                break;
+            case sf::Event::EventType::JoystickButtonReleased:
+                L_Input_Update_Joy(event.joystickButton.joystickId, event.joystickButton.button, false);
+                break;
+            case sf::Event::EventType::JoystickMoved:
+                L_Input_Update_JoyPos(event.joystickMove.joystickId,
+                    event.joystickMove.axis,
+                    event.joystickMove.position);
+                break;
         }
     }
 }
@@ -300,6 +338,14 @@ bool __LoadVSYNCFromConfigs()
     if(rb_const_defined(rb_mConfig, vsync))
         return RTEST(rb_const_get(rb_mConfig, vsync));
     return true;
+}
+
+bool __LoadFullScreenFromConfigs()
+{
+    ID fsc = rb_intern("FullScreen");
+    if(rb_const_defined(rb_mConfig, fsc))
+        return RTEST(rb_const_get(rb_mConfig, fsc));
+    return false;
 }
 
 void __Graphics_Bind(CDrawable_Element* element)
