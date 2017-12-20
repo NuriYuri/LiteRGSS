@@ -23,6 +23,9 @@ sf::Clock L_Mouse_Clock[L_INPUT_NUM_MOUSE_KEY];
 bool L_Input_Press[L_INPUT_NUM_INGAME_KEY];
 bool L_Mouse_Press[L_INPUT_NUM_MOUSE_KEY];
 long L_Input_threshold = 0;
+long L_Mouse_Wheel_Delta = 0;
+long L_Mouse_Pos_X = 0;
+long L_Mouse_Pos_Y = 0;
 
 unsigned int L_Input_Get_Key_Position(VALUE hash_ids, VALUE hash_key);
 
@@ -38,6 +41,14 @@ void Init_Input()
     rb_define_module_function(rb_mInput, "released?", _rbf rb_Input_Released, 1);
     rb_define_module_function(rb_mInput, "dir4", _rbf rb_Input_dir4, 0);
     rb_define_module_function(rb_mInput, "dir8", _rbf rb_Input_dir8, 0);
+
+    rb_define_module_function(rb_mMouse, "press?", _rbf rb_Mouse_Press, 1);
+    rb_define_module_function(rb_mMouse, "trigger?", _rbf rb_Mouse_Trigger, 1);
+    rb_define_module_function(rb_mMouse, "released?", _rbf rb_Mouse_Released, 1);
+    rb_define_module_function(rb_mMouse, "x", _rbf rb_Mouse_x, 0);
+    rb_define_module_function(rb_mMouse, "y", _rbf rb_Mouse_y, 0);
+    rb_define_module_function(rb_mMouse, "wheel", _rbf rb_Mouse_Wheel, 0);
+    rb_define_module_function(rb_mMouse, "wheel=", _rbf rb_Mouse_Wheel_set, 1);
 
     /* usefull id */
     rb_mInputEach = rb_intern("each_key");
@@ -333,6 +344,29 @@ void L_Input_Update_Key(sf::Keyboard::Key code, bool state)
         rb_int2inum(code));
 }
 
+void L_Input_Mouse_Pos_Update(long x, long y)
+{
+    L_Mouse_Pos_X = x;
+    L_Mouse_Pos_Y = y;
+}
+
+void L_Input_Mouse_Wheel_Update(long delta)
+{
+    L_Mouse_Wheel_Delta += delta;
+}
+
+void L_Input_Mouse_Button_Update(long button, bool state)
+{
+    if(button >= 0 && button < L_INPUT_NUM_MOUSE_KEY)
+    {
+        if(L_Mouse_Press[button] != state)
+        {
+            L_Mouse_Press[button] = state;
+            L_Mouse_Clock[button].restart();
+        }
+    }
+}
+
 void L_Input_Update_Joy(unsigned int joy_id, unsigned int key, bool state)
 {
     rb_block_call(rb_mInputKey, rb_mInputEach, 0, NULL, 
@@ -492,5 +526,53 @@ VALUE rb_Input_dir8(VALUE self)
     if(L_Input_Press[16])
         return LONG2FIX(6);
     return LONG2FIX(0);
+}
 
+VALUE rb_Mouse_Press(VALUE self, VALUE key_sym)
+{
+    unsigned int pos = L_Input_Get_Key_Position(rb_mMouseKeyID, key_sym);
+    return L_Mouse_Press[pos] ? Qtrue : Qfalse;
+}
+
+VALUE rb_Mouse_Trigger(VALUE self, VALUE key_sym)
+{
+    unsigned int pos = L_Input_Get_Key_Position(rb_mMouseKeyID, key_sym);
+    bool pressed = L_Mouse_Press[pos];
+    if(!pressed)
+        return Qfalse;
+    if(L_Mouse_Clock[pos].getElapsedTime().asMicroseconds() < L_Input_threshold)
+        return Qtrue;
+    return Qfalse;
+}
+
+VALUE rb_Mouse_Released(VALUE self, VALUE key_sym)
+{
+    unsigned int pos = L_Input_Get_Key_Position(rb_mMouseKeyID, key_sym);
+    bool pressed = L_Mouse_Press[pos];
+    if(pressed)
+        return Qfalse;
+    if(L_Mouse_Clock[pos].getElapsedTime().asMicroseconds() < L_Input_threshold)
+        return Qtrue;
+    return Qfalse;
+}
+
+VALUE rb_Mouse_x(VALUE self)
+{
+    return rb_int2inum(L_Mouse_Pos_X);
+}
+
+VALUE rb_Mouse_y(VALUE self)
+{
+    return rb_int2inum(L_Mouse_Pos_Y);
+}
+
+VALUE rb_Mouse_Wheel(VALUE self)
+{
+    return rb_int2inum(L_Mouse_Wheel_Delta);
+}
+
+VALUE rb_Mouse_Wheel_set(VALUE self, VALUE val)
+{
+    L_Mouse_Wheel_Delta = rb_num2long(val);
+    return val;
 }

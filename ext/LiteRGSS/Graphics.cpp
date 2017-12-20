@@ -237,6 +237,25 @@ void __Graphics_Update_Process_Event(GraphicUpdateMessage*& message)
                     event.joystickMove.axis,
                     event.joystickMove.position);
                 break;
+            case sf::Event::EventType::MouseMoved:
+                L_Input_Mouse_Pos_Update(event.mouseMove.x, event.mouseMove.y);
+                break;
+            case sf::Event::EventType::MouseButtonPressed:
+                L_Input_Mouse_Button_Update(event.mouseButton.button, true);
+                L_Input_Mouse_Pos_Update(event.mouseButton.x, event.mouseButton.y);
+                break;
+            case sf::Event::EventType::MouseButtonReleased:
+                L_Input_Mouse_Button_Update(event.mouseButton.button, false);
+                L_Input_Mouse_Pos_Update(event.mouseButton.x, event.mouseButton.y);
+                break;
+            case sf::Event::EventType::MouseWheelScrolled:
+                if(event.mouseWheelScroll.wheel == sf::Mouse::Wheel::VerticalWheel)
+                    L_Input_Mouse_Wheel_Update(static_cast<long>(event.mouseWheelScroll.delta));
+                L_Input_Mouse_Pos_Update(event.mouseWheelScroll.x, event.mouseWheelScroll.y);
+                break;
+            case sf::Event::EventType::MouseLeft:
+                L_Input_Mouse_Pos_Update(-256, -256);
+                break;
         }
     }
 }
