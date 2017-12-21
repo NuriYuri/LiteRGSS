@@ -1,7 +1,21 @@
 #ifndef LITERGSS_HEADER_FILE
 #define LITERGSS_HEADER_FILE
 #include <iostream>
+#include <vector>
+#include <string>
+#include <cmath>
 #include <SFML/Graphics.hpp>
+#include "ruby.h"
+#include "Graphics.h"
+#include "Color.h"
+#include "Tone.h"
+#include "Rect.h"
+#include "Bitmap.h"
+#include "Viewport.h"
+#include "Sprite.h"
+#include "Fonts.h"
+#include "Text.h"
+#include "Input.h"
 
 #define _rbf (VALUE (*)(...))
 
@@ -22,6 +36,8 @@ extern VALUE rb_mInput;
 extern VALUE rb_mMouse;
 
 extern VALUE rb_eRGSSError;
+extern VALUE rb_eStoppedGraphics;
+extern VALUE rb_eClosedWindow;
 
 extern ID rb_iElementTable;
 

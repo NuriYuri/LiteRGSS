@@ -1,8 +1,4 @@
-#include "ruby.h"
 #include "LiteRGSS.h"
-#include "Fonts.h"
-#include "Text.h"
-#include <cmath>
 
 VALUE rb_cText = Qnil;
 
@@ -99,7 +95,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
     }
     else
     {
-        __Graphics_Bind(text);
+        global_Graphics_Bind(text);
         table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
         text->rViewport = Qnil;
     }

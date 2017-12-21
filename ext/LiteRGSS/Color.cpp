@@ -1,7 +1,4 @@
-#include "ruby.h"
 #include "LiteRGSS.h"
-#include "Color.h"
-#include <SFML/Graphics.hpp>
 
 VALUE rb_cColor = Qnil;
 

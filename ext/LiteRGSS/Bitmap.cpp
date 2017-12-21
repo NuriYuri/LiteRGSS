@@ -1,8 +1,5 @@
-#include "ruby.h"
 #include "LiteRGSS.h"
-#include "Bitmap.h"
 #include "CBitmap_Element.h"
-#include <SFML/Graphics.hpp>
 
 VALUE rb_cBitmap = Qnil;
 

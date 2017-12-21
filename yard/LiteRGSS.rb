@@ -51,6 +51,11 @@ module LiteRGSS
     # @return [Array<Array(width, height)>]
     def list_resolutions
     end
+    class << self
+      # Return the number of frame shown on the screen
+      # @return [Integer]
+      attr_accessor :frame_count
+    end
   end
   # Class that define a rectangular surface of a Graphical element
   class Rect

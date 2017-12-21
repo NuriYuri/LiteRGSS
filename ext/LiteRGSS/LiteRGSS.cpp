@@ -1,4 +1,3 @@
-#include "ruby.h"
 #include "LiteRGSS.h"
 
 VALUE rb_mLiteRGSS = Qnil;

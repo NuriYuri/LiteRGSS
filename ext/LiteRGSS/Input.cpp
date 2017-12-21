@@ -1,8 +1,4 @@
-#include "ruby.h"
-#include "ruby/ruby.h"
 #include "LiteRGSS.h"
-#include <SFML/Graphics.hpp>
-#include "Input.h"
 
 #define L_INPUT_NUM_INGAME_KEY 17
 #define L_INPUT_NUM_MOUSE_KEY 5

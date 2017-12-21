@@ -1,10 +1,6 @@
-#include "ruby.h"
 #include "LiteRGSS.h"
 #include "CRect_Element.h"
 #include "CViewport_Element.h"
-#include "Rect.h"
-#include "Viewport.h"
-#include <string>
 
 VALUE rb_cRect = Qnil;
 

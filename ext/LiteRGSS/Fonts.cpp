@@ -1,8 +1,4 @@
-#include "ruby.h"
 #include "LiteRGSS.h"
-#include <vector>
-#include <SFML/Graphics.hpp>
-#include "Fonts.h"
 
 VALUE rb_mFonts = Qnil;
 

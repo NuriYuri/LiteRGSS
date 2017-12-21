@@ -1,8 +1,5 @@
-#include "ruby.h"
 #include "LiteRGSS.h"
-#include "Tone.h"
 #include "CTone_Element.h"
-#include <SFML/Graphics.hpp>
 
 VALUE rb_cTone = Qnil;
 

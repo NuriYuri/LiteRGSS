@@ -1,12 +1,7 @@
-#include "ruby.h"
 #include "LiteRGSS.h"
 #include "CViewport_Element.h"
 #include "CRect_Element.h"
 #include "CTone_Element.h"
-#include "Graphics.h"
-#include "Sprite.h"
-#include "Text.h"
-#include "Viewport.h"
 
 VALUE rb_cViewport = Qnil;
 
@@ -103,7 +98,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     /* Viewport setting */
     GET_VIEWPORT
     VALUE table;
-    __Graphics_Bind(viewport);
+    global_Graphics_Bind(viewport);
     table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_push(table, self);
     viewport->setOx(0);

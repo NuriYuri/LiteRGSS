@@ -1,6 +1,4 @@
-#include "ruby.h"
 #include "LiteRGSS.h"
-#include "Sprite.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
 
@@ -109,7 +107,7 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
     /* Otherwise */
     else
     {
-        __Graphics_Bind(sprite);
+        global_Graphics_Bind(sprite);
         table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
         sprite->rViewport = Qnil;
     }
