@@ -76,7 +76,7 @@ VALUE rb_Tone_Initialize(int argc, VALUE* argv, VALUE self)
     if(RTEST(blue))
         tonev->z = normalize_long(rb_num2long(blue), -255, 255) / 255.0f;
     if(RTEST(alpha))
-        tonev->w = normalize_long(rb_num2long(alpha), -255, 255) / 255.0f;
+        tonev->w = normalize_long(rb_num2long(alpha), 0, 255) / 255.0f;
     __Tone_Check_LinkedObject(tone);
     return self;
 }
@@ -144,7 +144,7 @@ VALUE rb_Tone_getGray(VALUE self)
 VALUE rb_Tone_setGray(VALUE self, VALUE val)
 {
     GET_TONE
-    tonev->w = normalize_long(rb_num2long(val), -255, 255) / 255.0f;
+    tonev->w = normalize_long(rb_num2long(val), 0, 255) / 255.0f;
     __Tone_Check_LinkedObject(tone);
     return self;
 }

@@ -19,6 +19,10 @@
 .vscode
 *.code-workspace
 *.directory
+*.yard*
 tmp
 ext/LiteRGSS/ruby
 ext/LiteRGSS/ruby.h
+yard/doc
+yard/*.html
+mkmf.log

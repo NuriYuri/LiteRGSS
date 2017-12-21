@@ -2,13 +2,14 @@
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
 {
-    target.setView(view);
     if(linkedTone)
     {
         if(!render)
             return;
+        target.setView(target.getDefaultView());
         globalshader->setUniform("tone", tone);
         render->clear(sf::Color(0,0,0,0));
+        render->setView(view);
         for(auto sp = stack.begin();sp != stack.end();sp++)
             (*sp)->drawFast(*render);
         render->display();
@@ -17,7 +18,10 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
         reset_globalshader();
     }
     else
+    {
+        target.setView(view);
         drawFast(target);
+    }
 }
 
 void CViewport_Element::drawFast(sf::RenderTarget& target) const 

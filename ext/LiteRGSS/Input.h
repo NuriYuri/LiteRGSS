@@ -16,6 +16,12 @@ VALUE rb_Input_Repeat(VALUE self, VALUE key_sym);
 VALUE rb_Input_Released(VALUE self, VALUE key_sym);
 VALUE rb_Input_dir4(VALUE self);
 VALUE rb_Input_dir8(VALUE self);
+VALUE rb_Input_setMainJoypad(VALUE self, VALUE id);
+VALUE rb_Input_setMainXAxis(VALUE self, VALUE axis);
+VALUE rb_Input_setMainYAxis(VALUE self, VALUE axis);
+VALUE rb_Input_getMainJoypad(VALUE self);
+VALUE rb_Input_getMainXAxis(VALUE self);
+VALUE rb_Input_getMainYAxis(VALUE self);
 
 VALUE rb_Mouse_Press(VALUE self, VALUE key_sym);
 VALUE rb_Mouse_Trigger(VALUE self, VALUE key_sym);

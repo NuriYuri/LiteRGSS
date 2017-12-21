@@ -41,6 +41,12 @@ void Init_Input()
     rb_define_module_function(rb_mInput, "released?", _rbf rb_Input_Released, 1);
     rb_define_module_function(rb_mInput, "dir4", _rbf rb_Input_dir4, 0);
     rb_define_module_function(rb_mInput, "dir8", _rbf rb_Input_dir8, 0);
+    rb_define_module_function(rb_mInput, "main_joy", _rbf rb_Input_getMainJoypad, 0);
+    rb_define_module_function(rb_mInput, "main_joy=", _rbf rb_Input_setMainJoypad, 1);
+    rb_define_module_function(rb_mInput, "x_axis", _rbf rb_Input_getMainXAxis, 0);
+    rb_define_module_function(rb_mInput, "x_axis=", _rbf rb_Input_setMainXAxis, 1);
+    rb_define_module_function(rb_mInput, "y_axis", _rbf rb_Input_getMainYAxis, 0);
+    rb_define_module_function(rb_mInput, "y_axis=", _rbf rb_Input_setMainYAxis, 1);
 
     rb_define_module_function(rb_mMouse, "press?", _rbf rb_Mouse_Press, 1);
     rb_define_module_function(rb_mMouse, "trigger?", _rbf rb_Mouse_Trigger, 1);
@@ -176,6 +182,7 @@ void Init_Input()
     rb_define_const(rb_mInput, "JoyAxisY", rb_int2inum(sf::Joystick::Axis::Y));
     rb_mInputMainAxisY = tmp;
     rb_define_const(rb_mInput, "JoyAxisZ", rb_int2inum(sf::Joystick::Axis::Z));
+    rb_define_const(rb_mInput, "JoyAxisR", rb_int2inum(sf::Joystick::Axis::R));
     rb_define_const(rb_mInput, "JoyAxisU", rb_int2inum(sf::Joystick::Axis::U));
     rb_define_const(rb_mInput, "JoyAxisV", rb_int2inum(sf::Joystick::Axis::V));
     rb_define_const(rb_mInput, "JoyAxisPovX", rb_int2inum(sf::Joystick::Axis::PovX));
@@ -376,6 +383,9 @@ void L_Input_Update_Joy(unsigned int joy_id, unsigned int key, bool state)
 
 void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
 {
+    VALUE joypad = LONG2FIX(joy_id);
+    if(joypad != rb_mInputMainJoy)
+        return;
     VALUE raxis = LONG2FIX(axis);
     if(raxis == rb_mInputMainAxisX)
     {
@@ -526,6 +536,42 @@ VALUE rb_Input_dir8(VALUE self)
     if(L_Input_Press[16])
         return LONG2FIX(6);
     return LONG2FIX(0);
+}
+
+VALUE rb_Input_setMainJoypad(VALUE self, VALUE id)
+{
+    rb_check_type(id, T_FIXNUM);
+    rb_mInputMainJoy = id;
+    return id;
+}
+
+VALUE rb_Input_setMainXAxis(VALUE self, VALUE axis)
+{
+    rb_check_type(axis, T_FIXNUM);
+    rb_mInputMainAxisX = axis;
+    return axis;
+}
+
+VALUE rb_Input_setMainYAxis(VALUE self, VALUE axis)
+{
+    rb_check_type(axis, T_FIXNUM);
+    rb_mInputMainAxisY = axis;
+    return axis;
+}
+
+VALUE rb_Input_getMainJoypad(VALUE self)
+{
+    return rb_mInputMainJoy;
+}
+
+VALUE rb_Input_getMainXAxis(VALUE self)
+{
+    return rb_mInputMainAxisX;
+}
+
+VALUE rb_Input_getMainYAxis(VALUE self)
+{
+    return rb_mInputMainAxisY;
 }
 
 VALUE rb_Mouse_Press(VALUE self, VALUE key_sym)

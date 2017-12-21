@@ -39,6 +39,9 @@ void Init_Bitmap()
     rb_define_method(rb_cBitmap, "initialize_copy", _rbf rb_Bitmap_Initialize_Copy, 1);
     rb_define_method(rb_cBitmap, "dispose", _rbf rb_Bitmap_Dispose, 0);
     rb_define_method(rb_cBitmap, "disposed?", _rbf rb_Bitmap_Disposed, 0);
+    rb_define_method(rb_cBitmap, "width", _rbf rb_Bitmap_Width, 0);
+    rb_define_method(rb_cBitmap, "height", _rbf rb_Bitmap_Height, 0);
+    rb_define_method(rb_cBitmap, "rect", _rbf rb_Bitmap_Rect, 0);
 }
 
 VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self)
@@ -102,4 +105,26 @@ VALUE rb_Bitmap_Disposed(VALUE self)
 {
     rb_check_type(self, T_DATA);
     return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
+}
+
+VALUE rb_Bitmap_Width(VALUE self)
+{
+    GET_BITMAP
+    sf::Vector2u size = bitmap->getTexture()->getSize();
+    return rb_int2inum(size.x);
+}
+
+VALUE rb_Bitmap_Height(VALUE self)
+{
+    GET_BITMAP
+    sf::Vector2u size = bitmap->getTexture()->getSize();
+    return rb_int2inum(size.y);
+}
+
+VALUE rb_Bitmap_Rect(VALUE self)
+{
+    GET_BITMAP
+    sf::Vector2u size = bitmap->getTexture()->getSize();
+    VALUE argv[4] = {LONG2FIX(0), LONG2FIX(0), rb_int2inum(size.x), rb_int2inum(size.y)};
+    return rb_class_new_instance(4, argv, rb_cRect);
 }
