@@ -37,6 +37,7 @@ module LiteRGSS
     def update
     end
     # Takes a snapshot of the frame before the last Graphics.update
+    # @return [Bitmap]
     def snap_to_bitmap
     end
     # Freeze the Graphics by showing the current frame on top of each sprites (triggers a Graphics.update to take the current frame)

@@ -19,7 +19,7 @@
 .vscode
 *.code-workspace
 *.directory
-*.yard*
+.yardoc
 tmp
 ext/LiteRGSS/ruby
 ext/LiteRGSS/ruby.h

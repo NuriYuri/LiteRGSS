@@ -1,0 +1,3 @@
+--hide-void-return
+--default-return ''
+--readme README.md
