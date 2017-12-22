@@ -17,11 +17,11 @@ What does Lite RGSS need to run ?
 --
 For now : Ruby and SFML.
 
-How to build Lite RGSS ?
+How to build Lite RGSS ? (Under Linux)
 --
 First, install the dependencies :
 
-    gem install rake-compiler
+    sudo gem install rake-compiler
     sudo apt-get install libsfml-dev
 Then if it's the first time you build or if you updated the library, execute the following command where the "Rakefile" is present :
 
@@ -32,6 +32,16 @@ Then if it's the first time you build or if you updated the library, execute the
     rake compile
 
 The library will be in the ./lib directory as an .so file, you can require it from a ruby script (using relative path).
+
+How to build Lite RGSS under Windows ?
+--
+
+- Install [Ruby](https://rubyinstaller.org/ "Ruby Installer")
+- Install the dev kit using `ridk install` (chose 3 and when everything is done press enter)
+- Enable the dev kit using `ridk enable`
+- Move the SFML file to msys64/mingw64 (download the MinGW version of SFML that match with your ruby architecture x64/x86 and move the lib, include and bin directories)
+- Go to the LiteRGSS directory
+- run `rake compile` (it'll probably takes a lot of time)
 
 How to start correctly Lite RGSS ?
 --
