@@ -1,11 +1,11 @@
 # LiteRGSS namespace
 # 
-# It contains every LiteRGSS classe and module 
+# It contains every LiteRGSS classes and modules 
 module LiteRGSS
-  # Error triggered by various function for some reason
+  # Error triggered by various functions for some reasons
   Error = StandardError.new
   # LiteRGSS configs
-  # Holds every constant that helps LiteRGSS to generate a good graphic window
+  # Holds every constants that help LiteRGSS to generate a good graphic window
   module Config
     # The witdh of the screen (between 160 and the maximum fullscreen width)
     ScreenWidth = 640
@@ -13,14 +13,14 @@ module LiteRGSS
     ScreenHeight = 480
     # The title of the window
     Title = "LiteRGSS"
-    # The number of frame per second
+    # The number of frames per second
     FrameRate = 60
     # If the window use vertical synchronization
     Vsync = true
     # If the game is in fullscreen
     FullScreen = false
   end
-  # Graphics module manage the frame and window display
+  # Graphics module manages the frame and window display
   module Graphics
     # Error triggered when you use a Graphic function without starting the window display ( `Graphics.start` )
     StoppedError = StandardError.new
@@ -36,28 +36,28 @@ module LiteRGSS
     # Show the current frame to the screen and catch every SFML Events that LiteRGSS reads (Input)
     def update
     end
-    # Takes a snapshot of the frame before the last Graphics.update
+    # Take a snapshot of the frame before the last Graphics.update
     # @return [Bitmap]
     def snap_to_bitmap
     end
-    # Freeze the Graphics by showing the current frame on top of each sprites (triggers a Graphics.update to take the current frame)
+    # Freeze the Graphics by showing the current frame on top of each sprite (triggers a Graphics.update to take the current frame)
     def freeze
     end
-    # Show a transition between the frozen Graphics an the new Graphic state
-    # @param nb_frame [Integer] the number of frame the transition lasts
+    # Show a transition between the frozen Graphics and the new Graphic state
+    # @param nb_frame [Integer] the number of frames the transition lasts
     def transition(nb_frame)
     end
-    # Return an array containing the possible 32bit fullscreen resolutions
+    # Return an array containing the possible 32 bits fullscreen resolutions
     # @return [Array<Array(width, height)>]
     def list_resolutions
     end
     class << self
-      # Return the number of frame shown on the screen
+      # Return the number of frames shown on the screen
       # @return [Integer]
       attr_accessor :frame_count
     end
   end
-  # Class that define a rectangular surface of a Graphical element
+  # Class that defines a rectangular surface of a Graphical element
   class Rect
     # x position of the surface
     # @return [Integer]
@@ -81,7 +81,7 @@ module LiteRGSS
     # @overload new(x, y, width, height)
     def initialize(x, y, width, height)
     end
-    # Sets the parameters of the surface
+    # Set the parameters of the surface
     # @param x [Integer, nil] x position of the surface
     # @param y [Integer, nil] y position of the surface
     # @param width [Integer, nil] width of the surface
@@ -116,7 +116,7 @@ module LiteRGSS
     def self._load(str)
     end
   end
-  # Class that describe RGBA colors
+  # Class that describes RGBA colors
   class Color
     # The red value of the color
     # @return [Integer]
@@ -168,7 +168,7 @@ module LiteRGSS
     def self._load(str)
     end
   end
-  # Class that describe tones (added/modified color to the surface)
+  # Class that describe tones (added/modified colors to the surface)
   class Tone
     # The red value of the tone
     # @return [Integer]
@@ -220,7 +220,7 @@ module LiteRGSS
     def self._load(str)
     end
   end
-  # Class that store an image loaded from file or memory
+  # Class that stores an image loaded from file or memory
   class Bitmap
     # Create a new bitmap
     # @param filename_or_memory [String]
@@ -248,7 +248,7 @@ module LiteRGSS
     def rect
     end
   end
-  # Class that describe a surface of the screen where text and sprites are shown (with some global effect)
+  # Class that describes a surface of the screen where texts and sprites are shown (with some global effect)
   class Viewport
     # The surface of the viewport on the screen
     # @return [Rect]
@@ -262,7 +262,7 @@ module LiteRGSS
     # The offset y of the viewport's contents
     # @return [Integer]
     attr_accessor :oy
-    # Creates a new Viewport
+    # Create a new Viewport
     # @param x [Integer] x position of the surface
     # @param y [Integer] y position of the surface
     # @param width [Integer] width of the surface
@@ -349,8 +349,8 @@ module LiteRGSS
     # @return [Numeric]
     attr_accessor :opacity
   end
-  # Class that describe a text shown on the screen or inside a viewport
-  # @note Texts cannot be saved, loaded from file nor cloned in the memory
+  # Class that describes a text shown on the screen or inside a viewport
+  # @note Text cannot be saved, loaded from file nor cloned in the memory
   class Text
     # Create a new Text
     # @param font_id [Integer] the id of the font to use to draw the text (loads the size and default colors from that)
@@ -415,13 +415,13 @@ module LiteRGSS
   end
   # Module that holds information about text fonts.
   #
-  # You can define font loaded from a ttf file, you have to associate a default size, fill color and outline color to the font
+  # You can define fonts loaded from a ttf file, you have to associate a default size, fill color and outline color to the font
   # 
-  # You can define outline color and fill_color without defining a font but do not create a text with a font_id using the id of these color, it could raose an error, use load_color instead.
+  # You can define outline color and fill_color without defining a font but do not create a text with a font_id using the id of these color, it could raise an error, use load_color instead.
   module Fonts
     module_function
     # Load a ttf
-    # @param font_id [Integer] the ID of the font you want to use to recall it in Texts
+    # @param font_id [Integer] the ID of the font you want to use to recall it in Text
     # @param filename [String] the filename of the ttf file.
     # @return [self]
     def load_font(font_id, filename)
@@ -473,10 +473,10 @@ module LiteRGSS
   end
   # Module that helps to know the input state during the game time
   # 
-  # The virtual key of the Input module are :
+  # The virtual keys of the Input module are :
   # :A, :B, :X, :Y, :L, :R, :L2, :R2, :L3, :R3, :START (:start), :SELECT (:select), :HOME (:home), :UP (:up), :DOWN (:down), :LEFT (:left), :RIGHT (:right)
   #
-  # The binding of these key can be changed by accessing `Input::Keys`, the id of the keys are one of the constants of `Input::Keyboard` or (-32 * joy_id - button_id - 1) for joypads.
+  # The binding of these keys can be changed by accessing `Input::Keys`, the id of the keys are one of the constants of `Input::Keyboard` or (-32 * joy_id - button_id - 1) for joypads.
   module Input
     module_function
     # Tell if a key is pressed
@@ -489,7 +489,7 @@ module LiteRGSS
     # @return [Boolean]
     def trigger?(sym)
     end
-    # Tell if a key has been triggered and is still pressed (each period of time ~8 frame after the 20 first frames)
+    # Tell if a key has been triggered and is still pressed (each period of time ~8 frames after the 20 first frames)
     # @param sym [Symbol] symbol of the key
     # @return [Boolean]
     def repeat?(sym)

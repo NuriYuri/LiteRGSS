@@ -1,19 +1,19 @@
 ## LiteRGSS
 
-`LiteRGSS` is a little Ruby Game library that reproduce some functionality of the RGSS. It has been written with `SFML`for the Graphical part.
+`LiteRGSS` is a little Ruby Game library that reproduces some features of the RGSS. It has been written with `SFML` for the Graphical part.
 
-Nuri Yuri wrote LiteRGSS during it's free time, that's why [SFML](https://www.sfml-dev.org/index-fr.php"SFML") has been used (easy to use, nothing to learn) and wanted to have a RGSS like library that was usable directly with the MRI (to allow thing like `require "socket"` which is impossible with `mkxp` and other RGSS like library)
+Nuri Yuri wrote LiteRGSS during his free time, that's why [SFML](https://www.sfml-dev.org/index-fr.php"SFML") has been used (easy to use, nothing to learn) and wanted to have a RGSS like library that was usable directly with the MRI (to allow thing like `require "socket"` which is impossible with `mkxp` and other RGSS like library)
 
 ### Dependencies
 
-LiteRGSS (Graphic) depends on `SFML` and Ruby (`MRI`). On an debian system (Debian, /.*buntu/) you can install these writting the following commands :
-```sudo apt-get install libsfml-dev ruby```
+LiteRGSS (Graphic) depends on `SFML` and Ruby (`MRI`). On an debian system (Debian, /.*buntu/) you can install these by writting the following commands :
+```sudo apt install libsfml-dev ruby```
 
 **Note** : Don't forget to credit SFML with a little splash or something, that would be great :)
 
 ### Building
 
-I currently cannot build the LiteRGSS for all platform (because I don't have these and the version of Ruby and SFML differ on every platforms). You would also want to modify some things inside the LiteRGSS core so here is the way to build LiteRGSS :
+I currently cannot build the LiteRGSS for all platforms (because I don't have these and the version of Ruby and SFML differ on every platforms). You would also want to modify some things inside the LiteRGSS core so here is the way to build LiteRGSS :
 
 - Install [rake-compiler](https://github.com/rake-compiler/rake-compiler"rake-compiler") : `sudo gem install rake-compiler`
 - Clone the repo
@@ -30,12 +30,12 @@ Your main script :
     require 'Yourscripts.rb'
     require 'Configurations.rb' #> Set the LiteRGSS::Config constants here
     
-    Graphics.start #> Displays the main window
+    Graphics.start #> Display the main window
     
     $scene = Scene_Title.new
     $scene.main while $scene
     
-    Graphics.stop #> Closes the main window
+    Graphics.stop #> Close the main window
    Inside your `$scene.update` method :
 
     def update
