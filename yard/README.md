@@ -11,7 +11,7 @@ LiteRGSS (Graphic) depends on `SFML` and Ruby (`MRI`). On an debian system (Debi
 
 **Note** : Don't forget to credit SFML with a little splash or something, that would be great :)
 
-### Building
+### Building under Linux
 
 I currently cannot build the LiteRGSS for all platforms (because I don't have these and the version of Ruby and SFML differ on every platforms). You would also want to modify some things inside the LiteRGSS core so here is the way to build LiteRGSS :
 
@@ -21,6 +21,15 @@ I currently cannot build the LiteRGSS for all platforms (because I don't have th
 - run `rake compile`
 
 The result will be inside the lib directory as `LiteRGSS.so` move it to your project and don't forget to give the dependencies with it.
+
+### Building under Windows
+
+- Install [Ruby](https://rubyinstaller.org/ "Ruby Installer")
+- Install the dev kit using `ridk install` (chose 3 and when everything is done press enter)
+- Enable the dev kit using `ridk enable`
+- Move the SFML file to msys64/mingw64 (download the MinGW version of SFML that match with your ruby architecture x64/x86 and move the lib, include and bin directories)
+- Go to the LiteRGSS directory
+- run `rake compile` (it'll probably takes a lot of time)
 
 ### Basic example of the LiteRGSS use
 
