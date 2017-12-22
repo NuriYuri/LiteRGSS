@@ -4,8 +4,8 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include "ruby.h" // Windows Patch
 #include <SFML/Graphics.hpp>
-#include "ruby.h"
 #include "Graphics.h"
 #include "Color.h"
 #include "Tone.h"

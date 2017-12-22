@@ -1,5 +1,6 @@
 #ifndef CDrawable_Element_H
 #define CDrawable_Element_H
+#include "ruby.h" // Windows Build Patch
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <algorithm>
