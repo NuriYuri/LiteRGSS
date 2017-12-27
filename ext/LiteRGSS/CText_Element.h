@@ -5,7 +5,7 @@
 
 class CText_Element : public CDrawable_Element {
     private:
-        sf::Text text;
+        sf::Text2 text;
         bool visible;
     public:
         CText_Element() : CDrawable_Element(), visible(true) {};
@@ -13,7 +13,7 @@ class CText_Element : public CDrawable_Element {
         void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return false; };
         bool isPureSprite() const override { return false; };
-        sf::Text* getText() { return &text;};
+        sf::Text2* getText() { return &text;};
         void setVisible(bool value) { visible = value;};
         bool getVisible() { return visible; };
         /* Instance variable for Ruby */

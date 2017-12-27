@@ -31,13 +31,16 @@ txt = Array.new
 Fonts.load_font(0, "PokemonDS.ttf")
 Fonts.set_default_size(0, 13)
 Fonts.define_fill_color(0, Color.new(240, 240, 240, 255))
-Fonts.define_outline_color(0, Color.new(64, 64, 64, 255))
+Fonts.define_outline_color(0, Color.new(64, 64, 180, 255))
+Fonts.define_shadow_color(0, Color.new(180, 128, 128, 255))
 txt << Text.new(0, @v, 0, 0, 320, 16, "ç¤ù*§qaéèàïîê")
 txt << Text.new(0, @v, 0, 16, 320, 16, "Test quelconque", 1, 2)
+txt.last.nchar_draw = 9
 txt << Text.new(0, @v, 0, 32, 320, 16, "Test quelconque", 2) #txt << Text.new(0, @v, 0, 32, 320, 16, "Nuri Yuri", 2)
 txt.last.fill_color = Color.new(240, 0, 0)
 txt << Text.new(0, @v, 0, 48, 320, 16, "Test quelconque", 2)
 txt.last.fill_color = Color.new(240, 0, 0)
+txt.last.draw_shadow = false
 40.times do |i|
   txt << Text.new(0, @v, 0, 64 + i * 16, 1280, 16, rand(10**180).to_s(36), rand(3), rand(2))
 end

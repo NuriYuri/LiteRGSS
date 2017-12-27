@@ -42,6 +42,8 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "list_resolutions", _rbf rb_Graphics_list_res, 0);
     rb_define_module_function(rb_mGraphics, "frame_count", _rbf rb_Graphics_get_frame_count, 0);
     rb_define_module_function(rb_mGraphics, "frame_count=", _rbf rb_Graphics_set_frame_count, 1);
+    rb_define_module_function(rb_mGraphics, "width", _rbf rb_Graphics_width, 0);
+    rb_define_module_function(rb_mGraphics, "height", _rbf rb_Graphics_height, 0);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 }
@@ -182,6 +184,16 @@ VALUE rb_Graphics_set_frame_count(VALUE self, VALUE val)
 {
     frame_count = rb_num2ulong(val);
     return val;
+}
+
+VALUE rb_Graphics_width(VALUE self)
+{
+    return rb_int2inum(ScreenWidth);
+}
+
+VALUE rb_Graphics_height(VALUE self)
+{
+    return rb_int2inum(ScreenHeight);
 }
 
 void global_Graphics_Bind(CDrawable_Element* element)

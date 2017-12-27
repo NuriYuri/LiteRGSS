@@ -72,7 +72,15 @@ void Init_Text()
     rb_define_method(rb_cText, "size", _rbf rb_Text_get_size, 0);
     rb_define_method(rb_cText, "size=", _rbf rb_Text_set_size, 1);
     rb_define_method(rb_cText, "set_size", _rbf rb_Text_set_size, 1);
+    rb_define_method(rb_cText, "text", _rbf rb_Text_get_Text, 0);
     rb_define_method(rb_cText, "text=", _rbf rb_Text_set_Text, 1);
+    rb_define_method(rb_cText, "visible", _rbf rb_Text_get_visible, 0);
+    rb_define_method(rb_cText, "visible=", _rbf rb_Text_set_visible, 1);
+    rb_define_method(rb_cText, "draw_shadow", _rbf rb_Text_get_draw_shadow, 0);
+    rb_define_method(rb_cText, "draw_shadow=", _rbf rb_Text_set_draw_shadow, 1);
+    rb_define_method(rb_cText, "nchar_draw", _rbf rb_Text_get_num_char, 0);
+    rb_define_method(rb_cText, "nchar_draw=", _rbf rb_Text_set_num_char, 1);
+    rb_define_method(rb_cText, "real_width", _rbf rb_Text_getRealWidth, 0);
 
     rb_define_method(rb_cText, "clone", _rbf rb_Text_Copy, 0);
     rb_define_method(rb_cText, "dup", _rbf rb_Text_Copy, 0);
@@ -100,18 +108,6 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
         text->rViewport = Qnil;
     }
     rb_ary_push(table, self);
-    /* Font */
-    VALUE fcol = rb_Fonts_get_fill_color(rb_mFonts, fontid);
-    if(rb_obj_is_kind_of(fcol, rb_cColor) == Qtrue)
-        rb_Text_set_fill_color(self, fcol);
-    VALUE ocol = rb_Fonts_get_outline_color(rb_mFonts, fontid);
-    if(rb_obj_is_kind_of(ocol, rb_cColor) == Qtrue)
-        rb_Text_set_outline_color(self, ocol);
-    text->getText()->setFont(rb_Fonts_get_font(rb_num2long(fontid)));
-    /* Size */
-    VALUE size = rb_Fonts_get_default_size(rb_mFonts, fontid);
-    if(!NIL_P(size))
-        text->getText()->setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(size), 1, 0xFFFF)));
     /* Surface */
     rb_check_type(x, T_FIXNUM);
     text->rX = x;
@@ -133,6 +129,22 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
     {
         text->getText()->setOutlineThickness(static_cast<float>(rb_num2dbl(outlinesize)));
     }
+    /* Font */
+    VALUE fcol = rb_Fonts_get_fill_color(rb_mFonts, fontid);
+    if(rb_obj_is_kind_of(fcol, rb_cColor) == Qtrue)
+        rb_Text_set_fill_color(self, fcol);
+    VALUE ocol;
+    if(text->getText()->getOutlineThickness() < 1.0f)
+        ocol = rb_Fonts_get_shadow_color(rb_mFonts, fontid);
+    else
+        ocol = rb_Fonts_get_outline_color(rb_mFonts, fontid);
+    if(rb_obj_is_kind_of(ocol, rb_cColor) == Qtrue)
+        rb_Text_set_outline_color(self, ocol);
+    text->getText()->setFont(rb_Fonts_get_font(rb_num2long(fontid)));
+    /* Size */
+    VALUE size = rb_Fonts_get_default_size(rb_mFonts, fontid);
+    if(!NIL_P(size))
+        text->getText()->setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(size), 1, 0xFFFF)));
     /* Text */
     rb_Text_set_Text(self, str); /* Invokes rb_Text_UpdateI */
     return self;
@@ -299,8 +311,12 @@ VALUE rb_Text_set_outline_thickness(VALUE self, VALUE val)
 
 VALUE rb_Text_load_color(VALUE self, VALUE id)
 {
+    GET_TEXT
     rb_Text_set_fill_color(self, rb_Fonts_get_fill_color(rb_mFonts, id));
-    rb_Text_set_outline_color(self, rb_Fonts_get_outline_color(rb_mFonts, id));
+    if(text->getText()->getDrawShadow())
+        rb_Text_set_outline_color(self, rb_Fonts_get_shadow_color(rb_mFonts, id));
+    else
+        rb_Text_set_outline_color(self, rb_Fonts_get_outline_color(rb_mFonts, id));
     return self;
 }
 
@@ -346,9 +362,61 @@ VALUE rb_Text_set_Text(VALUE self, VALUE str)
     return str;
 }
 
+VALUE rb_Text_get_Text(VALUE self)
+{
+    GET_TEXT
+    return text->rtext;
+}
+
+VALUE rb_Text_get_visible(VALUE self)
+{
+    GET_TEXT
+    return (text->getVisible() ? Qtrue : Qfalse);
+}
+
+VALUE rb_Text_set_visible(VALUE self, VALUE val)
+{
+    GET_TEXT
+    text->setVisible(RTEST(val));
+    return self;
+}
+
+VALUE rb_Text_set_num_char(VALUE self, VALUE val)
+{
+    GET_TEXT
+    text->getText()->setNumCharToDraw(rb_num2ulong(val));
+    rb_Text_UpdateI(text);
+    return self;
+}
+
+VALUE rb_Text_get_num_char(VALUE self)
+{
+    GET_TEXT
+    return RB_UINT2NUM(text->getText()->getNumCharToDraw());
+}
+
+VALUE rb_Text_set_draw_shadow(VALUE self, VALUE val)
+{
+    GET_TEXT
+    text->getText()->setDrawShadow(RTEST(val));
+    return self;
+}
+
+VALUE rb_Text_get_draw_shadow(VALUE self)
+{
+    GET_TEXT
+    return (text->getText()->getDrawShadow() ? Qtrue : Qfalse);
+}
+
+VALUE rb_Text_getRealWidth(VALUE self)
+{
+    GET_TEXT
+    return rb_int2inum(text->getText()->getLocalBounds().width);
+}
+
 VALUE rb_Text_UpdateI(CText_Element* text)
 {
-    sf::Text* sftext = text->getText();
+    sf::Text2* sftext = text->getText();
     float x, y, width, height, ox;
     long align;
     VALUE zero = LONG2FIX(0);

@@ -27,6 +27,14 @@ VALUE rb_Text_set_align(VALUE self, VALUE val);
 VALUE rb_Text_get_size(VALUE self);
 VALUE rb_Text_set_size(VALUE self, VALUE val);
 VALUE rb_Text_set_Text(VALUE self, VALUE str);
+VALUE rb_Text_get_Text(VALUE self);
 VALUE rb_Text_DisposeFromViewport(VALUE self);
 VALUE rb_Text_UpdateI(CText_Element* text);
+VALUE rb_Text_get_visible(VALUE self);
+VALUE rb_Text_set_visible(VALUE self, VALUE val);
+VALUE rb_Text_set_num_char(VALUE self, VALUE val);
+VALUE rb_Text_get_num_char(VALUE self);
+VALUE rb_Text_set_draw_shadow(VALUE self, VALUE val);
+VALUE rb_Text_get_draw_shadow(VALUE self);
+VALUE rb_Text_getRealWidth(VALUE self);
 #endif

@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "LiteRGSS"
+		},
+		{
+			"path": "/home/yuri/Bureau/test/fmod/ext/RubyFmod"
 		}
 	],
 	"settings": {
