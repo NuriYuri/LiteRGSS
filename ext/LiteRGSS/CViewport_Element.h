@@ -33,6 +33,7 @@ class CViewport_Element : public CDrawable_Element {
         /* Ruby Ivar */
         VALUE rRect;
         VALUE rTone;
+        VALUE rColor;
         /* Shader related stuff */
         static sf::Shader* globalshader;
         static void load_globalshader();

@@ -8,7 +8,10 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
             return;
         target.setView(target.getDefaultView());
         globalshader->setUniform("tone", tone);
-        render->clear(sf::Color(0,0,0,0));
+        sf::Color* col = reinterpret_cast<sf::Color*>(RDATA(rColor)->data);
+        sf::Glsl::Vec4 color(col->r / 255.0f, col->g / 255.0f, col->b / 255.0f, col->a / 255.0f);
+        globalshader->setUniform("color", color);
+        render->clear(*col);
         render->setView(view);
         for(auto sp = stack.begin();sp != stack.end();sp++)
             (*sp)->drawFast(*render);
@@ -47,11 +50,13 @@ void CViewport_Element::clearStack()
 const std::string ViewportGlobalFragmentShader = \
     "uniform sampler2D texture;" \
     "uniform vec4 tone;" \
+    "uniform vec4 color;" \
     "const vec3 lumaF = vec3(.299, .587, .114);" \
     "void main()" \
     "{" \
     "   vec4 frag = texture2D(texture, gl_TexCoord[0].xy);" \
     /*"   frag.rgb = mix(frag.rgb, gl_Color.rgb, cola);" \*/
+    "   frag.rgb = mix(frag.rgb, color.rgb, color.a);" \
     "   float luma = dot(frag.rgb, lumaF);" \
     "   frag.rgb += tone.rgb;" \
     "   frag.rgb = mix(frag.rgb, vec3(luma), tone.w);" \

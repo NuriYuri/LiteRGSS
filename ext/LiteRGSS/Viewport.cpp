@@ -37,6 +37,7 @@ void rb_Viewport_Mark(CViewport_Element* viewport)
         return;
     rb_gc_mark(viewport->rRect);
     rb_gc_mark(viewport->rTone);
+    rb_gc_mark(viewport->rColor);
 }
 
 VALUE rb_Viewport_Alloc(VALUE klass)
@@ -64,6 +65,8 @@ void Init_Viewport()
     rb_define_method(rb_cViewport, "disposed?", _rbf rb_Viewport_Disposed, 0);
     rb_define_method(rb_cViewport, "tone", _rbf rb_Viewport_getTone, 0);
     rb_define_method(rb_cViewport, "tone=", _rbf rb_Viewport_setTone, 1);
+    rb_define_method(rb_cViewport, "color", _rbf rb_Viewport_getColor, 0);
+    rb_define_method(rb_cViewport, "color=", _rbf rb_Viewport_setColor, 1);
 
     rb_define_method(rb_cViewport, "clone", _rbf rb_Viewport_Copy, 0);
     rb_define_method(rb_cViewport, "dup", _rbf rb_Viewport_Copy, 0);
@@ -113,6 +116,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     viewport->setLinkedRect(rect);
     viewport->rRect = rc;
     viewport->rTone = Qnil;
+    viewport->rColor = Qnil;
     return self;
 }
 
@@ -230,6 +234,7 @@ VALUE rb_Viewport_getTone(VALUE self)
         return tn;
     /* New tone */
     VALUE argv[4] = {LONG2FIX(0)};
+    viewport->rColor = rb_class_new_instance(4, argv, rb_cColor);
     tn = rb_class_new_instance(4, argv, rb_cTone);
     CTone_Element* tone;
     Data_Get_Struct(tn, CTone_Element, tone);
@@ -257,6 +262,26 @@ VALUE rb_Viewport_setTone(VALUE self, VALUE val)
     Data_Get_Struct(self, CTone_Element, tonedest);
     tone_copy(tonedest->getTone(), tonesrc->getTone());
     return val;
+}
+
+VALUE rb_Viewport_getColor(VALUE self)
+{
+    VALUE tn = rb_Viewport_getTone(self);
+    GET_VIEWPORT
+    return viewport->rColor;
+}
+
+VALUE rb_Viewport_setColor(VALUE self, VALUE val)
+{
+    VALUE tn = rb_Viewport_getTone(self);
+    GET_VIEWPORT
+    if(rb_obj_is_kind_of(val, rb_cColor) != Qtrue)
+    {
+        rb_raise(rb_eTypeError, "Expected Color, got %s", RSTRING_PTR(rb_class_name(CLASS_OF(val))));
+        return Qnil;
+    }
+    viewport->rColor = val;
+    return self;
 }
 
 void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, long height)
