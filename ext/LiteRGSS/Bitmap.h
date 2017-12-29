@@ -10,5 +10,7 @@ VALUE rb_Bitmap_Disposed(VALUE self);
 VALUE rb_Bitmap_Width(VALUE self);
 VALUE rb_Bitmap_Height(VALUE self);
 VALUE rb_Bitmap_Rect(VALUE self);
+VALUE rb_Bitmap_Update(VALUE self);
+VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE rect);
 
 #endif

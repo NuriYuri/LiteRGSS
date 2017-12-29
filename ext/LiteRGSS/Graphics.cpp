@@ -79,6 +79,9 @@ VALUE rb_Graphics_stop(VALUE self)
     GRAPHICS_PROTECT
     if(InsideGraphicsUpdate) // Prevent a Thread from calling stop during the Graphics.update process
         return self;
+    /* Clear the stack */
+    local_Graphics_Clear_Stack();
+    /* Close the window */
     game_window->close();
     delete game_window;
     game_window = nullptr;
@@ -109,6 +112,7 @@ VALUE rb_Graphics_snap_to_bitmap(VALUE self)
 
 VALUE rb_Graphics_freeze(VALUE self)
 {
+    GRAPHICS_PROTECT
     if(Graphics_freeze_texture != nullptr)
         return self;
     rb_Graphics_update(self);
@@ -120,6 +124,7 @@ VALUE rb_Graphics_freeze(VALUE self)
 
 VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self)
 {
+    GRAPHICS_PROTECT
     if(Graphics_freeze_sprite == nullptr)
         return self;
     long time = local_LoadFrameRateFromConfigs();

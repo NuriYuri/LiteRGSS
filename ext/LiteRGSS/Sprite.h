@@ -34,4 +34,5 @@ VALUE rb_Sprite_getOpacity(VALUE self);
 VALUE rb_Sprite_getRect(VALUE self);
 VALUE rb_Sprite_setRect(VALUE self, VALUE val);
 VALUE rb_Sprite_DisposeFromViewport(VALUE self);
+VALUE rb_Sprite_Viewport(VALUE self);
 #endif

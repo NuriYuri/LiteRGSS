@@ -17,9 +17,10 @@ VALUE rb_cSprite = Qnil;
 void rb_Sprite_Free(void* data)
 {
     CSprite_Element* sprite = reinterpret_cast<CSprite_Element*>(data);
-    if(sprite)
+    if(sprite != nullptr)
     {
-        sprite->setOriginStack(nullptr);
+        if(NIL_P(sprite->rViewport)) // I can drop a sprite from the viewport it's stored in its table
+            sprite->setOriginStack(nullptr);
         CRect_Element* rect = sprite->getLinkedRect();
         if(rect != nullptr)
             rect->setElement(nullptr);
@@ -86,6 +87,7 @@ void Init_Sprite() {
     rb_define_method(rb_cSprite, "src_rect", _rbf rb_Sprite_getRect, 0);
     rb_define_method(rb_cSprite, "src_rect=", _rbf rb_Sprite_setRect, 1);
     rb_define_method(rb_cSprite, "disposed?", _rbf rb_Sprite_Disposed, 0);
+    rb_define_method(rb_cSprite, "viewport", _rbf rb_Sprite_Viewport, 0);
 
     rb_define_method(rb_cSprite, "clone", _rbf rb_Sprite_Copy, 0);
     rb_define_method(rb_cSprite, "dup", _rbf rb_Sprite_Copy, 0);
@@ -145,12 +147,15 @@ VALUE rb_Sprite_Dispose(VALUE self)
     else
         table = rb_ivar_get(viewport, rb_iElementTable);
     rb_ary_delete(table, self);
+    sprite->setOriginStack(nullptr); // Ensure the sprite has been removed from the sprite stack
     rb_Sprite_Free(reinterpret_cast<void*>(sprite));
     return self;
 }
 
 VALUE rb_Sprite_DisposeFromViewport(VALUE self)
 {
+    if(RDATA(self)->data == nullptr)
+        return self;
     GET_SPRITE
     RDATA(self)->data = nullptr;
     rb_Sprite_Free(reinterpret_cast<void*>(sprite));
@@ -428,4 +433,10 @@ VALUE rb_Sprite_setRect(VALUE self, VALUE val)
     /* Updating the texture rect */
     sprite->getSprite()->setTextureRect(*rect_target);
     return val;
+}
+
+VALUE rb_Sprite_Viewport(VALUE self)
+{
+    GET_SPRITE
+    return sprite->rViewport;
 }

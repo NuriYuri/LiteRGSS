@@ -16,6 +16,7 @@
 #include "Fonts.h"
 #include "Text.h"
 #include "Input.h"
+#include "Table.h"
 
 #define _rbf (VALUE (*)(...))
 
@@ -34,6 +35,7 @@ extern VALUE rb_mFonts;
 extern VALUE rb_cText;
 extern VALUE rb_mInput;
 extern VALUE rb_mMouse;
+extern VALUE rb_cTable;
 
 extern VALUE rb_eRGSSError;
 extern VALUE rb_eStoppedGraphics;
@@ -52,6 +54,7 @@ void Init_Tone();
 void Init_Fonts();
 void Init_Text();
 void Init_Input();
+void Init_Table();
 
 inline long normalize_long(long value, long min, long max) {
     if(value < min)

@@ -22,5 +22,6 @@ extern "C" {
     Init_Fonts();
     Init_Text();
     Init_Input();
+    Init_Table();
   }
 }

@@ -18,7 +18,8 @@ void rb_Text_Free(void* data)
     CText_Element* text = reinterpret_cast<CText_Element*>(data);
     if(text)
     {
-        text->setOriginStack(nullptr);
+        if(NIL_P(text->rViewport))
+            text->setOriginStack(nullptr);
         delete text;
     }
 }
@@ -168,12 +169,15 @@ VALUE rb_Text_Dispose(VALUE self)
     else
         table = rb_ivar_get(viewport, rb_iElementTable);
     rb_ary_delete(table, self);
+    text->setOriginStack(nullptr); // Ensure the text is removed from the sprite stack
     rb_Text_Free(reinterpret_cast<void*>(text));
     return self;
 }
 
 VALUE rb_Text_DisposeFromViewport(VALUE self)
 {
+    if(RDATA(self)->data == nullptr)
+        return self;
     GET_TEXT
     RDATA(self)->data = nullptr;
     rb_Text_Free(reinterpret_cast<void*>(text));

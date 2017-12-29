@@ -95,6 +95,7 @@ VALUE local_Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message
                     return self; /* If the proc returns false we doesn't show the exception */
                 }
         }
+        local_Graphics_Clear_Stack();
         game_window->close();
         delete game_window;
         game_window = nullptr;
@@ -204,4 +205,22 @@ void local_Graphics_Take_Snapshot(sf::Texture* text)
         sh = sc_sz.y;
     text->create(sw, sh);
     text->update(*game_window, x, y);
+}
+
+void local_Graphics_Clear_Stack()
+{
+    //std::cout << "CLEAN STACK" << std::endl;
+    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+    long sz = RARRAY_LEN(table);
+    VALUE* ori = RARRAY_PTR(table);
+    for(long i = 0; i < sz; i++)
+    {
+        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue)
+            rb_Viewport_Dispose(ori[i]);
+        else if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
+            rb_Sprite_DisposeFromViewport(ori[i]);
+        else
+            rb_Text_DisposeFromViewport(ori[i]);
+    }
+    rb_ary_clear(table);
 }

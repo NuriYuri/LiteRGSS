@@ -1,4 +1,5 @@
 #include "CDrawable_Element.h"
+#include <iostream>
 
 void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o) 
 {

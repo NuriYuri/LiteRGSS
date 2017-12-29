@@ -1,4 +1,12 @@
 #include "CViewport_Element.h"
+#include <iostream>
+
+CViewport_Element::~CViewport_Element() 
+{
+    //std::cout << "VR" << render << std::endl;
+    if(render != nullptr)
+        delete render;
+};
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
 {
@@ -37,7 +45,8 @@ void CViewport_Element::drawFast(sf::RenderTarget& target) const
 
 void CViewport_Element::bind(CDrawable_Element* sprite)
 {
-    stack.push_back(sprite);
+    //stack.push_back(sprite);
+    sprite->setOriginStack(&stack);
 }
 
 void CViewport_Element::clearStack() 
@@ -89,12 +98,15 @@ void CViewport_Element::reset_render()
 {
     if(render == nullptr)
         return;
+    std::cout << "RESET" << std::endl;
     const sf::Vector2f sz = getView()->getSize();
     render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));
 }
 
 void CViewport_Element::create_render()
 {
+    if(render != nullptr)
+        return;
     render = new sf::RenderTexture();
     const sf::Vector2f sz = getView()->getSize();
     render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));

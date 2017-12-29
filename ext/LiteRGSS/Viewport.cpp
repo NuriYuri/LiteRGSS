@@ -18,7 +18,7 @@ VALUE rb_cViewport = Qnil;
 void rb_Viewport_Free(void* data)
 {
     CViewport_Element* viewport = reinterpret_cast<CViewport_Element*>(data);
-    if(viewport)
+    if(viewport != nullptr)
     {
         viewport->setOriginStack(nullptr);
         CRect_Element* rect = viewport->getLinkedRect();
@@ -67,6 +67,9 @@ void Init_Viewport()
     rb_define_method(rb_cViewport, "tone=", _rbf rb_Viewport_setTone, 1);
     rb_define_method(rb_cViewport, "color", _rbf rb_Viewport_getColor, 0);
     rb_define_method(rb_cViewport, "color=", _rbf rb_Viewport_setColor, 1);
+    rb_define_method(rb_cViewport, "update", _rbf rb_Viewport_Update, 0);
+    rb_define_method(rb_cViewport, "visible", _rbf rb_Viewport_getVisible, 0);
+    rb_define_method(rb_cViewport, "visible=", _rbf rb_Viewport_setVisible, 1);
 
     rb_define_method(rb_cViewport, "clone", _rbf rb_Viewport_Copy, 0);
     rb_define_method(rb_cViewport, "dup", _rbf rb_Viewport_Copy, 0);
@@ -117,6 +120,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     viewport->rRect = rc;
     viewport->rTone = Qnil;
     viewport->rColor = Qnil;
+    viewport->clearStack();
     return self;
 }
 
@@ -141,7 +145,6 @@ VALUE rb_Viewport_Dispose(VALUE self)
     RDATA(self)->data = nullptr;
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_delete(table, self);
-    viewport->setOriginStack(nullptr);
     viewport->clearStack();
     __Viewport_Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
     rb_Viewport_Free(reinterpret_cast<void*>(viewport));
@@ -233,7 +236,7 @@ VALUE rb_Viewport_getTone(VALUE self)
     if(!NIL_P(tn))
         return tn;
     /* New tone */
-    VALUE argv[4] = {LONG2FIX(0)};
+    VALUE argv[4] = {LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0)};
     viewport->rColor = rb_class_new_instance(4, argv, rb_cColor);
     tn = rb_class_new_instance(4, argv, rb_cTone);
     CTone_Element* tone;
@@ -259,8 +262,9 @@ VALUE rb_Viewport_setTone(VALUE self, VALUE val)
     CTone_Element* tonesrc;
     Data_Get_Struct(val, CTone_Element, tonesrc);
     CTone_Element* tonedest;
-    Data_Get_Struct(self, CTone_Element, tonedest);
+    Data_Get_Struct(tn, CTone_Element, tonedest);
     tone_copy(tonedest->getTone(), tonesrc->getTone());
+    tone_copy(viewport->getTone(), tonesrc->getTone());
     return val;
 }
 
@@ -281,6 +285,25 @@ VALUE rb_Viewport_setColor(VALUE self, VALUE val)
         return Qnil;
     }
     viewport->rColor = val;
+    return self;
+}
+
+VALUE rb_Viewport_getVisible(VALUE self)
+{
+    GET_VIEWPORT
+    return (viewport->getVisible() ? Qtrue : Qfalse);
+}
+
+VALUE rb_Viewport_setVisible(VALUE self, VALUE val)
+{
+    GET_VIEWPORT
+    viewport->setVisible(RTEST(val));
+    return self;
+}
+
+VALUE rb_Viewport_Update(VALUE self)
+{
+    GET_VIEWPORT
     return self;
 }
 

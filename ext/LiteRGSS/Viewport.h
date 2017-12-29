@@ -15,6 +15,9 @@ VALUE rb_Viewport_getTone(VALUE self);
 VALUE rb_Viewport_setTone(VALUE self, VALUE val);
 VALUE rb_Viewport_getColor(VALUE self);
 VALUE rb_Viewport_setColor(VALUE self, VALUE val);
+VALUE rb_Viewport_getVisible(VALUE self);
+VALUE rb_Viewport_setVisible(VALUE self, VALUE val);
+VALUE rb_Viewport_Update(VALUE self);
 
 
 void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, long height);
