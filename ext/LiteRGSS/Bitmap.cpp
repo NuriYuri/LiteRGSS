@@ -159,7 +159,8 @@ VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE rect)
         }
         CBitmap_Element* s_bitmap;
         Data_Get_Struct(src_bitmap, CBitmap_Element, s_bitmap);
-        CRect_Element* s_rect = reinterpret_cast<CRect_Element*>(rect);
+        CRect_Element* s_rect;
+        Data_Get_Struct(rect, CRect_Element, s_rect);
         if(RDATA(src_bitmap)->data == nullptr) 
         {
             rb_raise(rb_eRGSSError, "Disposed Bitmap."); 

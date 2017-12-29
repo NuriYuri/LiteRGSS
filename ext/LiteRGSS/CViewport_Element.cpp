@@ -92,6 +92,7 @@ sf::Glsl::Vec4 __Viewport_reset_tone(0.0f, 0.0f, 0.0f, 0.0f);
 void CViewport_Element::reset_globalshader()
 {
     globalshader->setUniform("tone", __Viewport_reset_tone);
+    globalshader->setUniform("color", __Viewport_reset_tone);
 }
 
 void CViewport_Element::reset_render()

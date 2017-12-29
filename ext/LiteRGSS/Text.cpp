@@ -53,6 +53,7 @@ void Init_Text()
     rb_define_method(rb_cText, "initialize", _rbf rb_Text_Initialize, -1);
     rb_define_method(rb_cText, "dispose", _rbf rb_Text_Dispose, 0);
     rb_define_method(rb_cText, "disposed?", _rbf rb_Text_Disposed, 0);
+    rb_define_method(rb_cText, "set_position", _rbf rb_Text_setPosition, 2);
     rb_define_method(rb_cText, "x", _rbf rb_Text_get_x, 0);
     rb_define_method(rb_cText, "x=", _rbf rb_Text_set_x, 1);
     rb_define_method(rb_cText, "y", _rbf rb_Text_get_y, 0);
@@ -82,6 +83,8 @@ void Init_Text()
     rb_define_method(rb_cText, "nchar_draw", _rbf rb_Text_get_num_char, 0);
     rb_define_method(rb_cText, "nchar_draw=", _rbf rb_Text_set_num_char, 1);
     rb_define_method(rb_cText, "real_width", _rbf rb_Text_getRealWidth, 0);
+    rb_define_method(rb_cText, "opacity", _rbf rb_Text_getOpacity, 0);
+    rb_define_method(rb_cText, "opacity=", _rbf rb_Text_setOpacity, 1);
 
     rb_define_method(rb_cText, "clone", _rbf rb_Text_Copy, 0);
     rb_define_method(rb_cText, "dup", _rbf rb_Text_Copy, 0);
@@ -188,6 +191,18 @@ VALUE rb_Text_Disposed(VALUE self)
 {
     rb_check_type(self, T_DATA);
     return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
+}
+
+
+VALUE rb_Text_setPosition(VALUE self, VALUE x, VALUE y)
+{
+    GET_TEXT
+    rb_check_type(x, T_FIXNUM);
+    rb_check_type(y, T_FIXNUM);
+    text->rX = x;
+    text->rY = y;
+    rb_Text_UpdateI(text);
+    return self;
 }
 
 VALUE rb_Text_get_x(VALUE self)
@@ -418,6 +433,29 @@ VALUE rb_Text_getRealWidth(VALUE self)
     return rb_int2inum(text->getText()->getLocalBounds().width);
 }
 
+VALUE rb_Text_getOpacity(VALUE self)
+{
+    GET_TEXT
+    return rb_int2inum(text->getText()->getFillColor().a);
+}
+
+VALUE rb_Text_setOpacity(VALUE self, VALUE val)
+{
+    GET_TEXT
+    long opacity = normalize_long(rb_num2long(val), 0, 255);
+    sf::Text2* t = text->getText();
+    sf::Color col = t->getFillColor();
+    col.a = opacity;
+    t->setFillColor(col);
+    if(text->getText()->getOutlineThickness() < 1.0f && opacity != 255)
+    {
+        col = t->getOutlineColor();
+        col.a = opacity / 3;
+        t->setOutlineColor(col);
+    }
+    return self;
+}
+
 VALUE rb_Text_UpdateI(CText_Element* text)
 {
     sf::Text2* sftext = text->getText();
@@ -429,7 +467,7 @@ VALUE rb_Text_UpdateI(CText_Element* text)
     sf::FloatRect bounds = sftext->getLocalBounds();
     align = rb_num2long(text->rAlign);
     width = rb_num2long(text->rwidth);
-    height = static_cast<float>(rb_num2long(text->rheight)) / 2;
+    height = rb_num2long(text->rheight);// / 2.0f;//static_cast<float>(rb_num2long(text->rheight)) / 2;
     switch(align)
     {
         case 1: /* Center */
@@ -443,10 +481,10 @@ VALUE rb_Text_UpdateI(CText_Element* text)
         default: /* Left */
             ox = 0.0f;
     }
-    y = round(y + height);
+    y = round(y + height / 2);// + (height - bounds.height));
     /* Position update */
     sftext->setPosition(x, y);
-    sftext->setOrigin(ox, round(height));
+    sftext->setOrigin(ox, round(sftext->getCharacterSize() / 2.0f));
     //std::cout << "(" << x << "," << y << ") / (" << ox << ", " << height << ") ->" << sftext->getCharacterSize() << " // " << bounds.height << std::endl;
     return Qnil;
 }

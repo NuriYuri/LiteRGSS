@@ -7,6 +7,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Text_Copy(VALUE self);
 VALUE rb_Text_Dispose(VALUE self);
 VALUE rb_Text_Disposed(VALUE self);
+VALUE rb_Text_setPosition(VALUE self, VALUE x, VALUE y);
 VALUE rb_Text_get_x(VALUE self);
 VALUE rb_Text_set_x(VALUE self, VALUE val);
 VALUE rb_Text_get_y(VALUE self);
@@ -37,4 +38,6 @@ VALUE rb_Text_get_num_char(VALUE self);
 VALUE rb_Text_set_draw_shadow(VALUE self, VALUE val);
 VALUE rb_Text_get_draw_shadow(VALUE self);
 VALUE rb_Text_getRealWidth(VALUE self);
+VALUE rb_Text_getOpacity(VALUE self);
+VALUE rb_Text_setOpacity(VALUE self, VALUE val);
 #endif

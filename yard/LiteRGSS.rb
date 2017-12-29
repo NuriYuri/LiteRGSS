@@ -362,7 +362,7 @@ module LiteRGSS
     # @param str [String] the text shown by this object
     # @param align [0, 1, 2] the align of the text in its surface (best effort => no resize), 0 = left, 1 = center, 2 = right
     # @param outlinesize [Integer, nil] the size of the text outline
-    def initialize(font_id, viewport, x, y, width, height, str, align, outlinesize)
+    def initialize(font_id, viewport, x, y, width, height, str, align = 0, outlinesize = nil)
     end
     # Dispose the text
     # @return [self]
