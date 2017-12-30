@@ -37,6 +37,7 @@ class CViewport_Element : public CDrawable_Element {
         VALUE rRect;
         VALUE rTone;
         VALUE rColor;
+        VALUE rZ;
         /* Shader related stuff */
         static sf::Shader* globalshader;
         static void load_globalshader();

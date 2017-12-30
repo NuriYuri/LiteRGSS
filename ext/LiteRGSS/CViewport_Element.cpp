@@ -1,5 +1,5 @@
+#include "LiteRGSS.h"
 #include "CViewport_Element.h"
-#include <iostream>
 
 CViewport_Element::~CViewport_Element() 
 {
@@ -14,13 +14,22 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
     {
         if(!render)
             return;
-        target.setView(target.getDefaultView());
+        /* Loading the Window View */
+        sf::View wview = view;
+        sf::View tview = view;
+        wview.setRotation(0);
+        //wview.setSize(ScreenWidth, ScreenHeight);
+        target.setView(wview);
+        /* Loading the Sahders */
         globalshader->setUniform("tone", tone);
         sf::Color* col = reinterpret_cast<sf::Color*>(RDATA(rColor)->data);
         sf::Glsl::Vec4 color(col->r / 255.0f, col->g / 255.0f, col->b / 255.0f, col->a / 255.0f);
         globalshader->setUniform("color", color);
         render->clear(*col);
-        render->setView(view);
+        /* Adjusting the Texture view */
+        tview.setViewport(sf::FloatRect(0.0f, 0.0f, 1.0f, 1.0f));
+        render->setView(tview);
+        /* Drawing the sprites */
         for(auto sp = stack.begin();sp != stack.end();sp++)
             (*sp)->drawFast(*render);
         render->display();

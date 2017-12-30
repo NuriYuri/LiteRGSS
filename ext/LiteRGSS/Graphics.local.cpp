@@ -216,7 +216,10 @@ void local_Graphics_Clear_Stack()
     for(long i = 0; i < sz; i++)
     {
         if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue)
-            rb_Viewport_Dispose(ori[i]);
+        {
+            if(RDATA(ori[i])->data != nullptr)
+                rb_Viewport_Dispose(ori[i]);
+        }
         else if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
             rb_Sprite_DisposeFromViewport(ori[i]);
         else

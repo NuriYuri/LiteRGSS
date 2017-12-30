@@ -40,4 +40,7 @@ VALUE rb_Text_get_draw_shadow(VALUE self);
 VALUE rb_Text_getRealWidth(VALUE self);
 VALUE rb_Text_getOpacity(VALUE self);
 VALUE rb_Text_setOpacity(VALUE self, VALUE val);
+VALUE rb_Text_get_text_width(VALUE self, VALUE val);
+VALUE rb_Text_getZ(VALUE self);
+VALUE rb_Text_setZ(VALUE self, VALUE val);
 #endif

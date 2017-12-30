@@ -20,6 +20,7 @@ class CText_Element : public CDrawable_Element {
         VALUE rViewport;
         VALUE rX;
         VALUE rY;
+        VALUE rZ;
         VALUE rwidth;
         VALUE rheight;
         VALUE rtext;

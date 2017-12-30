@@ -35,12 +35,14 @@ void rb_Text_Mark(CText_Element* text)
     rb_gc_mark(text->rAlign);
     rb_gc_mark(text->rX);
     rb_gc_mark(text->rY);
+    rb_gc_mark(text->rZ);
 }
 
 VALUE rb_Text_Alloc(VALUE klass)
 {
     CText_Element* text = new CText_Element();
     text->rAlign = LONG2FIX(0);
+    text->rZ = LONG2FIX(0);
     return Data_Wrap_Struct(klass, rb_Text_Mark, rb_Text_Free, text);
 }
 
@@ -85,6 +87,9 @@ void Init_Text()
     rb_define_method(rb_cText, "real_width", _rbf rb_Text_getRealWidth, 0);
     rb_define_method(rb_cText, "opacity", _rbf rb_Text_getOpacity, 0);
     rb_define_method(rb_cText, "opacity=", _rbf rb_Text_setOpacity, 1);
+    rb_define_method(rb_cText, "text_width", _rbf rb_Text_get_text_width, 1);
+    rb_define_method(rb_cText, "z", _rbf rb_Text_getZ, 0);
+    rb_define_method(rb_cText, "z=", _rbf rb_Text_setZ, 1);
 
     rb_define_method(rb_cText, "clone", _rbf rb_Text_Copy, 0);
     rb_define_method(rb_cText, "dup", _rbf rb_Text_Copy, 0);
@@ -381,6 +386,15 @@ VALUE rb_Text_set_Text(VALUE self, VALUE str)
     return str;
 }
 
+VALUE rb_Text_get_text_width(VALUE self, VALUE val)
+{
+    GET_TEXT
+    rb_check_type(val, T_STRING);
+    std::string stru8(RSTRING_PTR(val));
+    sf::Uint32 width = text->getText()->getTextWidth(sf::String::fromUtf8(stru8.begin(), stru8.end()));
+    return RB_UINT2NUM(width);
+}
+
 VALUE rb_Text_get_Text(VALUE self)
 {
     GET_TEXT
@@ -453,6 +467,20 @@ VALUE rb_Text_setOpacity(VALUE self, VALUE val)
         col.a = opacity / 3;
         t->setOutlineColor(col);
     }
+    return self;
+}
+
+VALUE rb_Text_getZ(VALUE self)
+{
+    GET_TEXT
+    return text->rZ;
+}
+
+VALUE rb_Text_setZ(VALUE self, VALUE val)
+{
+    GET_TEXT
+    rb_num2long(val);
+    text->rZ = val;
     return self;
 }
 

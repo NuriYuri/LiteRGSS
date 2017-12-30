@@ -346,6 +346,105 @@ void Text2::draw(RenderTarget& target, RenderStates states) const
     }
 }
 
+Uint32 Text2::getTextWidth(const String& string) const
+{
+    // No font or Text2: nothing to draw
+    if (!m_font || string.isEmpty())
+        return 0;
+
+    // Compute values related to the Text2 style
+    bool  bold               = (m_style & Bold) != 0;
+    float italic             = (m_style & Italic) ? 0.208f : 0.f; // 12 degrees
+
+    // Compute the location of the strike through dynamically
+    // We use the center point of the lowercase 'x' glyph as the reference
+    // We reuse the underline thickness as the thickness of the strike through as well
+    FloatRect xBounds = m_font->getGlyph(L'x', m_characterSize, bold).bounds;
+    float strikeThroughOffset = xBounds.top + xBounds.height / 2.f;
+
+    // Precompute the variables needed by the algorithm
+    float hspace = static_cast<float>(m_font->getGlyph(L' ', m_characterSize, bold).advance);
+    float vspace = static_cast<float>(m_font->getLineSpacing(m_characterSize));
+    float x      = 0.f;
+    float y      = static_cast<float>(m_characterSize);
+
+    // Create one quad for each character
+    float minX = static_cast<float>(m_characterSize);
+    float minY = static_cast<float>(m_characterSize);
+    float maxX = 0.f;
+    float maxY = 0.f;
+    Uint32 prevChar = 0;
+    for (std::size_t i = 0; i < string.getSize(); ++i)
+    {
+        Uint32 curChar = string[i];
+
+        // Apply the kerning offset
+        x += m_font->getKerning(prevChar, curChar, m_characterSize);
+        prevChar = curChar;
+
+        // Handle special characters
+        if ((curChar == ' ') || (curChar == '\t') || (curChar == '\n'))
+        {
+            // Update the current bounds (min coordinates)
+            minX = std::min(minX, x);
+            minY = std::min(minY, y);
+
+            switch (curChar)
+            {
+                case ' ':  x += hspace;        break;
+                case '\t': x += hspace * 4;    break;
+                case '\n': y += vspace; x = 0; break;
+            }
+
+            // Update the current bounds (max coordinates)
+            maxX = std::max(maxX, x);
+            maxY = std::max(maxY, y);
+
+            // Next glyph, no need to create a quad for whitespace
+            continue;
+        }
+
+        if (m_outlineThickness != 0 && !m_DrawShadow)
+        {
+            const Glyph& glyph = m_font->getGlyph(curChar, m_characterSize, bold, m_outlineThickness);
+
+            float left   = glyph.bounds.left;
+            float top    = glyph.bounds.top;
+            float right  = glyph.bounds.left + glyph.bounds.width;
+            float bottom = glyph.bounds.top  + glyph.bounds.height;
+
+            // Update the current bounds with the outlined glyph bounds
+            minX = std::min(minX, x + left   - italic * bottom - m_outlineThickness);
+            maxX = std::max(maxX, x + right  - italic * top    - m_outlineThickness);
+            minY = std::min(minY, y + top    - m_outlineThickness);
+            maxY = std::max(maxY, y + bottom - m_outlineThickness);
+        }
+
+        // Extract the current glyph's description
+        const Glyph& glyph = m_font->getGlyph(curChar, m_characterSize, bold);
+
+        // Add the glyph to the vertices
+        text2_addGlyphQuad(m_vertices, Vector2f(x, y), m_fillColor, glyph, italic);
+
+        // Update the current bounds with the non outlined glyph bounds
+        if (m_DrawShadow || m_outlineThickness == 0)
+        {
+            float left   = glyph.bounds.left;
+            float top    = glyph.bounds.top;
+            float right  = glyph.bounds.left + glyph.bounds.width;
+            float bottom = glyph.bounds.top  + glyph.bounds.height;
+
+            minX = std::min(minX, x + left  - italic * bottom);
+            maxX = std::max(maxX, x + right - italic * top);
+            minY = std::min(minY, y + top);
+            maxY = std::max(maxY, y + bottom);
+        }
+
+        // Advance to the next character
+        x += glyph.advance;
+    }
+    return static_cast<Uint32>(maxX);
+}
 
 ////////////////////////////////////////////////////////////
 void Text2::ensureGeometryUpdate() const

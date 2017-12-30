@@ -381,6 +381,8 @@ public:
         return m_numberCharsToDraw;
     };
 
+    virtual Uint32 getTextWidth(const String& string) const;
+
 private:
 
     ////////////////////////////////////////////////////////////

@@ -38,6 +38,7 @@ void rb_Viewport_Mark(CViewport_Element* viewport)
     rb_gc_mark(viewport->rRect);
     rb_gc_mark(viewport->rTone);
     rb_gc_mark(viewport->rColor);
+    rb_gc_mark(viewport->rZ);
 }
 
 VALUE rb_Viewport_Alloc(VALUE klass)
@@ -45,6 +46,7 @@ VALUE rb_Viewport_Alloc(VALUE klass)
     CViewport_Element* viewport = new CViewport_Element();
     viewport->setLinkedRect(nullptr);
     viewport->setLinkedTone(nullptr);
+    viewport->rZ = LONG2FIX(0);
     return Data_Wrap_Struct(klass, rb_Viewport_Mark, rb_Viewport_Free, viewport);
 }
 
@@ -70,6 +72,8 @@ void Init_Viewport()
     rb_define_method(rb_cViewport, "update", _rbf rb_Viewport_Update, 0);
     rb_define_method(rb_cViewport, "visible", _rbf rb_Viewport_getVisible, 0);
     rb_define_method(rb_cViewport, "visible=", _rbf rb_Viewport_setVisible, 1);
+    rb_define_method(rb_cViewport, "z", _rbf rb_Viewport_getZ, 0);
+    rb_define_method(rb_cViewport, "z=", _rbf rb_Viewport_setZ, 1);
 
     rb_define_method(rb_cViewport, "clone", _rbf rb_Viewport_Copy, 0);
     rb_define_method(rb_cViewport, "dup", _rbf rb_Viewport_Copy, 0);
@@ -186,7 +190,7 @@ VALUE rb_Viewport_setOX(VALUE self, VALUE val)
 VALUE rb_Viewport_getOY(VALUE self)
 {
     GET_VIEWPORT
-    return rb_int2inum(viewport->getOx());
+    return rb_int2inum(viewport->getOy());
 }
 
 VALUE rb_Viewport_setOY(VALUE self, VALUE val)
@@ -307,9 +311,28 @@ VALUE rb_Viewport_Update(VALUE self)
     return self;
 }
 
+VALUE rb_Viewport_getZ(VALUE self)
+{
+    GET_VIEWPORT
+    return viewport->rZ;
+}
+
+VALUE rb_Viewport_setZ(VALUE self, VALUE val)
+{
+    GET_VIEWPORT
+    rb_num2long(val);
+    viewport->rZ = val;
+    return self;
+}
+
 void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, long height)
 {
     sf::View* view = viewport->getView();
+    /* Adjustment for text */
+    if(width & 1)
+        width++;
+    if(height & 1)
+        height++;
     view->setCenter(static_cast<float>(viewport->getOx() + width / 2), 
                     static_cast<float>(viewport->getOy() + height / 2));
     view->setSize(static_cast<float>(width), static_cast<float>(height));
