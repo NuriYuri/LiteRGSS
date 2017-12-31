@@ -41,6 +41,7 @@ void Init_Table()
     rb_define_method(rb_cTable, "zsize", _rbf rb_Table_zSize, 0);
     rb_define_method(rb_cTable, "dim", _rbf rb_Table_dim, 0);
     rb_define_method(rb_cTable, "resize", _rbf rb_Table_resize, -1);
+    rb_define_method(rb_cTable, "fill", _rbf rb_Table_Fill, 1);
 
     rb_define_method(rb_cTable, "_dump", _rbf rb_Table_Save, 1);
     rb_define_singleton_method(rb_cTable, "_load", _rbf rb_Table_Load, 1);
@@ -211,4 +212,17 @@ VALUE rb_Table_Save(VALUE self, VALUE limit)
     VALUE str1 = rb_str_new(reinterpret_cast<char*>(&table->header), sizeof(rb_Table_Struct_Header));
     VALUE str2 = rb_str_new(reinterpret_cast<char*>(table->heap), table->header.data_size);
     return rb_str_concat(str1, str2);
+}
+
+VALUE rb_Table_Fill(VALUE self, VALUE val)
+{
+    GET_TABLE
+    short v = RB_NUM2SHORT(val);
+    unsigned long sz = table->header.data_size;
+    short* data = table->heap;
+    for(unsigned long i = 0;i < sz;i++)
+    {
+        data[i] = v;
+    }
+    return self;
 }
