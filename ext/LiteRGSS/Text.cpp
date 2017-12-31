@@ -381,6 +381,7 @@ VALUE rb_Text_set_Text(VALUE self, VALUE str)
     GET_TEXT
     rb_check_type(str, T_STRING);
     text->rtext = str;
+    text->getText()->setLineHeight(rb_num2dbl(text->rheight));
     std::string stru8(RSTRING_PTR(str));
     text->getText()->setString(sf::String::fromUtf8(stru8.begin(), stru8.end()));
     rb_Text_UpdateI(text);
@@ -499,10 +500,10 @@ VALUE rb_Text_UpdateI(CText_Element* text)
     VALUE zero = LONG2FIX(0);
     x = rb_num2long(text->rX);
     y = rb_num2long(text->rY);
+    height = rb_num2long(text->rheight);// / 2.0f;//static_cast<float>(rb_num2long(text->rheight)) / 2;
     sf::FloatRect bounds = sftext->getLocalBounds();
     align = rb_num2long(text->rAlign);
     width = rb_num2long(text->rwidth);
-    height = rb_num2long(text->rheight);// / 2.0f;//static_cast<float>(rb_num2long(text->rheight)) / 2;
     switch(align)
     {
         case 1: /* Center */

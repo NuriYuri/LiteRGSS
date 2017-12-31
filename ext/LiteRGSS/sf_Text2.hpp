@@ -381,6 +381,11 @@ public:
         return m_numberCharsToDraw;
     };
 
+    virtual void setLineHeight(float height)
+    {
+        m_lineHeight = height;
+    }
+
     virtual Uint32 getTextWidth(const String& string) const;
 
 private:
@@ -419,6 +424,7 @@ private:
     mutable bool        m_geometryNeedUpdate; ///< Does the geometry need to be recomputed?
     bool                m_DrawShadow;
     Uint32              m_numberCharsToDraw;
+    float               m_lineHeight;
 };
 
 } // namespace sf

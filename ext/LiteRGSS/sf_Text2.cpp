@@ -85,7 +85,8 @@ m_outlineVertices   (Triangles),
 m_bounds            (),
 m_geometryNeedUpdate(false),
 m_DrawShadow(true),
-m_numberCharsToDraw(0xFFFFFFFF)
+m_numberCharsToDraw(0xFFFFFFFF),
+m_lineHeight(16.0f)
 {
 
 }
@@ -105,7 +106,8 @@ m_outlineVertices   (Triangles),
 m_bounds            (),
 m_geometryNeedUpdate(true),
 m_DrawShadow(true),
-m_numberCharsToDraw(0xFFFFFFFF)
+m_numberCharsToDraw(0xFFFFFFFF),
+m_lineHeight(16.0f)
 {
 
 }
@@ -285,7 +287,7 @@ Vector2f Text2::findCharacterPos(std::size_t index) const
     // Precompute the variables needed by the algorithm
     bool  bold   = (m_style & Bold) != 0;
     float hspace = static_cast<float>(m_font->getGlyph(L' ', m_characterSize, bold).advance);
-    float vspace = static_cast<float>(m_font->getLineSpacing(m_characterSize));
+    float vspace = m_lineHeight;//static_cast<float>(m_font->getLineSpacing(m_characterSize));
 
     // Compute the position
     Vector2f position;
@@ -369,7 +371,7 @@ Uint32 Text2::getTextWidth(const String& string) const
 
     // Precompute the variables needed by the algorithm
     float hspace = static_cast<float>(m_font->getGlyph(L' ', m_characterSize, bold).advance);
-    float vspace = static_cast<float>(m_font->getLineSpacing(m_characterSize));
+    float vspace = m_lineHeight;//static_cast<float>(m_font->getLineSpacing(m_characterSize));
     float x      = 0.f;
     float y      = static_cast<float>(m_characterSize);
 
@@ -486,7 +488,7 @@ void Text2::ensureGeometryUpdate() const
 
     // Precompute the variables needed by the algorithm
     float hspace = static_cast<float>(m_font->getGlyph(L' ', m_characterSize, bold).advance);
-    float vspace = static_cast<float>(m_font->getLineSpacing(m_characterSize));
+    float vspace = m_lineHeight;//static_cast<float>(m_font->getLineSpacing(m_characterSize));
     float x      = 0.f;
     float y      = static_cast<float>(m_characterSize);
 
