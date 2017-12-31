@@ -2,6 +2,8 @@
 #include "CViewport_Element.h"
 #include "Graphics.local.h"
 
+unsigned long Graphics_Scale = 1;
+
 void* local_Graphics_Update_Internal(void* data)
 {
     GraphicUpdateMessage* message = nullptr;
@@ -110,14 +112,17 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 {
     bool was_viewport = false;
     CViewport_Element::reset_globalshader();
+    sf::View defview = game_window->getDefaultView();
+    defview.setSize(ScreenWidth, ScreenHeight);
+    defview.setCenter(round(ScreenWidth / 2.0f), round(ScreenHeight / 2.0f));
+    game_window->setView(defview);
     for(auto element = stack->begin();element != stack->end(); element++)
     {
         if(was_viewport && !(*element)->isViewport())
-            game_window->setView(game_window->getDefaultView());
+            game_window->setView(defview);
         was_viewport = (*element)->isViewport();
         (*element)->draw(*game_window);
     }
-    game_window->setView(game_window->getDefaultView());
     if(Graphics_freeze_sprite != nullptr)
         game_window->draw(*Graphics_freeze_sprite);
 }
@@ -126,8 +131,10 @@ void local_LoadVideoModeFromConfigs(sf::VideoMode& vmode)
 {
     ID swidth = rb_intern("ScreenWidth");
     ID sheight = rb_intern("ScreenHeight");
+    ID sscale = rb_intern("ScreenScale");
     long max_width, max_height = 0xFFFFFF;
     long pixdepth = 32;
+    long scale = 1;
     std::vector<sf::VideoMode> modes = sf::VideoMode::getFullscreenModes();
     /* If there's a fullscreen mode */
     if(modes.size() > 0)
@@ -142,8 +149,14 @@ void local_LoadVideoModeFromConfigs(sf::VideoMode& vmode)
     /* Adjust Height */
     if(rb_const_defined(rb_mConfig, sheight))
         vmode.height = normalize_long(rb_num2long(rb_const_get(rb_mConfig, sheight)), 144, max_height);
+    /* Adjust Scale */
+    if(rb_const_defined(rb_mConfig, sscale))
+        scale = normalize_long(rb_num2long(rb_const_get(rb_mConfig, sscale)), 1, 10);
     ScreenWidth = vmode.width;
     ScreenHeight = vmode.height;
+    vmode.width *= scale;
+    vmode.height *= scale;
+    Graphics_Scale = scale;
 }
 
 const sf::String local_LoadTitleFromConfigs()
@@ -188,17 +201,16 @@ void local_Graphics_Take_Snapshot(sf::Texture* text)
     sf::Vector2u sc_sz = game_window->getSize();
     int x = 0;
     int y = 0;
-    int sw, sh;
-    if(sc_sz.x < ScreenWidth)
+    int sw = ScreenWidth * Graphics_Scale;
+    int sh = ScreenHeight * Graphics_Scale;
+    if(sc_sz.x < sw)
     {
-        sw = ScreenWidth;
         x = sw - sc_sz.x;
     }
     else
         sw = sc_sz.x;
-    if(sc_sz.y < ScreenHeight)
+    if(sc_sz.y < sh)
     {
-        sh = ScreenHeight;
         y = sh - sc_sz.y;
     }
     else

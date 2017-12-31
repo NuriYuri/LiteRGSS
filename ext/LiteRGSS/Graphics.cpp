@@ -120,6 +120,7 @@ VALUE rb_Graphics_freeze(VALUE self)
     Graphics_freeze_texture = new sf::Texture();
     local_Graphics_Take_Snapshot(Graphics_freeze_texture);
     Graphics_freeze_sprite = new sf::Sprite(*Graphics_freeze_texture);
+    Graphics_freeze_sprite->setScale(1.0f / Graphics_Scale, 1.0f / Graphics_Scale);
     return self;
 }
 

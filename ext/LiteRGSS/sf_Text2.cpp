@@ -129,6 +129,9 @@ void Text2::setFont(const Font& font)
     {
         m_font = &font;
         m_geometryNeedUpdate = true;
+        /* A corriger dans le futur ! car pas bien */
+        if(m_characterSize > 0)
+            const_cast<sf::Texture*>(&m_font->getTexture(m_characterSize))->setSmooth(false);
     }
 }
 
@@ -140,6 +143,8 @@ void Text2::setCharacterSize(unsigned int size)
     {
         m_characterSize = size;
         m_geometryNeedUpdate = true;
+        if(m_font != nullptr)
+            const_cast<sf::Texture*>(&m_font->getTexture(m_characterSize))->setSmooth(false);
     }
 }
 

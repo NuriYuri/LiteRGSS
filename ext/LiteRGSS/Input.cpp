@@ -602,12 +602,12 @@ VALUE rb_Mouse_Released(VALUE self, VALUE key_sym)
 
 VALUE rb_Mouse_x(VALUE self)
 {
-    return rb_int2inum(L_Mouse_Pos_X);
+    return rb_int2inum(L_Mouse_Pos_X / Graphics_Scale);
 }
 
 VALUE rb_Mouse_y(VALUE self)
 {
-    return rb_int2inum(L_Mouse_Pos_Y);
+    return rb_int2inum(L_Mouse_Pos_Y / Graphics_Scale);
 }
 
 VALUE rb_Mouse_Wheel(VALUE self)

@@ -19,4 +19,5 @@ VALUE rb_Graphics_ReloadStack(VALUE self);
 
 void global_Graphics_Bind(CDrawable_Element* element);
 
+extern unsigned long Graphics_Scale;
 #endif
