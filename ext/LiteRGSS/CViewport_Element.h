@@ -33,6 +33,7 @@ class CViewport_Element : public CDrawable_Element {
         void create_render();
         void setVisible(bool value) { visible = value;};
         bool getVisible() { return visible; };
+        const std::vector<CDrawable_Element*>* getStack() { return &stack; };
         /* Ruby Ivar */
         VALUE rRect;
         VALUE rTone;
@@ -42,5 +43,6 @@ class CViewport_Element : public CDrawable_Element {
         static sf::Shader* globalshader;
         static void load_globalshader();
         static void reset_globalshader();
+        static unsigned long render_count;
 };
 #endif

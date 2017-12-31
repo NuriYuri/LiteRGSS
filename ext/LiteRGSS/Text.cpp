@@ -90,6 +90,7 @@ void Init_Text()
     rb_define_method(rb_cText, "text_width", _rbf rb_Text_get_text_width, 1);
     rb_define_method(rb_cText, "z", _rbf rb_Text_getZ, 0);
     rb_define_method(rb_cText, "z=", _rbf rb_Text_setZ, 1);
+    rb_define_method(rb_cText, "__index__", _rbf rb_Text_Index, 0);
 
     rb_define_method(rb_cText, "clone", _rbf rb_Text_Copy, 0);
     rb_define_method(rb_cText, "dup", _rbf rb_Text_Copy, 0);
@@ -482,6 +483,12 @@ VALUE rb_Text_setZ(VALUE self, VALUE val)
     rb_num2long(val);
     text->rZ = val;
     return self;
+}
+
+VALUE rb_Text_Index(VALUE self)
+{
+    GET_TEXT
+    return rb_uint2inum(text->getIndex());
 }
 
 VALUE rb_Text_UpdateI(CText_Element* text)

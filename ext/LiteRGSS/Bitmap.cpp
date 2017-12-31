@@ -17,7 +17,7 @@ VALUE rb_cBitmap = Qnil;
 void rb_Bitmap_Free(void* data)
 {
     CBitmap_Element* bitmap = reinterpret_cast<CBitmap_Element*>(data);
-    if(bitmap)
+    if(bitmap != nullptr)
     {
         delete bitmap;
     }

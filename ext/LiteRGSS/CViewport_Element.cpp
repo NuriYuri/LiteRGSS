@@ -1,19 +1,26 @@
 #include "LiteRGSS.h"
 #include "CViewport_Element.h"
+#include "Graphics.local.h"
+
+unsigned long CViewport_Element::render_count = 0;
 
 CViewport_Element::~CViewport_Element() 
 {
-    //std::cout << "VR" << render << std::endl;
     if(render != nullptr)
-        delete render;
+    {
+        if(!game_window || !game_window->isOpen())
+            std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
+        else
+            delete render;
+        render_count--;
+    }
+    render = nullptr;
 };
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
 {
-    if(linkedTone)
+    if(linkedTone && render)
     {
-        if(!render)
-            return;
         /* Loading the Window View */
         sf::View wview = view;
         sf::View tview = view;
@@ -108,7 +115,6 @@ void CViewport_Element::reset_render()
 {
     if(render == nullptr)
         return;
-    std::cout << "RESET" << std::endl;
     const sf::Vector2f sz = getView()->getSize();
     render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));
 }
@@ -117,7 +123,10 @@ void CViewport_Element::create_render()
 {
     if(render != nullptr)
         return;
+    if(render_count >= 8)
+        rb_raise(rb_eRGSSError, "Maximum render texture exceeded. Try to have a better management of your tone/color viewports.");
     render = new sf::RenderTexture();
     const sf::Vector2f sz = getView()->getSize();
     render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));
+    render_count++;
 }

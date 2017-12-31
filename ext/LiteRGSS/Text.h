@@ -43,4 +43,5 @@ VALUE rb_Text_setOpacity(VALUE self, VALUE val);
 VALUE rb_Text_get_text_width(VALUE self, VALUE val);
 VALUE rb_Text_getZ(VALUE self);
 VALUE rb_Text_setZ(VALUE self, VALUE val);
+VALUE rb_Text_Index(VALUE self);
 #endif

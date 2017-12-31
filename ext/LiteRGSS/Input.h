@@ -31,4 +31,5 @@ VALUE rb_Mouse_y(VALUE self);
 VALUE rb_Mouse_Wheel(VALUE self);
 VALUE rb_Mouse_Wheel_set(VALUE self, VALUE val);
 
+VALUE rb_KeyBoard_Press(VALUE self, VALUE val);
 #endif

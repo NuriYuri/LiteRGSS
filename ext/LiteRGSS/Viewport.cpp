@@ -74,6 +74,8 @@ void Init_Viewport()
     rb_define_method(rb_cViewport, "visible=", _rbf rb_Viewport_setVisible, 1);
     rb_define_method(rb_cViewport, "z", _rbf rb_Viewport_getZ, 0);
     rb_define_method(rb_cViewport, "z=", _rbf rb_Viewport_setZ, 1);
+    rb_define_method(rb_cViewport, "reload_stack", _rbf rb_Viewport_ReloadStack, 0);
+    rb_define_method(rb_cViewport, "__index__", _rbf rb_Viewport_Index, 0);
 
     rb_define_method(rb_cViewport, "clone", _rbf rb_Viewport_Copy, 0);
     rb_define_method(rb_cViewport, "dup", _rbf rb_Viewport_Copy, 0);
@@ -323,6 +325,39 @@ VALUE rb_Viewport_setZ(VALUE self, VALUE val)
     rb_num2long(val);
     viewport->rZ = val;
     return self;
+}
+
+VALUE rb_Viewport_ReloadStack(VALUE self)
+{
+    GET_VIEWPORT
+    VALUE table = rb_ivar_get(self, rb_iElementTable);
+    rb_check_type(table, T_ARRAY);
+    for(auto it = viewport->getStack()->begin(); it != viewport->getStack()->end(); it++)
+    {
+        (*it)->overrideOrigineStack(nullptr);
+    }
+    viewport->clearStack();
+    long sz = RARRAY_LEN(table);
+    VALUE* ori = RARRAY_PTR(table);
+    for(long i = 0; i < sz; i++)
+    {
+        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue ||
+            rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue ||
+            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
+        {
+            if(RDATA(ori[i])->data != nullptr)
+            {
+                viewport->bind(reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
+            }
+        }
+    }
+    return self;
+}
+
+VALUE rb_Viewport_Index(VALUE self)
+{
+    GET_VIEWPORT
+    return rb_uint2inum(viewport->getIndex());
 }
 
 void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, long height)

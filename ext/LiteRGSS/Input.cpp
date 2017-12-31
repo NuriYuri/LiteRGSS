@@ -31,6 +31,8 @@ void Init_Input()
     rb_mMouse = rb_define_module_under(rb_mLiteRGSS, "Mouse");
     VALUE rb_mKeyboard = rb_define_module_under(rb_mInput, "Keyboard");
     /* function definition */
+    rb_define_method(rb_mKeyboard, "press?", _rbf rb_KeyBoard_Press, 1);
+
     rb_define_module_function(rb_mInput, "press?", _rbf rb_Input_Press, 1);
     rb_define_module_function(rb_mInput, "trigger?", _rbf rb_Input_Trigger, 1);
     rb_define_module_function(rb_mInput, "repeat?", _rbf rb_Input_Repeat, 1);
@@ -617,4 +619,9 @@ VALUE rb_Mouse_Wheel_set(VALUE self, VALUE val)
 {
     L_Mouse_Wheel_Delta = rb_num2long(val);
     return val;
+}
+
+VALUE rb_KeyBoard_Press(VALUE self, VALUE val)
+{
+    return sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(rb_num2long(val))) ? Qtrue : Qfalse;
 }

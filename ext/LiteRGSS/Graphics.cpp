@@ -44,6 +44,7 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "frame_count=", _rbf rb_Graphics_set_frame_count, 1);
     rb_define_module_function(rb_mGraphics, "width", _rbf rb_Graphics_width, 0);
     rb_define_module_function(rb_mGraphics, "height", _rbf rb_Graphics_height, 0);
+    rb_define_module_function(rb_mGraphics, "reload_stack", _rbf rb_Graphics_ReloadStack, 0);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 }
@@ -199,6 +200,32 @@ VALUE rb_Graphics_width(VALUE self)
 VALUE rb_Graphics_height(VALUE self)
 {
     return rb_int2inum(ScreenHeight);
+}
+
+VALUE rb_Graphics_ReloadStack(VALUE self)
+{
+    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+    rb_check_type(table, T_ARRAY);
+    for(auto it = Graphics_stack.begin(); it != Graphics_stack.end(); it++)
+    {
+        (*it)->overrideOrigineStack(nullptr);
+    }
+    Graphics_stack.clear();
+    long sz = RARRAY_LEN(table);
+    VALUE* ori = RARRAY_PTR(table);
+    for(long i = 0; i < sz; i++)
+    {
+        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue ||
+            rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue ||
+            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
+        {
+            if(RDATA(ori[i])->data != nullptr)
+            {
+                global_Graphics_Bind(reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
+            }
+        }
+    }
+    return self;
 }
 
 void global_Graphics_Bind(CDrawable_Element* element)

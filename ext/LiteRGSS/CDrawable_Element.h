@@ -13,10 +13,13 @@ class CDrawable_Element {
     protected:
         std::vector<CDrawable_Element*> *origin_stack;
         CRect_Element* linkedRect;
+        unsigned long index;
     public:
-        CDrawable_Element() {origin_stack = nullptr; linkedRect = nullptr;}
+        CDrawable_Element();
         void setOriginStack(std::vector<CDrawable_Element*> *o);
         void overrideOrigineStack(std::vector<CDrawable_Element*> *o) {origin_stack = o;};
+        void setIndex(unsigned long nindex);
+        unsigned long getIndex();
         virtual void draw(sf::RenderTarget& target) const = 0;
         virtual void drawFast(sf::RenderTarget& target) const = 0;
         virtual bool isViewport() const = 0;

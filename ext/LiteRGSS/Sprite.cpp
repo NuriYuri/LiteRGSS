@@ -88,6 +88,7 @@ void Init_Sprite() {
     rb_define_method(rb_cSprite, "src_rect=", _rbf rb_Sprite_setRect, 1);
     rb_define_method(rb_cSprite, "disposed?", _rbf rb_Sprite_Disposed, 0);
     rb_define_method(rb_cSprite, "viewport", _rbf rb_Sprite_Viewport, 0);
+    rb_define_method(rb_cSprite, "__index__", _rbf rb_Sprite_Index, 0);
 
     rb_define_method(rb_cSprite, "clone", _rbf rb_Sprite_Copy, 0);
     rb_define_method(rb_cSprite, "dup", _rbf rb_Sprite_Copy, 0);
@@ -384,7 +385,7 @@ VALUE rb_Sprite_getOpacity(VALUE self)
     GET_SPRITE
     sf::Sprite* sp = sprite->getSprite();
     const sf::Color col = sp->getColor();
-    return rb_int2inum(col.r);
+    return rb_int2inum(col.a);
 }
 
 VALUE rb_Sprite_getRect(VALUE self)
@@ -439,4 +440,10 @@ VALUE rb_Sprite_Viewport(VALUE self)
 {
     GET_SPRITE
     return sprite->rViewport;
+}
+
+VALUE rb_Sprite_Index(VALUE self)
+{
+    GET_SPRITE
+    return rb_uint2inum(sprite->getIndex());
 }

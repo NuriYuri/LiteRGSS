@@ -207,12 +207,19 @@ void local_Graphics_Take_Snapshot(sf::Texture* text)
     text->update(*game_window, x, y);
 }
 
+VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE* argv)
+{
+    if(RDATA(block_arg)->data != nullptr)
+        rb_Bitmap_Dispose(block_arg);
+}
+
 void local_Graphics_Clear_Stack()
 {
     //std::cout << "CLEAN STACK" << std::endl;
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
+    /* Disposing each Sprite/Viewport/Text */
     for(long i = 0; i < sz; i++)
     {
         if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue)
@@ -222,8 +229,12 @@ void local_Graphics_Clear_Stack()
         }
         else if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
             rb_Sprite_DisposeFromViewport(ori[i]);
-        else
+        else if(rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
             rb_Text_DisposeFromViewport(ori[i]);
     }
     rb_ary_clear(table);
+    /* Disposing each Bitmap */
+    rb_block_call(rb_const_get(rb_cObject, rb_intern("ObjectSpace")), rb_intern("each_object"), 1, &rb_cBitmap,
+    (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);
+    rb_gc_start();
 }

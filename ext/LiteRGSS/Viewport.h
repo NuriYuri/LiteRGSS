@@ -20,7 +20,8 @@ VALUE rb_Viewport_setVisible(VALUE self, VALUE val);
 VALUE rb_Viewport_Update(VALUE self);
 VALUE rb_Viewport_getZ(VALUE self);
 VALUE rb_Viewport_setZ(VALUE self, VALUE val);
-
+VALUE rb_Viewport_ReloadStack(VALUE self);
+VALUE rb_Viewport_Index(VALUE self);
 
 void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, long height);
 #endif

@@ -177,7 +177,6 @@ void table_copy(short* dheap, short* sheap, unsigned long dxsize, unsigned long 
 
 VALUE rb_Table_resize(int argc, VALUE* argv, VALUE self)
 {
-    return self;
     GET_TABLE
     auto table2 = *table;
     rb_Table_initialize(argc, argv, self);
