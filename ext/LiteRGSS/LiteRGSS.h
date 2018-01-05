@@ -22,6 +22,7 @@
 
 extern long ScreenWidth;
 extern long ScreenHeight;
+extern bool SmoothScreen;
 extern VALUE rb_mLiteRGSS;
 extern VALUE rb_mGraphics;
 extern VALUE rb_mConfig;

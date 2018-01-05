@@ -12,6 +12,7 @@ const sf::String local_LoadTitleFromConfigs();
 unsigned int local_LoadFrameRateFromConfigs();
 bool local_LoadVSYNCFromConfigs();
 bool local_LoadFullScreenFromConfigs();
+void local_LoadSmoothScreenFromConfigs();
 void* local_Graphics_Update_Internal(void* data);
 VALUE local_Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message);
 void local_Graphics_Update_Process_Event(GraphicUpdateMessage*& message);

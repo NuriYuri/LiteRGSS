@@ -128,5 +128,6 @@ void CViewport_Element::create_render()
     render = new sf::RenderTexture();
     const sf::Vector2f sz = getView()->getSize();
     render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));
+    render->setSmooth(SmoothScreen);
     render_count++;
 }

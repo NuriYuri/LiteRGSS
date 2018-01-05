@@ -3,6 +3,7 @@
 #include "Graphics.local.h"
 
 unsigned long Graphics_Scale = 1;
+bool SmoothScreen = false;
 
 void* local_Graphics_Update_Internal(void* data)
 {
@@ -194,6 +195,15 @@ bool local_LoadFullScreenFromConfigs()
     if(rb_const_defined(rb_mConfig, fsc))
         return RTEST(rb_const_get(rb_mConfig, fsc));
     return false;
+}
+
+void local_LoadSmoothScreenFromConfigs()
+{
+    ID fsc = rb_intern("SmoothScreen");
+    if(rb_const_defined(rb_mConfig, fsc))
+        SmoothScreen = RTEST(rb_const_get(rb_mConfig, fsc));
+    else
+        SmoothScreen = false;
 }
 
 void local_Graphics_Take_Snapshot(sf::Texture* text)

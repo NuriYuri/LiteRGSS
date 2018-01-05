@@ -28,6 +28,7 @@
 #include "sf_Text2.hpp"
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
+#include "LiteRGSS.h"
 #include <cmath>
 
 namespace
@@ -132,7 +133,7 @@ void Text2::setFont(const Font& font)
         m_font = &font;
         m_geometryNeedUpdate = true;
         /* A corriger dans le futur ! car pas bien */
-        if(m_characterSize > 0)
+        if(m_characterSize > 0 && !SmoothScreen)
             const_cast<sf::Texture*>(&m_font->getTexture(m_characterSize))->setSmooth(false);
     }
 }
@@ -145,7 +146,7 @@ void Text2::setCharacterSize(unsigned int size)
     {
         m_characterSize = size;
         m_geometryNeedUpdate = true;
-        if(m_font != nullptr)
+        if(m_font != nullptr && !SmoothScreen)
             const_cast<sf::Texture*>(&m_font->getTexture(m_characterSize))->setSmooth(false);
     }
 }

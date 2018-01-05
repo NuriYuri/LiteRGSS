@@ -61,6 +61,7 @@ VALUE rb_Graphics_start(VALUE self)
     /* Window Loading */
     sf::VideoMode vmode(640, 480, 32);
     local_LoadVideoModeFromConfigs(vmode);
+    local_LoadSmoothScreenFromConfigs();
     sf::Uint32 style = sf::Style::Close | sf::Style::Titlebar; // sf::Style::Resize = text issues !
     if(local_LoadFullScreenFromConfigs())
         style = sf::Style::Fullscreen;
