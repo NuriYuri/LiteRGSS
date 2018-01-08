@@ -25,10 +25,10 @@
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
+#include "LiteRGSS.h"
 #include "sf_Text2.hpp"
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
-#include "LiteRGSS.h"
 #include <cmath>
 
 namespace
