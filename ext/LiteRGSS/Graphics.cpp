@@ -45,6 +45,7 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "width", _rbf rb_Graphics_width, 0);
     rb_define_module_function(rb_mGraphics, "height", _rbf rb_Graphics_height, 0);
     rb_define_module_function(rb_mGraphics, "reload_stack", _rbf rb_Graphics_ReloadStack, 0);
+	rb_define_module_function(rb_mGraphics, "set_window_framerate", _rbf rb_Graphics_setWindowFramerate, 1);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 }
@@ -229,6 +230,17 @@ VALUE rb_Graphics_ReloadStack(VALUE self)
     }
     return self;
 }
+
+
+VALUE rb_Graphics_setWindowFramerate(VALUE self, VALUE framerate)
+{
+	GRAPHICS_PROTECT
+		if (InsideGraphicsUpdate) // Prevent a Thread from calling stop during the Graphics.update process
+			return self;
+	game_window->setFramerateLimit(rb_num2long(framerate));
+	return self;
+}
+
 
 void global_Graphics_Bind(CDrawable_Element* element)
 {

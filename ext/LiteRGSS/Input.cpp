@@ -452,7 +452,7 @@ void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
 void L_Input_Setusec_threshold(long usec)
 {
     if(usec > 1)
-        L_Input_threshold = usec - 1;
+        L_Input_threshold = usec - 100;
     else
         L_Input_threshold = 1;
 }

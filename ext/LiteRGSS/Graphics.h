@@ -16,6 +16,7 @@ VALUE rb_Graphics_set_frame_count(VALUE self, VALUE val);
 VALUE rb_Graphics_width(VALUE self);
 VALUE rb_Graphics_height(VALUE self);
 VALUE rb_Graphics_ReloadStack(VALUE self);
+VALUE rb_Graphics_setWindowFramerate(VALUE self, VALUE framerate);
 
 void global_Graphics_Bind(CDrawable_Element* element);
 
