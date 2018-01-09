@@ -349,10 +349,16 @@ void L_Input_Update_Key(sf::Keyboard::Key code, bool state)
         rb_int2inum(code));
 }
 
+#if SIZEOF_LONG == SIZEOF_LONG_LONG
+#define YuriConvertInt2Long(x) (x & 0x80000000 ? -(~(x & 0xFFFFFFFF) + 1) : x)
+#else
+#define YuriConvertInt2Long(x) (x)
+#endif
+
 void L_Input_Mouse_Pos_Update(long x, long y)
 {
-    L_Mouse_Pos_X = x;
-    L_Mouse_Pos_Y = y;
+    L_Mouse_Pos_X = YuriConvertInt2Long(x);
+    L_Mouse_Pos_Y = YuriConvertInt2Long(y);
 }
 
 void L_Input_Mouse_Wheel_Update(long delta)
