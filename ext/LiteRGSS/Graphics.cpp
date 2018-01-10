@@ -12,6 +12,7 @@ VALUE rb_eClosedWindow = Qnil;
 long ScreenWidth = 640;
 long ScreenHeight = 480;
 unsigned long frame_count = 0;
+unsigned long frame_rate = 60;
 
 sf::RenderWindow* game_window = nullptr;
 bool InsideGraphicsUpdate = false;
@@ -46,6 +47,7 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "height", _rbf rb_Graphics_height, 0);
     rb_define_module_function(rb_mGraphics, "reload_stack", _rbf rb_Graphics_ReloadStack, 0);
 	rb_define_module_function(rb_mGraphics, "set_window_framerate", _rbf rb_Graphics_setWindowFramerate, 1);
+    rb_define_module_function(rb_mGraphics, "update_no_input", _rbf rb_Graphics_update_no_input_count, 0);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 }
@@ -74,6 +76,7 @@ VALUE rb_Graphics_start(VALUE self)
     L_Input_Reset_Clocks();
     L_Input_Setusec_threshold(1000000 / framerate);
     frame_count = 0;
+	frame_rate = framerate;
     return self;
 }
 
@@ -182,6 +185,22 @@ VALUE rb_Graphics_update(VALUE self)
     /* Update the frame count */
     frame_count++;
     return self;
+}
+
+VALUE rb_Graphics_update_no_input_count(VALUE self)
+{
+	GRAPHICS_PROTECT
+		if (InsideGraphicsUpdate) // Prevent a Thread from calling Graphics.update during Graphics.update process
+			return self;
+	InsideGraphicsUpdate = true;
+	/* Graphics.update real process */
+	GraphicUpdateMessage* message =
+		reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, (void*)&Graphics_stack, NULL, NULL));
+	if (message != nullptr)
+		return local_Graphics_Update_RaiseError(self, message);
+	/* End of Graphics.update process */
+	InsideGraphicsUpdate = false;
+	return self;
 }
 
 VALUE rb_Graphics_get_frame_count(VALUE self)

@@ -23,5 +23,6 @@ extern "C" {
     Init_Text();
     Init_Input();
     Init_Table();
+	Init_Yuki();
   }
 }

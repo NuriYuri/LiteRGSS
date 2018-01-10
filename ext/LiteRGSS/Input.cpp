@@ -2,6 +2,9 @@
 
 #define L_INPUT_NUM_INGAME_KEY 17
 #define L_INPUT_NUM_MOUSE_KEY 5
+#define L_TRIGGER_TIME_METHOD 1
+#define L_TRIGGER_COUNT_METHOD 2
+#define L_TRIGGER_METHOD L_TRIGGER_COUNT_METHOD
 
 VALUE rb_mInput = Qnil;
 VALUE rb_mMouse = Qnil;
@@ -14,8 +17,32 @@ VALUE rb_mInputMainAxisX = Qnil;
 VALUE rb_mInputMainAxisY = Qnil;
 ID rb_mInputEach = Qnil;
 /* Clocks used to detect trigger, and repeat */
+#if L_TRIGGER_METHOD == L_TRIGGER_TIME_METHOD
 sf::Clock L_Input_Clock[L_INPUT_NUM_INGAME_KEY];
 sf::Clock L_Mouse_Clock[L_INPUT_NUM_MOUSE_KEY];
+#define L_TRIGGER_RESET_Mouse(i) L_Mouse_Clock[i].restart()
+#define L_TRIGGER_RESET_Input(i) L_Input_Clock[i].restart()
+#define L_Trigger_Mouse(pos) L_Mouse_Clock[pos].getElapsedTime().asMicroseconds() < L_Input_threshold
+#define L_Trigger_Input(pos) L_Input_Clock[pos].getElapsedTime().asMicroseconds() < L_Input_threshold
+#define L_Repeat_Input(pos) long time = L_Input_Clock[pos].getElapsedTime().asMicroseconds(); \
+	if (time >= (L_Input_threshold * 20)) \
+		if((time % (L_Input_threshold * 8)) < L_Input_threshold) \
+			return Qtrue;
+#elif L_TRIGGER_METHOD == L_TRIGGER_COUNT_METHOD
+unsigned long L_Input_Count[L_INPUT_NUM_INGAME_KEY];
+unsigned long L_Mouse_Count[L_INPUT_NUM_MOUSE_KEY];
+#define L_TRIGGER_RESET_Mouse(i) L_Mouse_Count[i] = frame_count
+#define L_TRIGGER_RESET_Input(i) L_Input_Count[i] = frame_count
+#define L_Trigger_Mouse(pos) L_Mouse_Count[pos] == (frame_count - 1)
+#define L_Trigger_Input(pos) L_Input_Count[pos] == (frame_count - 1)
+#define L_Repeat_Input(pos) unsigned long count = (frame_count - L_Input_Count[pos]); \
+	if(count > (frame_rate / 2)) \
+	{ \
+		count -= (frame_rate / 2); \
+		if ((count % (frame_rate / 6)) == 0) \
+			return Qtrue; \
+	}
+#endif
 bool L_Input_Press[L_INPUT_NUM_INGAME_KEY];
 bool L_Mouse_Press[L_INPUT_NUM_MOUSE_KEY];
 long L_Input_threshold = 0;
@@ -295,12 +322,12 @@ void L_Input_Reset_Clocks()
     unsigned int i;
     for(i = 0; i < L_INPUT_NUM_INGAME_KEY; i++)
     {
-        L_Input_Clock[i].restart();
+		L_TRIGGER_RESET_Input(i);
         L_Input_Press[i] = false;
     }
     for(i = 0;i < L_INPUT_NUM_MOUSE_KEY; i++)
     {
-        L_Mouse_Clock[i].restart();
+		L_TRIGGER_RESET_Mouse(i);
         L_Mouse_Press[i] = false;
     }
 }
@@ -320,7 +347,7 @@ VALUE rb_Input_KeyStateDown_Block(VALUE hash_key, VALUE id_key, int argc, VALUE*
         if(!L_Input_Press[pos])
         {
             L_Input_Press[pos] = true;
-            L_Input_Clock[pos].restart();
+			L_TRIGGER_RESET_Input(pos);
         }
     }
     return Qnil;
@@ -335,7 +362,7 @@ VALUE rb_Input_KeyStateUp_Block(VALUE hash_key, VALUE id_key, int argc, VALUE* a
         if(L_Input_Press[pos])
         {
             L_Input_Press[pos] = false;
-            L_Input_Clock[pos].restart();
+			L_TRIGGER_RESET_Input(pos);
         }
     }
     return Qnil;
@@ -373,7 +400,7 @@ void L_Input_Mouse_Button_Update(long button, bool state)
         if(L_Mouse_Press[button] != state)
         {
             L_Mouse_Press[button] = state;
-            L_Mouse_Clock[button].restart();
+			L_TRIGGER_RESET_Mouse(button);
         }
     }
 }
@@ -397,25 +424,25 @@ void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
             if(!L_Input_Press[15])
             {
                 L_Input_Press[15] = true;
-                L_Input_Clock[15].restart();
+				L_TRIGGER_RESET_Input(15);
             }
         else if(position > 25.0f)
             if(!L_Input_Press[16])
             {
                 L_Input_Press[16] = true;
-                L_Input_Clock[16].restart();
+				L_TRIGGER_RESET_Input(16);
             }
         else
         {
             if(L_Input_Press[16])
             {
                 L_Input_Press[16] = false;
-                L_Input_Clock[16].restart();
+				L_TRIGGER_RESET_Input(16);
             }
             if(L_Input_Press[15])
             {
                 L_Input_Press[15] = false;
-                L_Input_Clock[15].restart();
+				L_TRIGGER_RESET_Input(15);
             }
         }
     }
@@ -425,25 +452,25 @@ void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
             if(!L_Input_Press[13])
             {
                 L_Input_Press[13] = true;
-                L_Input_Clock[13].restart();
+				L_TRIGGER_RESET_Input(13);
             }
         else if(position > 25.0f)
             if(!L_Input_Press[14])
             {
                 L_Input_Press[14] = true;
-                L_Input_Clock[14].restart();
+				L_TRIGGER_RESET_Input(14);
             }
         else
         {
             if(L_Input_Press[14])
             {
                 L_Input_Press[14] = false;
-                L_Input_Clock[14].restart();
+				L_TRIGGER_RESET_Input(14);
             }
             if(L_Input_Press[13])
             {
                 L_Input_Press[13] = false;
-                L_Input_Clock[13].restart();
+				L_TRIGGER_RESET_Input(13);
             }
         }
     }
@@ -470,7 +497,7 @@ VALUE rb_Input_Trigger(VALUE self, VALUE key_sym)
     bool pressed = L_Input_Press[pos];
     if(!pressed)
         return Qfalse;
-    if(L_Input_Clock[pos].getElapsedTime().asMicroseconds() < L_Input_threshold)
+    if(L_Trigger_Input(pos))
         return Qtrue;
     return Qfalse;
 }
@@ -481,12 +508,11 @@ VALUE rb_Input_Repeat(VALUE self, VALUE key_sym)
     bool pressed = L_Input_Press[pos];
     if(!pressed)
         return Qfalse;
-    long time = L_Input_Clock[pos].getElapsedTime().asMicroseconds();
-    if(time >= (L_Input_threshold * 20))
-        time %= (L_Input_threshold * 8); // Yolo val
     /* Trigger */
-    if(time < L_Input_threshold)
+    if(L_Trigger_Input(pos))
         return Qtrue;
+	/* Repeat */
+	L_Repeat_Input(pos)
     return Qfalse;
 }
 
@@ -496,7 +522,7 @@ VALUE rb_Input_Released(VALUE self, VALUE key_sym)
     bool pressed = L_Input_Press[pos];
     if(pressed)
         return Qfalse;
-    if(L_Input_Clock[pos].getElapsedTime().asMicroseconds() < L_Input_threshold)
+    if(L_Trigger_Input(pos))
         return Qtrue;
     return Qfalse;
 }
@@ -590,7 +616,7 @@ VALUE rb_Mouse_Trigger(VALUE self, VALUE key_sym)
     bool pressed = L_Mouse_Press[pos];
     if(!pressed)
         return Qfalse;
-    if(L_Mouse_Clock[pos].getElapsedTime().asMicroseconds() < L_Input_threshold)
+    if(L_Trigger_Mouse(pos))
         return Qtrue;
     return Qfalse;
 }
@@ -601,7 +627,7 @@ VALUE rb_Mouse_Released(VALUE self, VALUE key_sym)
     bool pressed = L_Mouse_Press[pos];
     if(pressed)
         return Qfalse;
-    if(L_Mouse_Clock[pos].getElapsedTime().asMicroseconds() < L_Input_threshold)
+    if(L_Trigger_Mouse(pos))
         return Qtrue;
     return Qfalse;
 }
