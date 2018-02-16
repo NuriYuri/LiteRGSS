@@ -93,6 +93,10 @@ void Init_Text()
     rb_define_method(rb_cText, "z=", _rbf rb_Text_setZ, 1);
     rb_define_method(rb_cText, "__index__", _rbf rb_Text_Index, 0);
     rb_define_method(rb_cText, "viewport", _rbf rb_Text_Viewport, 0);
+	rb_define_method(rb_cText, "italic", _rbf rb_Text_getItalic, 0);
+	rb_define_method(rb_cText, "italic=", _rbf rb_Text_setItalic, 1);
+	rb_define_method(rb_cText, "bold", _rbf rb_Text_getBold, 0);
+	rb_define_method(rb_cText, "bold=", _rbf rb_Text_setBold, 1);
 
     rb_define_method(rb_cText, "clone", _rbf rb_Text_Copy, 0);
     rb_define_method(rb_cText, "dup", _rbf rb_Text_Copy, 0);
@@ -498,6 +502,42 @@ VALUE rb_Text_Viewport(VALUE self)
 {
     GET_TEXT
     return text->rViewport;
+}
+
+VALUE rb_Text_getItalic(VALUE self)
+{
+	GET_TEXT
+	return ((text->getText()->getStyle() & sf::Text2::Style::Italic) ? Qtrue : Qfalse);
+}
+
+VALUE rb_Text_setItalic(VALUE self, VALUE val)
+{
+	GET_TEXT
+	sf::Uint32 style = text->getText()->getStyle();
+	if (RTEST(val))
+		style |= sf::Text2::Style::Italic;
+	else
+		style &= ~(sf::Text2::Style::Italic);
+	text->getText()->setStyle(style);
+	return self;
+}
+
+VALUE rb_Text_getBold(VALUE self)
+{
+	GET_TEXT
+		return ((text->getText()->getStyle() & sf::Text2::Style::Bold) ? Qtrue : Qfalse);
+}
+
+VALUE rb_Text_setBold(VALUE self, VALUE val)
+{
+	GET_TEXT
+		sf::Uint32 style = text->getText()->getStyle();
+	if (RTEST(val))
+		style |= sf::Text2::Style::Bold;
+	else
+		style &= ~(sf::Text2::Style::Bold);
+	text->getText()->setStyle(style);
+	return self;
 }
 
 VALUE rb_Text_UpdateI(CText_Element* text)

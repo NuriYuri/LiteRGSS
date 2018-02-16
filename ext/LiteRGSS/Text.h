@@ -45,4 +45,8 @@ VALUE rb_Text_getZ(VALUE self);
 VALUE rb_Text_setZ(VALUE self, VALUE val);
 VALUE rb_Text_Index(VALUE self);
 VALUE rb_Text_Viewport(VALUE self);
+VALUE rb_Text_getItalic(VALUE self);
+VALUE rb_Text_setItalic(VALUE self, VALUE val);
+VALUE rb_Text_getBold(VALUE self);
+VALUE rb_Text_setBold(VALUE self, VALUE val);
 #endif
