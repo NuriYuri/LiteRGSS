@@ -19,6 +19,8 @@ module LiteRGSS
     Vsync = true
     # If the game is in fullscreen
     FullScreen = false
+    # If the Texture should be smoothed or not
+    SmoothScreen = false
   end
   # Graphics module manages the frame and window display
   module Graphics
@@ -51,10 +53,29 @@ module LiteRGSS
     # @return [Array<Array(width, height)>]
     def list_resolutions
     end
+    # Reload the sprite stack (z_order processing)
+    # @return [self]
+    def reload_stack
+    end
+    # Force the Window Framerate
+    # Use this to get a real VSYNC
+    # @param framerate [Integer] 0 means unlimited
+    def set_window_framerate(framerate)
+    end
+    # Update only the sprite display (does not increase the frame_count as well)
+    # @return [self]
+    def update_no_input
+    end
     class << self
       # Return the number of frames shown on the screen
       # @return [Integer]
       attr_accessor :frame_count
+      # Return the game screen width
+      # @return [Integer]
+      attr_reader :width
+      # Return the game screen height
+      # @return [Integer]
+      attr_reader :height
     end
   end
   # Class that defines a rectangular surface of a Graphical element
@@ -256,12 +277,21 @@ module LiteRGSS
     # The Tone effect of the viewport
     # @return [Tone]
     attr_accessor :tone
+    # The aditive Color effect of the viewport
+    # @return [Color]
+    attr_accessor :color
     # The offset x of the viewport's contents
     # @return [Integer]
     attr_accessor :ox
     # The offset y of the viewport's contents
     # @return [Integer]
     attr_accessor :oy
+    # Viewport content visibility
+    # @return [Boolean]
+    attr_accessor :visible
+    # The viewport z property
+    # @return [Numeric]
+    attr_accessor :z
     # Create a new Viewport
     # @param x [Integer] x position of the surface
     # @param y [Integer] y position of the surface
@@ -279,6 +309,15 @@ module LiteRGSS
     # Indicate if the viewport is disposed or not
     # @return [Boolean]
     def disposed?
+    end
+    # Reload the viewport sprite stack
+    # Used for Z processing
+    # @return [self]
+    def reload_stack
+    end
+    # Return the viewport "index" (used to know if the viewport has been created after an other sprite or viewport when z are the same
+    # @return [Integer]
+    def __index__
     end
   end
   # Class that describe a sprite shown on the screen or inside a viewport
@@ -311,6 +350,10 @@ module LiteRGSS
     # Define the zoom of the sprite when shown on screen
     # @param zoom [Numeric] the zoom factor
     def zoom=(zoom)
+    end
+    # Return the sprite index to know if it has been created before an other sprite (in the same viewport)
+    # @return [Integer]
+    def __index__
     end
     # Bitmap shown by the sprite
     # @return [Bitmap, nil]
@@ -348,6 +391,9 @@ module LiteRGSS
     # The opacity of the sprite
     # @return [Numeric]
     attr_accessor :opacity
+    # The sprite viewport
+    # @return [LiteRGSS::Viewport, nil]
+    attr_reader :viewport
   end
   # Class that describes a text shown on the screen or inside a viewport
   # @note Text cannot be saved, loaded from file nor cloned in the memory
@@ -409,9 +455,45 @@ module LiteRGSS
     # @return self
     def load_color(font_id)
     end
-    # Set the text of the Text
+    # Text shown by this Object
     # @return [String]
-    attr_writer :text
+    attr_accessor :text
+    # If the Text is visible
+    # @return [Boolean]
+    attr_accessor :visible
+    # If the text is drawn as in Pokemon DPP / RSE / HGSS / BW
+    # @return [Boolean]
+    attr_accessor :draw_shadow
+    # The number of character the object should draw
+    # @return [Integer]
+    attr_accessor :nchar_draw
+    # Return the real width of the text
+    # @return [Integer]
+    attr_accessor :real_width
+    # Opacity of the text
+    # @return [Integer]
+    attr_accessor :opacity
+    # Return the width of the given string if drawn by this Text object
+    # @param text [String]
+    # @return [Integer]
+    def text_width(text)
+    end
+    # The Text z property
+    # @return [Numeric]
+    attr_accessor :z
+    # Return the text index to know if it has been created before an other sprite/text/viewport in the same viewport
+    # @return [Integer]
+    def __index__
+    end
+    # Return the Text viewport
+    # @return [LiteRGSS::Viewport, nil]
+    attr_reader :viewport
+    # If the text should be shown in italic
+    # @return [Boolean]
+    attr_accessor :italic
+    # If the text should be shown in bold
+    # @return [Boolean]
+    attr_accessor :bold
   end
   # Module that holds information about text fonts.
   #
@@ -738,6 +820,11 @@ module LiteRGSS
       F15 = Integer(sf::Keyboard::F15)
       # sf::Keyboard::Pause
       Pause = Integer(sf::Keyboard::Pause)
+      module_function
+      # Detect if a key is pressed
+      # @param key [Integer]
+      def press?(key)
+      end
     end
   end
   # Module that helps to retreive Mouse information during the game time
