@@ -1,5 +1,5 @@
-#ifndef L_BITMAP_H
-#define L_BITMAP_H
+#ifndef L_SPRITE_HEADER
+#define L_SPRITE_HEADER
 #include "Graphics.h"
 
 VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self);

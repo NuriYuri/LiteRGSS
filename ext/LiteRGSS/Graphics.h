@@ -2,6 +2,7 @@
 #define GR_HEADER
 #include "CViewport_Element.h"
 #include "CSprite_Element.h"
+#include "CShaderSprite_Element.h"
 #include <SFML/Graphics.hpp>
 
 VALUE rb_Graphics_start(VALUE self);
@@ -20,6 +21,7 @@ VALUE rb_Graphics_setWindowFramerate(VALUE self, VALUE framerate);
 VALUE rb_Graphics_update_no_input_count(VALUE self);
 
 void global_Graphics_Bind(CDrawable_Element* element);
+void rb_Sprite_Free(void* data);
 
 extern unsigned long Graphics_Scale;
 #endif

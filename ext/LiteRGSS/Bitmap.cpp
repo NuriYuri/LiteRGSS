@@ -176,3 +176,15 @@ VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE rect)
     }
     return self;
 }
+
+sf::Texture* rb_Bitmap_getTexture(VALUE self)
+{
+	CBitmap_Element* bitmap;
+	Data_Get_Struct(self, CBitmap_Element, bitmap);
+	if (bitmap == nullptr)
+	{
+		rb_raise(rb_eRGSSError, "Disposed Bitmap.");
+		return nullptr;
+	}
+	return bitmap->getTexture();
+}

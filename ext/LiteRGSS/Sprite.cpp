@@ -132,7 +132,7 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
 
 VALUE rb_Sprite_Copy(VALUE self)
 {
-    rb_raise(rb_eRGSSError, "Sprites can not be cloned or duplicated.");
+    rb_raise(rb_eRGSSError, "Sprites cannot be cloned or duplicated.");
     return self;
 }
 

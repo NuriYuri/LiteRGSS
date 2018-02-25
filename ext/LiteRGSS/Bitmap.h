@@ -12,5 +12,6 @@ VALUE rb_Bitmap_Height(VALUE self);
 VALUE rb_Bitmap_Rect(VALUE self);
 VALUE rb_Bitmap_Update(VALUE self);
 VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE rect);
+sf::Texture* rb_Bitmap_getTexture(VALUE self);
 
 #endif

@@ -4,7 +4,7 @@
 #include "CDrawable_Element.h"
 
 class CSprite_Element : public CDrawable_Element {
-    private:
+    protected:
         sf::Sprite sprite;
         bool drawable;
         bool visible;
