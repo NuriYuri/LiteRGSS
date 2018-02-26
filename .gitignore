@@ -15,6 +15,7 @@
 *.bmp
 *.ttf
 *.jpg
+*.png
 
 # Other things
 .vscode
