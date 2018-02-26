@@ -4,6 +4,7 @@
 
 unsigned long Graphics_Scale = 1;
 bool SmoothScreen = false;
+bool RGSSTransition = false;
 
 void* local_Graphics_Update_Internal(void* data)
 {
@@ -124,8 +125,13 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
         was_viewport = (*element)->isViewport();
         (*element)->draw(*game_window);
     }
-    if(Graphics_freeze_sprite != nullptr)
-        game_window->draw(*Graphics_freeze_sprite);
+	if (Graphics_freeze_sprite != nullptr)
+	{
+		if(RGSSTransition)
+			game_window->draw(*Graphics_freeze_sprite, Graphics_freeze_shader);
+		else
+			game_window->draw(*Graphics_freeze_sprite);
+	}
 }
 
 void local_LoadVideoModeFromConfigs(sf::VideoMode& vmode)
@@ -204,6 +210,55 @@ void local_LoadSmoothScreenFromConfigs()
         SmoothScreen = RTEST(rb_const_get(rb_mConfig, fsc));
     else
         SmoothScreen = false;
+}
+
+void local_Graphics_TransitionBasic(VALUE self, long time)
+{
+	RGSSTransition = false;
+	sf::Color freeze_color(255, 255, 225, 255);
+	for (long i = 1; i <= time; i++)
+	{
+		freeze_color.a = 255 * (time - i) / time;
+		Graphics_freeze_sprite->setColor(freeze_color);
+		rb_Graphics_update(self);
+	}
+}
+
+void local_Graphics_TransitionRGSS(VALUE self, long time, VALUE bitmap)
+{
+	Graphics_freeze_sprite->setColor(sf::Color(255, 255, 255, 255));
+	RGSSTransition = true;
+	Graphics_freeze_shader->setUniform("transition", *rb_Bitmap_getTexture(bitmap));
+	for (long i = 1; i <= time; i++)
+	{
+		Graphics_freeze_shader->setUniform("param", static_cast<float>(i) / time);
+		rb_Graphics_update(self);
+	}
+}
+
+const std::string GraphicsTransitionFragmentShader = \
+	"uniform float param;" \
+	"uniform sampler2D texture;" \
+	"uniform sampler2D transition;" \
+	"const float sensibilite = 0.05;" \
+	"const float scale = 1.0 + sensibilite;" \
+	"void main()" \
+	"{" \
+	"  vec4 frag = texture2D(texture, gl_TexCoord[0].xy);" \
+	"  vec4 tran = texture2D(transition, gl_TexCoord[0].xy);" \
+	"  float pixel = max(max(tran.r, tran.g), tran.b);" \
+	"  pixel -= (param * scale);" \
+	"  if(pixel < sensibilite)" \
+	"  {" \
+	"    frag.a = max(0.0, sensibilite + pixel / sensibilite);" \
+	"  }" \
+	"  gl_FragColor = frag;" \
+	"}";
+
+void local_Graphics_LoadShader()
+{
+	Graphics_freeze_shader = new sf::Shader();
+	Graphics_freeze_shader->loadFromMemory(GraphicsTransitionFragmentShader, sf::Shader::Type::Fragment);
 }
 
 void local_Graphics_Take_Snapshot(sf::Texture* text)

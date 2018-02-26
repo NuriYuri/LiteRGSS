@@ -20,6 +20,7 @@ std::vector<CDrawable_Element*> Graphics_stack;
 
 sf::Texture* Graphics_freeze_texture = nullptr;
 sf::Sprite* Graphics_freeze_sprite = nullptr;
+sf::Shader* Graphics_freeze_shader = nullptr;
 
 /* Macro Definition */
 #define GRAPHICS_PROTECT if(game_window == nullptr) { \
@@ -77,6 +78,7 @@ VALUE rb_Graphics_start(VALUE self)
     L_Input_Setusec_threshold(1000000 / framerate);
     frame_count = 0;
 	frame_rate = framerate;
+	local_Graphics_LoadShader();
     return self;
 }
 
@@ -99,6 +101,11 @@ VALUE rb_Graphics_stop(VALUE self)
         delete Graphics_freeze_texture;
         Graphics_freeze_texture = nullptr;
     }
+	if (Graphics_freeze_shader != nullptr)
+	{
+		delete Graphics_freeze_shader;
+		Graphics_freeze_shader = nullptr;
+	}
 }
 
 VALUE rb_Graphics_snap_to_bitmap(VALUE self)
@@ -135,18 +142,13 @@ VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self)
     if(Graphics_freeze_sprite == nullptr)
         return self;
     long time = local_LoadFrameRateFromConfigs();
-    sf::Color freeze_color(255,255,225,255);
     if(argc >= 1)
-    {
-        time = rb_num2long(argv[0]);
-    }
+		time = rb_num2long(argv[0]);
     time = normalize_long(time, 1, 0xFFFF);
-    for(long i = 1; i <= time; i++)
-    {
-        freeze_color.a = 255 * (time - i) / time;
-        Graphics_freeze_sprite->setColor(freeze_color);
-        rb_Graphics_update(self);
-    }
+	if (argc < 2 || rb_obj_is_kind_of(argv[1], rb_cBitmap) != Qtrue)
+		local_Graphics_TransitionBasic(self, time);
+	else
+		local_Graphics_TransitionRGSS(self, time, argv[1]);
     delete Graphics_freeze_sprite;
     Graphics_freeze_sprite = nullptr;
     delete Graphics_freeze_texture;
