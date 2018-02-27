@@ -58,7 +58,7 @@ void Init_Input()
     rb_mMouse = rb_define_module_under(rb_mLiteRGSS, "Mouse");
     VALUE rb_mKeyboard = rb_define_module_under(rb_mInput, "Keyboard");
     /* function definition */
-    rb_define_method(rb_mKeyboard, "press?", _rbf rb_KeyBoard_Press, 1);
+	rb_define_module_function(rb_mKeyboard, "press?", _rbf rb_KeyBoard_Press, 1);
 
     rb_define_module_function(rb_mInput, "press?", _rbf rb_Input_Press, 1);
     rb_define_module_function(rb_mInput, "trigger?", _rbf rb_Input_Trigger, 1);
