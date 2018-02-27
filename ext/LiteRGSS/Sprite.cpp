@@ -299,7 +299,7 @@ VALUE rb_Sprite_getVisible(VALUE self)
 VALUE rb_Sprite_setAngle(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sprite->getSprite()->setRotation(static_cast<float>(rb_num2dbl(val)));
+    sprite->getSprite()->setRotation(static_cast<float>(-rb_num2dbl(val))); // RGSS rotation is trigo, SFML looks like anti-trigo
     sprite->rAngle = val;
     return val;
 }

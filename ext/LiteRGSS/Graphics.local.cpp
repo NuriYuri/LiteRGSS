@@ -5,6 +5,7 @@
 unsigned long Graphics_Scale = 1;
 bool SmoothScreen = false;
 bool RGSSTransition = false;
+unsigned char Graphics_Brightness = 255;
 
 void* local_Graphics_Update_Internal(void* data)
 {
@@ -132,6 +133,20 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 		else
 			game_window->draw(*Graphics_freeze_sprite);
 	}
+	if (Graphics_Brightness != 255)
+		local_Graphics_DrawBrightness();
+}
+
+void local_Graphics_DrawBrightness()
+{
+	sf::Vertex	vertices[4];
+	sf::Vector2u size = game_window->getSize();
+	vertices[0].position = sf::Vector2f(0, 0);
+	vertices[1].position = sf::Vector2f(0, size.y);
+	vertices[2].position = sf::Vector2f(size.x, 0);
+	vertices[3].position = sf::Vector2f(size.x, size.y);
+	vertices[0].color = vertices[1].color = vertices[2].color = vertices[3].color = sf::Color(0, 0, 0, 255 - Graphics_Brightness);
+	game_window->draw(vertices, 4, sf::PrimitiveType::TriangleStrip);
 }
 
 void local_LoadVideoModeFromConfigs(sf::VideoMode& vmode)

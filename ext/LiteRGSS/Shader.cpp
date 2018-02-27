@@ -44,6 +44,7 @@ void Init_Shader()
 	rb_define_method(rb_cShader, "set_bool_uniform", _rbf rb_Shader_setBoolUniform, 2);
 	rb_define_method(rb_cShader, "set_texture_uniform", _rbf rb_Shader_setTextureUniform, 2);
 	rb_define_method(rb_cShader, "set_matrix_uniform", _rbf rb_Shader_setMatrixUniform, 2);
+	rb_define_method(rb_cShader, "set_float_array_uniform", _rbf rb_Shader_setFloatArrayUniform, 2);
 
 	rb_define_method(rb_cShader, "clone", _rbf rb_Shader_Copy, 0);
 	rb_define_method(rb_cShader, "dup", _rbf rb_Shader_Copy, 0);
@@ -227,6 +228,24 @@ VALUE rb_Shader_setMatrixUniform(VALUE self, VALUE name, VALUE uniform)
 		shader->setUniform(rb_string_value_cstr(&name), matrix4);
 	}
 
+	return self;
+}
+
+VALUE rb_Shader_setFloatArrayUniform(VALUE self, VALUE name, VALUE uniform)
+{
+	GET_SHADER;
+	rb_check_type(name, T_STRING);
+	rb_check_type(uniform, T_ARRAY);
+	unsigned int len = RARRAY_LEN(uniform);
+	float* floats = new float[len];
+	for (unsigned int i = 0; i < len; i++)
+	{
+		VALUE val = rb_ary_entry(uniform, i);
+		rb_check_type(val, T_FLOAT);
+		floats[i] = static_cast<float>(RFLOAT_VALUE(val));
+	}
+	shader->setUniformArray(rb_string_value_cstr(&name), floats, len);
+	delete floats;
 	return self;
 }
 

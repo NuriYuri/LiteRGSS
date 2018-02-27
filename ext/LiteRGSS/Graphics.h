@@ -19,6 +19,8 @@ VALUE rb_Graphics_height(VALUE self);
 VALUE rb_Graphics_ReloadStack(VALUE self);
 VALUE rb_Graphics_setWindowFramerate(VALUE self, VALUE framerate);
 VALUE rb_Graphics_update_no_input_count(VALUE self);
+VALUE rb_Graphics_getBrightness(VALUE self);
+VALUE rb_Graphics_setBrightness(VALUE self, VALUE brightness);
 
 void global_Graphics_Bind(CDrawable_Element* element);
 void rb_Sprite_Free(void* data);

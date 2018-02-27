@@ -22,11 +22,13 @@ void local_Graphics_Clear_Stack();
 void local_Graphics_TransitionBasic(VALUE self, long time);
 void local_Graphics_TransitionRGSS(VALUE self, long time, VALUE bitmap);
 void local_Graphics_LoadShader();
+void local_Graphics_DrawBrightness();
 
 extern sf::RenderWindow* game_window;
 extern bool InsideGraphicsUpdate;
 extern sf::Texture* Graphics_freeze_texture;
 extern sf::Sprite* Graphics_freeze_sprite;
 extern sf::Shader* Graphics_freeze_shader;
+extern unsigned char Graphics_Brightness;
 
 #endif

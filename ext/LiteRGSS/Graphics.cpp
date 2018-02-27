@@ -49,6 +49,8 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "reload_stack", _rbf rb_Graphics_ReloadStack, 0);
 	rb_define_module_function(rb_mGraphics, "set_window_framerate", _rbf rb_Graphics_setWindowFramerate, 1);
     rb_define_module_function(rb_mGraphics, "update_no_input", _rbf rb_Graphics_update_no_input_count, 0);
+    rb_define_module_function(rb_mGraphics, "brightness", _rbf rb_Graphics_getBrightness, 0);
+    rb_define_module_function(rb_mGraphics, "brightness=", _rbf rb_Graphics_setBrightness, 1);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 }
@@ -259,6 +261,17 @@ VALUE rb_Graphics_setWindowFramerate(VALUE self, VALUE framerate)
 		if (InsideGraphicsUpdate) // Prevent a Thread from calling stop during the Graphics.update process
 			return self;
 	game_window->setFramerateLimit(rb_num2long(framerate));
+	return self;
+}
+
+VALUE rb_Graphics_getBrightness(VALUE self)
+{
+	return LONG2FIX(Graphics_Brightness);
+}
+
+VALUE rb_Graphics_setBrightness(VALUE self, VALUE brightness)
+{
+	Graphics_Brightness = normalize_long(rb_num2long(brightness), 0, 255);
 	return self;
 }
 

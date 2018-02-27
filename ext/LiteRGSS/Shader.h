@@ -9,4 +9,5 @@ VALUE rb_Shader_setIntUniform(VALUE self, VALUE name, VALUE uniform);
 VALUE rb_Shader_setBoolUniform(VALUE self, VALUE name, VALUE uniform);
 VALUE rb_Shader_setTextureUniform(VALUE self, VALUE name, VALUE uniform);
 VALUE rb_Shader_setMatrixUniform(VALUE self, VALUE name, VALUE uniform);
+VALUE rb_Shader_setFloatArrayUniform(VALUE self, VALUE name, VALUE uniform);
 #endif // !L_SHADER_HEADER
