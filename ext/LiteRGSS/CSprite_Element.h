@@ -31,5 +31,6 @@ class CSprite_Element : public CDrawable_Element {
         VALUE rZoomX;
         VALUE rZoomY;
         VALUE rRect;
+		VALUE rMirror;
 };
 #endif

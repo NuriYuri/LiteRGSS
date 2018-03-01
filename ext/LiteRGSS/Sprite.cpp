@@ -88,6 +88,8 @@ void Init_Sprite() {
     rb_define_method(rb_cSprite, "src_rect=", _rbf rb_Sprite_setRect, 1);
     rb_define_method(rb_cSprite, "disposed?", _rbf rb_Sprite_Disposed, 0);
     rb_define_method(rb_cSprite, "viewport", _rbf rb_Sprite_Viewport, 0);
+	rb_define_method(rb_cSprite, "mirror", _rbf rb_Sprite_getMirror, 0);
+	rb_define_method(rb_cSprite, "mirror=", _rbf rb_Sprite_setMirror, 1);
     rb_define_method(rb_cSprite, "__index__", _rbf rb_Sprite_Index, 0);
 
     rb_define_method(rb_cSprite, "clone", _rbf rb_Sprite_Copy, 0);
@@ -127,6 +129,7 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
     sprite->rZoomY = LONG2FIX(1);
     sprite->rBitmap = Qnil;
     sprite->rRect = Qnil;
+	sprite->rMirror = Qfalse;
     return self;
 }
 
@@ -431,9 +434,30 @@ VALUE rb_Sprite_setRect(VALUE self, VALUE val)
     /* Copying the rect */
     sf::IntRect* rect_target = rect2->getRect();
     rect_copy(rect_target, rect1->getRect());
+	/* Mirror management */
+	sf::IntRect rect_setter = *rect_target;
+	if (RTEST(sprite->rMirror))
+	{
+		rect_setter.left += rect_setter.width;
+		rect_setter.width = -rect_setter.width;
+	}
     /* Updating the texture rect */
-    sprite->getSprite()->setTextureRect(*rect_target);
+    sprite->getSprite()->setTextureRect(rect_setter);
     return val;
+}
+
+VALUE rb_Sprite_getMirror(VALUE self)
+{
+	GET_SPRITE;
+	return sprite->rMirror;
+}
+
+VALUE rb_Sprite_setMirror(VALUE self, VALUE val)
+{
+	GET_SPRITE;
+	sprite->rMirror = RTEST(val) ? Qtrue : Qfalse;
+	rb_Sprite_setRect(self, rb_Sprite_getRect(self));
+	return self;
 }
 
 VALUE rb_Sprite_Viewport(VALUE self)
