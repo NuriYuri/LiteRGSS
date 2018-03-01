@@ -282,25 +282,24 @@ void __Rect_Check_LinkedObject(CRect_Element* rect)
     CDrawable_Element* el = rect->getElement();
     if(el == nullptr)
         return;
-	sf::IntRect* srect;
     /* Viewport processing */
     if(el->isViewport())
     {
-        srect = rect->getRect();
+		sf::IntRect* srect = rect->getRect();
         Viewport_SetView(reinterpret_cast<CViewport_Element*>(el), 
             srect->left, srect->top, srect->width, srect->height);
     }
     /* Sprite Processing */
     else if(el->isPureSprite())
     {
-		srect = rect->getRect();
+		sf::IntRect tmp_rect = *rect->getRect();
 		CSprite_Element* sprite = reinterpret_cast<CSprite_Element*>(el);
 		if (RTEST(sprite->rMirror))
 		{
-			srect->left += srect->width;
-			srect->width = -srect->width;
+			tmp_rect.left += tmp_rect.width;
+			tmp_rect.width = -tmp_rect.width;
 		}
-        reinterpret_cast<CSprite_Element*>(el)->getSprite()->setTextureRect(*rect->getRect());
+        reinterpret_cast<CSprite_Element*>(el)->getSprite()->setTextureRect(tmp_rect);
     }
     /* Window Processing */
     else
