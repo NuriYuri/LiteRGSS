@@ -56,3 +56,8 @@ If you loaded the LiteRGSS library nothing can be shown until you called `LiteRG
 How to stop Lite RGSS ?
 --
 If the player did not hit the close button, you should call `LiteRGSS::Graphics.stop`. It'll destroy the game window. (But not the sprites, viewport and stuff.)
+
+Specials Thanks
+--
+* SFML for their library https://www.sfml-dev.org
+* NetSurf Browser for their gif library :) https://netsurf-browser.org

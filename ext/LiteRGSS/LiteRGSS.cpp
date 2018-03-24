@@ -26,5 +26,6 @@ extern "C" {
 	Init_Yuki();
 	Init_Shader();
 	Init_ShaderSprite();
+	Init_YukiGifReader();
   }
 }

@@ -634,22 +634,22 @@ VALUE rb_Mouse_Released(VALUE self, VALUE key_sym)
 
 VALUE rb_Mouse_x(VALUE self)
 {
-    return rb_int2inum(L_Mouse_Pos_X / Graphics_Scale);
+    return LONG2NUM(L_Mouse_Pos_X / Graphics_Scale);
 }
 
 VALUE rb_Mouse_y(VALUE self)
 {
-    return rb_int2inum(L_Mouse_Pos_Y / Graphics_Scale);
+    return LONG2NUM(L_Mouse_Pos_Y / Graphics_Scale);
 }
 
 VALUE rb_Mouse_Wheel(VALUE self)
 {
-    return rb_int2inum(L_Mouse_Wheel_Delta);
+    return LONG2NUM(L_Mouse_Wheel_Delta);
 }
 
 VALUE rb_Mouse_Wheel_set(VALUE self, VALUE val)
 {
-    L_Mouse_Wheel_Delta = rb_num2long(val);
+    L_Mouse_Wheel_Delta = NUM2LONG(val);
     return val;
 }
 
