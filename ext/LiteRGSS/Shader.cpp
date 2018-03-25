@@ -99,24 +99,24 @@ VALUE rb_Shader_setFloatUniform(VALUE self, VALUE name, VALUE uniform)
 		long arylen = RARRAY_LEN(uniform);
 		if (arylen == 4)
 		{
-			sf::Glsl::Vec4 vect4(RFLOAT_VALUE(rb_ary_entry(uniform, 0)), RFLOAT_VALUE(rb_ary_entry(uniform, 1)), RFLOAT_VALUE(rb_ary_entry(uniform, 2)), RFLOAT_VALUE(rb_ary_entry(uniform, 3)));
+			sf::Glsl::Vec4 vect4(NUM2DBL(rb_ary_entry(uniform, 0)), NUM2DBL(rb_ary_entry(uniform, 1)), NUM2DBL(rb_ary_entry(uniform, 2)), NUM2DBL(rb_ary_entry(uniform, 3)));
 			shader->setUniform(rb_string_value_cstr(&name), vect4);
 		}
 		else if (arylen == 3)
 		{
-			sf::Glsl::Vec3 vect3(RFLOAT_VALUE(rb_ary_entry(uniform, 0)), RFLOAT_VALUE(rb_ary_entry(uniform, 1)), RFLOAT_VALUE(rb_ary_entry(uniform, 2)));
+			sf::Glsl::Vec3 vect3(NUM2DBL(rb_ary_entry(uniform, 0)), NUM2DBL(rb_ary_entry(uniform, 1)), NUM2DBL(rb_ary_entry(uniform, 2)));
 			shader->setUniform(rb_string_value_cstr(&name), vect3);
 		}
 		else if(arylen == 2)
 		{
-			sf::Glsl::Vec2 vect2(RFLOAT_VALUE(rb_ary_entry(uniform, 0)), RFLOAT_VALUE(rb_ary_entry(uniform, 1)));
+			sf::Glsl::Vec2 vect2(NUM2DBL(rb_ary_entry(uniform, 0)), NUM2DBL(rb_ary_entry(uniform, 1)));
 			shader->setUniform(rb_string_value_cstr(&name), vect2);
 		}
 	}
 	else
 	{
 		rb_check_type(uniform, T_FLOAT);
-		shader->setUniform(rb_string_value_cstr(&name), static_cast<float>(RFLOAT_VALUE(uniform)));
+		shader->setUniform(rb_string_value_cstr(&name), static_cast<float>(NUM2DBL(uniform)));
 	}
 	return self;
 }
@@ -213,7 +213,7 @@ VALUE rb_Shader_setMatrixUniform(VALUE self, VALUE name, VALUE uniform)
 	{
 		for (i = 0; i < 9; i++)
 		{
-			floats[i] = RFLOAT_VALUE(rb_ary_entry(uniform, i));
+			floats[i] = NUM2DBL(rb_ary_entry(uniform, i));
 		}
 		sf::Glsl::Mat3 matrix3(floats);
 		shader->setUniform(rb_string_value_cstr(&name), matrix3);
@@ -222,7 +222,7 @@ VALUE rb_Shader_setMatrixUniform(VALUE self, VALUE name, VALUE uniform)
 	{
 		for (i = 0; i < 16; i++)
 		{
-			floats[i] = RFLOAT_VALUE(rb_ary_entry(uniform, i));
+			floats[i] = NUM2DBL(rb_ary_entry(uniform, i));
 		}
 		sf::Glsl::Mat4 matrix4(floats);
 		shader->setUniform(rb_string_value_cstr(&name), matrix4);
@@ -242,7 +242,7 @@ VALUE rb_Shader_setFloatArrayUniform(VALUE self, VALUE name, VALUE uniform)
 	{
 		VALUE val = rb_ary_entry(uniform, i);
 		rb_check_type(val, T_FLOAT);
-		floats[i] = static_cast<float>(RFLOAT_VALUE(val));
+		floats[i] = static_cast<float>(NUM2DBL(val));
 	}
 	shader->setUniformArray(rb_string_value_cstr(&name), floats, len);
 	delete floats;
