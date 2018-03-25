@@ -42,6 +42,8 @@ void Init_Bitmap()
     rb_define_method(rb_cBitmap, "rect", _rbf rb_Bitmap_Rect, 0);
     rb_define_method(rb_cBitmap, "update", _rbf rb_Bitmap_Update, 0);
     rb_define_method(rb_cBitmap, "blt", _rbf rb_Bitmap_blt, 4);
+	rb_define_method(rb_cBitmap, "to_png", _rbf rb_Bitmap_toPNG, 0);
+	rb_define_method(rb_cBitmap, "to_png_file", _rbf rb_Bitmap_toPNG_file, 1);
 }
 
 VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self)
@@ -54,18 +56,20 @@ VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self)
     if(NIL_P(fromMemory))
     {
         rb_check_type(string, T_STRING);
-        if(!text->loadFromFile(RSTRING_PTR(string)))
-        {
-            errno = ENOENT;
-            rb_sys_fail(RSTRING_PTR(string));
-        }
+		if(!rb_Bitmap_LoadLodePNG(text, RSTRING_PTR(string), 0))
+			if(!text->loadFromFile(RSTRING_PTR(string)))
+			{
+				errno = ENOENT;
+				rb_sys_fail(RSTRING_PTR(string));
+			}
     }
     /* Load From Memory */
     else if(fromMemory == Qtrue)
     {
         rb_check_type(string, T_STRING);
-        if(!text->loadFromMemory(RSTRING_PTR(string), RSTRING_LEN(string)))
-            rb_raise(rb_eRGSSError, "Failed to load bitmap from memory.");
+		if(!rb_Bitmap_LoadLodePNG(text, RSTRING_PTR(string), RSTRING_LEN(string)))
+			if(!text->loadFromMemory(RSTRING_PTR(string), RSTRING_LEN(string)))
+				rb_raise(rb_eRGSSError, "Failed to load bitmap from memory.");
     }
     else
     {
@@ -175,6 +179,62 @@ VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE rect)
         );
     }
     return self;
+}
+
+VALUE rb_Bitmap_toPNG(VALUE self)
+{
+	GET_BITMAP;
+	sf::Image img = bitmap->getTexture()->copyToImage();
+	unsigned char* out;
+	size_t size;
+	if (lodepng_encode32(&out, &size, img.getPixelsPtr(), img.getSize().x, img.getSize().y) != 0)
+	{
+		if (out)
+			free(out);
+		return Qnil;
+	}
+	VALUE ret_val = rb_str_new(reinterpret_cast<const char*>(out), size);
+	free(out);
+	return ret_val;
+}
+
+VALUE rb_Bitmap_toPNG_file(VALUE self, VALUE filename)
+{
+	rb_check_type(filename, T_STRING);
+	GET_BITMAP;
+	sf::Image img = bitmap->getTexture()->copyToImage();
+	if (lodepng_encode32_file(RSTRING_PTR(filename), img.getPixelsPtr(), img.getSize().x, img.getSize().y) != 0)
+		return Qfalse;
+	return Qtrue;
+}
+
+bool rb_Bitmap_LoadLodePNG(sf::Texture* text, char* str, long from_memory_size)
+{
+	unsigned char* out = nullptr;
+	unsigned w;
+	unsigned h;
+	if (from_memory_size > 0)
+	{
+		if (lodepng_decode32(&out, &w, &h, reinterpret_cast<unsigned char*>(str), from_memory_size) != 0)
+		{
+			if (out)
+				free(out);
+			return false;
+		}
+	}
+	else
+	{
+		if (lodepng_decode32_file(&out, &w, &h, str) != 0)
+		{
+			if (out)
+				free(out);
+			return false;
+		}
+	}
+	text->create(w, h);
+	text->update(reinterpret_cast<sf::Uint8*>(out), w, h, 0, 0);
+	free(out);
+	return true;
 }
 
 sf::Texture* rb_Bitmap_getTexture(VALUE self)

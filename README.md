@@ -61,3 +61,4 @@ Specials Thanks
 --
 * SFML for their library https://www.sfml-dev.org
 * NetSurf Browser for their gif library :) https://netsurf-browser.org
+* Lode Vandevenne for LodePNG
