@@ -47,8 +47,9 @@ bool L_Input_Press[L_INPUT_NUM_INGAME_KEY];
 bool L_Mouse_Press[L_INPUT_NUM_MOUSE_KEY];
 long L_Input_threshold = 0;
 long L_Mouse_Wheel_Delta = 0;
-long L_Mouse_Pos_X = 0;
-long L_Mouse_Pos_Y = 0;
+double L_Mouse_Pos_X = 0;
+double L_Mouse_Pos_Y = 0;
+std::string L_EnteredText = std::string();
 
 unsigned int L_Input_Get_Key_Position(VALUE hash_ids, VALUE hash_key);
 
@@ -72,6 +73,7 @@ void Init_Input()
     rb_define_module_function(rb_mInput, "x_axis=", _rbf rb_Input_setMainXAxis, 1);
     rb_define_module_function(rb_mInput, "y_axis", _rbf rb_Input_getMainYAxis, 0);
     rb_define_module_function(rb_mInput, "y_axis=", _rbf rb_Input_setMainYAxis, 1);
+	rb_define_module_function(rb_mInput, "get_text", _rbf rb_Input_getText, 0);
 
     rb_define_module_function(rb_mMouse, "press?", _rbf rb_Mouse_Press, 1);
     rb_define_module_function(rb_mMouse, "trigger?", _rbf rb_Mouse_Trigger, 1);
@@ -376,16 +378,12 @@ void L_Input_Update_Key(sf::Keyboard::Key code, bool state)
         rb_int2inum(code));
 }
 
-#if SIZEOF_LONG == SIZEOF_LONG_LONG
-#define YuriConvertInt2Long(x) (x & 0x80000000 ? -(~(x & 0xFFFFFFFF) + 1) : x)
-#else
-#define YuriConvertInt2Long(x) (x)
-#endif
-
-void L_Input_Mouse_Pos_Update(long x, long y)
+void L_Input_Mouse_Pos_Update(int x, int y)
 {
-    L_Mouse_Pos_X = YuriConvertInt2Long(x);
-    L_Mouse_Pos_Y = YuriConvertInt2Long(y);
+	if (x < 0)
+		x = -256;
+    L_Mouse_Pos_X = static_cast<double>(x);
+    L_Mouse_Pos_Y = static_cast<double>(y);
 }
 
 void L_Input_Mouse_Wheel_Update(long delta)
@@ -604,6 +602,13 @@ VALUE rb_Input_getMainYAxis(VALUE self)
     return rb_mInputMainAxisY;
 }
 
+VALUE rb_Input_getText(VALUE self)
+{
+	if (L_EnteredText.size() > 0)
+		return rb_utf8_str_new_cstr(L_EnteredText.c_str());
+	return Qnil;
+}
+
 VALUE rb_Mouse_Press(VALUE self, VALUE key_sym)
 {
     unsigned int pos = L_Input_Get_Key_Position(rb_mMouseKeyID, key_sym);
@@ -634,12 +639,12 @@ VALUE rb_Mouse_Released(VALUE self, VALUE key_sym)
 
 VALUE rb_Mouse_x(VALUE self)
 {
-    return LONG2NUM(L_Mouse_Pos_X / Graphics_Scale);
+    return LONG2NUM(static_cast<long>(L_Mouse_Pos_X / Graphics_Scale));
 }
 
 VALUE rb_Mouse_y(VALUE self)
 {
-    return LONG2NUM(L_Mouse_Pos_Y / Graphics_Scale);
+    return LONG2NUM(static_cast<long>(L_Mouse_Pos_Y / Graphics_Scale));
 }
 
 VALUE rb_Mouse_Wheel(VALUE self)

@@ -25,5 +25,5 @@ VALUE rb_Graphics_setBrightness(VALUE self, VALUE brightness);
 void global_Graphics_Bind(CDrawable_Element* element);
 void rb_Sprite_Free(void* data);
 
-extern unsigned long Graphics_Scale;
+extern double Graphics_Scale;
 #endif

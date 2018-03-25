@@ -2,7 +2,7 @@
 #include "CViewport_Element.h"
 #include "Graphics.local.h"
 
-unsigned long Graphics_Scale = 1;
+double Graphics_Scale = 1;
 bool SmoothScreen = false;
 bool RGSSTransition = false;
 unsigned char Graphics_Brightness = 255;
@@ -31,6 +31,7 @@ void local_Graphics_Update_Process_Event(GraphicUpdateMessage*& message)
     if(message != nullptr) // We'll try not to cause other error during this
         return;
     sf::Event event;
+	L_EnteredText.clear();
     while(game_window->pollEvent(event))
     {
         switch(event.type)
@@ -76,6 +77,9 @@ void local_Graphics_Update_Process_Event(GraphicUpdateMessage*& message)
             case sf::Event::EventType::MouseLeft:
                 L_Input_Mouse_Pos_Update(-256, -256);
                 break;
+			case sf::Event::EventType::TextEntered:
+				L_EnteredText.append((char*)sf::String(event.text.unicode).toUtf8().c_str());
+				break;
         }
     }
 }
@@ -156,7 +160,7 @@ void local_LoadVideoModeFromConfigs(sf::VideoMode& vmode)
     ID sscale = rb_intern("ScreenScale");
     long max_width, max_height = 0xFFFFFF;
     long pixdepth = 32;
-    long scale = 1;
+    double scale = 1;
     std::vector<sf::VideoMode> modes = sf::VideoMode::getFullscreenModes();
     /* If there's a fullscreen mode */
     if(modes.size() > 0)
@@ -173,7 +177,7 @@ void local_LoadVideoModeFromConfigs(sf::VideoMode& vmode)
         vmode.height = normalize_long(rb_num2long(rb_const_get(rb_mConfig, sheight)), 144, max_height);
     /* Adjust Scale */
     if(rb_const_defined(rb_mConfig, sscale))
-        scale = normalize_long(rb_num2long(rb_const_get(rb_mConfig, sscale)), 1, 10);
+        scale = normalize_double(NUM2DBL(rb_const_get(rb_mConfig, sscale)), 0.1, 10);
     ScreenWidth = vmode.width;
     ScreenHeight = vmode.height;
     vmode.width *= scale;
