@@ -38,4 +38,6 @@ VALUE rb_Sprite_Viewport(VALUE self);
 VALUE rb_Sprite_Index(VALUE self);
 VALUE rb_Sprite_getMirror(VALUE self);
 VALUE rb_Sprite_setMirror(VALUE self, VALUE val);
+VALUE rb_Sprite_width(VALUE self);
+VALUE rb_Sprite_height(VALUE self);
 #endif

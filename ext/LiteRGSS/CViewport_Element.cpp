@@ -19,6 +19,8 @@ CViewport_Element::~CViewport_Element()
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
 {
+	if (!visible)
+		return;
     if(linkedTone && render)
     {
         /* Loading the Window View */

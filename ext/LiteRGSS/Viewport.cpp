@@ -46,6 +46,7 @@ VALUE rb_Viewport_Alloc(VALUE klass)
     CViewport_Element* viewport = new CViewport_Element();
     viewport->setLinkedRect(nullptr);
     viewport->setLinkedTone(nullptr);
+	viewport->setVisible(true);
     viewport->rZ = LONG2FIX(0);
     return Data_Wrap_Struct(klass, rb_Viewport_Mark, rb_Viewport_Free, viewport);
 }

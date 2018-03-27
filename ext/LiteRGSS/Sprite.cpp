@@ -90,6 +90,8 @@ void Init_Sprite() {
     rb_define_method(rb_cSprite, "viewport", _rbf rb_Sprite_Viewport, 0);
 	rb_define_method(rb_cSprite, "mirror", _rbf rb_Sprite_getMirror, 0);
 	rb_define_method(rb_cSprite, "mirror=", _rbf rb_Sprite_setMirror, 1);
+	rb_define_method(rb_cSprite, "width", _rbf rb_Sprite_width, 0);
+	rb_define_method(rb_cSprite, "height", _rbf rb_Sprite_height, 0);
     rb_define_method(rb_cSprite, "__index__", _rbf rb_Sprite_Index, 0);
 
     rb_define_method(rb_cSprite, "clone", _rbf rb_Sprite_Copy, 0);
@@ -199,6 +201,7 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
     sp->setTexture(*bmp->getTexture(), true);
     sprite->setDrawable(true);
     sprite->rBitmap = bitmap;
+	rb_Sprite_setRect(self, rb_Sprite_getRect(self));
     return self;
 }
 
@@ -470,4 +473,16 @@ VALUE rb_Sprite_Index(VALUE self)
 {
     GET_SPRITE
     return rb_uint2inum(sprite->getIndex());
+}
+
+VALUE rb_Sprite_width(VALUE self)
+{
+	VALUE rc = rb_Sprite_getRect(self);
+	return rb_Rect_getWidth(rc);
+}
+
+VALUE rb_Sprite_height(VALUE self)
+{
+	VALUE rc = rb_Sprite_getRect(self);
+	return rb_Rect_getHeight(rc);
 }
