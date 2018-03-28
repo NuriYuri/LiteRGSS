@@ -42,6 +42,8 @@ void Init_Bitmap()
     rb_define_method(rb_cBitmap, "rect", _rbf rb_Bitmap_Rect, 0);
     rb_define_method(rb_cBitmap, "update", _rbf rb_Bitmap_Update, 0);
     rb_define_method(rb_cBitmap, "blt", _rbf rb_Bitmap_blt, 4);
+	rb_define_method(rb_cBitmap, "clear_rect", _rbf rb_Bitmap_clear_rect, 4);
+	rb_define_method(rb_cBitmap, "fill_rect", _rbf rb_Bitmap_fill_rect, 5);
 	rb_define_method(rb_cBitmap, "to_png", _rbf rb_Bitmap_toPNG, 0);
 	rb_define_method(rb_cBitmap, "to_png_file", _rbf rb_Bitmap_toPNG_file, 1);
 }
@@ -173,12 +175,67 @@ VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE rect)
         }
         bitmap->getImage()->copy(
             *s_bitmap->getImage(),
-            rb_num2ulong(x),
-            rb_num2ulong(y),
+            NUM2ULONG(x),
+			NUM2ULONG(y),
             *s_rect->getRect()
         );
     }
     return self;
+}
+
+VALUE rb_Bitmap_clear_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height)
+{
+	GET_BITMAP
+	rb_check_type(x, T_FIXNUM);
+	rb_check_type(y, T_FIXNUM);
+	rb_check_type(width, T_FIXNUM);
+	rb_check_type(height, T_FIXNUM);
+	long x1 = NUM2LONG(x);
+	long x2 = NUM2LONG(width) + x1;
+	if (x1 < 0)
+		x1 = 0;
+	long y1 = NUM2LONG(y);
+	long y2 = NUM2LONG(height) + y1;
+	if (y1 < 0)
+		y1 = 0;
+	sf::Image* img = bitmap->getImage();
+	sf::Color clr = sf::Color(0, 0, 0, 0);
+	while (y1 < y2)
+	{
+		for (long x3 = x1; x3 < x2; x3++)
+			img->setPixel(x3, y1, clr);
+		y1++;
+	}
+	return self;
+}
+
+VALUE rb_Bitmap_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height, VALUE color)
+{
+	GET_BITMAP;
+	if (rb_obj_is_kind_of(color, rb_cColor) != Qtrue)
+		return self;
+	sf::Color* rcolor;
+	Data_Get_Struct(color, sf::Color, rcolor);
+	rb_check_type(x, T_FIXNUM);
+	rb_check_type(y, T_FIXNUM);
+	rb_check_type(width, T_FIXNUM);
+	rb_check_type(height, T_FIXNUM);
+	long x1 = NUM2LONG(x);
+	long x2 = NUM2LONG(width) + x1;
+	if (x1 < 0)
+		x1 = 0;
+	long y1 = NUM2LONG(y);
+	long y2 = NUM2LONG(height) + y1;
+	if (y1 < 0)
+		y1 = 0;
+	sf::Image* img = bitmap->getImage();
+	while (y1 < y2)
+	{
+		for (long x3 = x1; x3 < x2; x3++)
+			img->setPixel(x3, y1, *rcolor);
+		y1++;
+	}
+	return self;
 }
 
 VALUE rb_Bitmap_toPNG(VALUE self)

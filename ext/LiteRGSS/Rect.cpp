@@ -100,7 +100,7 @@ VALUE rb_Rect_initialize_copy(VALUE self, VALUE other)
     Data_Get_Struct(other, CRect_Element, rect2);
     if(RDATA(other)->data == nullptr) { return Qnil; }
     rect_copy(rect->getRect(), rect2->getRect());
-    rect2->setElement(nullptr);
+    rect->setElement(nullptr);
     return self;
 }
 /*
@@ -299,7 +299,7 @@ void __Rect_Check_LinkedObject(CRect_Element* rect)
 			tmp_rect.left += tmp_rect.width;
 			tmp_rect.width = -tmp_rect.width;
 		}
-        reinterpret_cast<CSprite_Element*>(el)->getSprite()->setTextureRect(tmp_rect);
+		sprite->getSprite()->setTextureRect(tmp_rect);
     }
     /* Window Processing */
     else

@@ -13,6 +13,8 @@ VALUE rb_Bitmap_Height(VALUE self);
 VALUE rb_Bitmap_Rect(VALUE self);
 VALUE rb_Bitmap_Update(VALUE self);
 VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE rect);
+VALUE rb_Bitmap_clear_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height);
+VALUE rb_Bitmap_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height, VALUE color);
 VALUE rb_Bitmap_toPNG(VALUE self);
 VALUE rb_Bitmap_toPNG_file(VALUE self, VALUE filename);
 bool rb_Bitmap_LoadLodePNG(sf::Texture* text, char* str, long from_memory_size);

@@ -201,7 +201,16 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
     sp->setTexture(*bmp->getTexture(), true);
     sprite->setDrawable(true);
     sprite->rBitmap = bitmap;
-	rb_Sprite_setRect(self, rb_Sprite_getRect(self));
+	if (!NIL_P(sprite->rRect))
+	{
+		CRect_Element* rect;
+		Data_Get_Struct(sprite->rRect, CRect_Element, rect);
+		/* Setting rect parameter */
+		const sf::IntRect rectorigin = sp->getTextureRect();
+		rect_copy(rect->getRect(), &rectorigin);
+	}
+	/*sprite->rRect = Qnil;
+	rb_Sprite_setRect(self, rb_Sprite_getRect(self));*/
     return self;
 }
 
