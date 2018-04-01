@@ -209,8 +209,6 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
 		const sf::IntRect rectorigin = sp->getTextureRect();
 		rect_copy(rect->getRect(), &rectorigin);
 	}
-	/*sprite->rRect = Qnil;
-	rb_Sprite_setRect(self, rb_Sprite_getRect(self));*/
     return self;
 }
 
@@ -314,7 +312,7 @@ VALUE rb_Sprite_getVisible(VALUE self)
 VALUE rb_Sprite_setAngle(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sprite->getSprite()->setRotation(static_cast<float>(-rb_num2dbl(val))); // RGSS rotation is trigo, SFML looks like anti-trigo
+    sprite->getSprite()->setRotation(static_cast<float>(-NUM2DBL(val))); // RGSS rotation is trigo, SFML looks like anti-trigo
     sprite->rAngle = val;
     return val;
 }

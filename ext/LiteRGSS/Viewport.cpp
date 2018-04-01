@@ -172,8 +172,8 @@ void Viewport_AdjustOXY(CViewport_Element* viewport, VALUE rect)
     Data_Get_Struct(rect, CRect_Element, srect);
     sf::IntRect* rc = srect->getRect();
     sf::View* view = viewport->getView();
-    view->setCenter(static_cast<float>(viewport->getOx() + rc->width / 2), 
-                    static_cast<float>(viewport->getOy() + rc->height / 2));   
+    view->setCenter(std::roundf(static_cast<float>(viewport->getOx()) + static_cast<float>(rc->width) / 2.0f),
+                    std::roundf(static_cast<float>(viewport->getOy()) + static_cast<float>(rc->height) / 2.0f));
 }
 
 VALUE rb_Viewport_getOX(VALUE self)
