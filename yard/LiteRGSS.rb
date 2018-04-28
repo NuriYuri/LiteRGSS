@@ -11,12 +11,12 @@ module LiteRGSS
     ScreenWidth = 640
     # The height of the screen (between 144 and the maximum fullscreen height)
     ScreenHeight = 480
+    # Scale of the Window display (factor to ScreenWidth and ScreenHeight)
+    ScreenScale = 1
     # The title of the window
     Title = "LiteRGSS"
-    # The number of frames per second
+    # The number of frames per second (Only used by Input)
     FrameRate = 60
-    # If the window use vertical synchronization
-    Vsync = true
     # If the game is in fullscreen
     FullScreen = false
     # If the Texture should be smoothed or not

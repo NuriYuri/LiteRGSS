@@ -47,7 +47,6 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "width", _rbf rb_Graphics_width, 0);
     rb_define_module_function(rb_mGraphics, "height", _rbf rb_Graphics_height, 0);
     rb_define_module_function(rb_mGraphics, "reload_stack", _rbf rb_Graphics_ReloadStack, 0);
-	rb_define_module_function(rb_mGraphics, "set_window_framerate", _rbf rb_Graphics_setWindowFramerate, 1);
     rb_define_module_function(rb_mGraphics, "update_no_input", _rbf rb_Graphics_update_no_input_count, 0);
     rb_define_module_function(rb_mGraphics, "brightness", _rbf rb_Graphics_getBrightness, 0);
     rb_define_module_function(rb_mGraphics, "brightness=", _rbf rb_Graphics_setBrightness, 1);
@@ -72,10 +71,10 @@ VALUE rb_Graphics_start(VALUE self)
     if(local_LoadFullScreenFromConfigs())
         style = sf::Style::Fullscreen;
     game_window = new sf::RenderWindow(vmode, local_LoadTitleFromConfigs(), style);
-    game_window->setFramerateLimit(framerate = local_LoadFrameRateFromConfigs());
     game_window->setMouseCursorVisible(false);
-    game_window->setVerticalSyncEnabled(local_LoadVSYNCFromConfigs());
+	game_window->setVerticalSyncEnabled(true);
     game_window->setActive();
+	framerate = local_LoadFrameRateFromConfigs();
     L_Input_Reset_Clocks();
     L_Input_Setusec_threshold(1000000 / framerate);
     frame_count = 0;
@@ -252,16 +251,6 @@ VALUE rb_Graphics_ReloadStack(VALUE self)
         }
     }
     return self;
-}
-
-
-VALUE rb_Graphics_setWindowFramerate(VALUE self, VALUE framerate)
-{
-	GRAPHICS_PROTECT
-		if (InsideGraphicsUpdate) // Prevent a Thread from calling stop during the Graphics.update process
-			return self;
-	game_window->setFramerateLimit(rb_num2long(framerate));
-	return self;
 }
 
 VALUE rb_Graphics_getBrightness(VALUE self)
