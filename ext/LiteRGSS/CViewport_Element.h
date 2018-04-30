@@ -11,9 +11,11 @@ class CViewport_Element : public CDrawable_Element {
         sf::Glsl::Vec4 tone;
         CTone_Element* linkedTone;
         sf::RenderTexture* render;
+		sf::Shader* shader;
+		sf::Color* color_copy;
         bool visible;
     public:
-        CViewport_Element() : CDrawable_Element() { render = nullptr; linkedTone = nullptr;};
+		CViewport_Element();// : CDrawable_Element() { render = nullptr; linkedTone = nullptr; };
         ~CViewport_Element();
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
@@ -26,7 +28,8 @@ class CViewport_Element : public CDrawable_Element {
         void setOy(long noy) {oy = noy;};
         void bind(CDrawable_Element* sprite);
         void clearStack();
-        sf::Glsl::Vec4* getTone() {return &tone;};
+        sf::Glsl::Vec4* getTone();
+		void updatetone();
         void setLinkedTone(CTone_Element* _tone) {linkedTone = _tone;};
         CTone_Element* getLinkedTone() { return linkedTone;};
         void reset_render();
@@ -40,9 +43,8 @@ class CViewport_Element : public CDrawable_Element {
         VALUE rColor;
         VALUE rZ;
         /* Shader related stuff */
-        static sf::Shader* globalshader;
-        static void load_globalshader();
-        static void reset_globalshader();
         static unsigned long render_count;
+	private:
+		sf::Color* check_up_color() const;
 };
 #endif

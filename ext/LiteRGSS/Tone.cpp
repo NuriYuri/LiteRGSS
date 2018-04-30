@@ -210,4 +210,5 @@ void __Tone_Check_LinkedObject(CTone_Element* tone)
     if(view == nullptr)
         return;
     tone_copy(view->getTone(), tone->getTone());
+	view->updatetone();
 }

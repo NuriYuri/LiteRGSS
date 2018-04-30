@@ -3,10 +3,7 @@
 
 void CSprite_Element::draw(sf::RenderTarget& target) const 
 {
-    if(drawable && visible)
-    {
-        target.draw(sprite, CViewport_Element::globalshader);
-    }
+	CSprite_Element::drawFast(target);
 }
 
 void CSprite_Element::drawFast(sf::RenderTarget& target) const 

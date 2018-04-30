@@ -59,10 +59,9 @@ VALUE rb_Graphics_start(VALUE self)
     unsigned int framerate;
     if(game_window != nullptr)
         return Qnil;
-    /* Shader Loading */
+    /* Shader Testing */
     if (!sf::Shader::isAvailable())
         rb_raise(rb_eRGSSError, "Shaders are not available :(");
-    CViewport_Element::load_globalshader();
     /* Window Loading */
     sf::VideoMode vmode(640, 480, 32);
     local_LoadVideoModeFromConfigs(vmode);
@@ -73,12 +72,14 @@ VALUE rb_Graphics_start(VALUE self)
     game_window = new sf::RenderWindow(vmode, local_LoadTitleFromConfigs(), style);
     game_window->setMouseCursorVisible(false);
 	game_window->setVerticalSyncEnabled(true);
-    game_window->setActive();
+	game_window->setFramerateLimit(0);
+	/* Input adjustement */
 	framerate = local_LoadFrameRateFromConfigs();
     L_Input_Reset_Clocks();
     L_Input_Setusec_threshold(1000000 / framerate);
     frame_count = 0;
 	frame_rate = framerate;
+	/* Shader loading */
 	local_Graphics_LoadShader();
     return self;
 }

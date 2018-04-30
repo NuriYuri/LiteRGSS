@@ -118,7 +118,6 @@ VALUE local_Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message
 void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 {
     bool was_viewport = false;
-    CViewport_Element::reset_globalshader();
     sf::View defview = game_window->getDefaultView();
     defview.setSize(ScreenWidth, ScreenHeight);
     defview.setCenter(round(ScreenWidth / 2.0f), round(ScreenHeight / 2.0f));

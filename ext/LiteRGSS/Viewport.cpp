@@ -270,8 +270,14 @@ VALUE rb_Viewport_setTone(VALUE self, VALUE val)
     Data_Get_Struct(val, CTone_Element, tonesrc);
     CTone_Element* tonedest;
     Data_Get_Struct(tn, CTone_Element, tonedest);
-    tone_copy(tonedest->getTone(), tonesrc->getTone());
-    tone_copy(viewport->getTone(), tonesrc->getTone());
+	sf::Glsl::Vec4* stone = tonesrc->getTone();
+	sf::Glsl::Vec4* vtone = viewport->getTone();
+	if (vtone->x != stone->x || vtone->y != stone->y || vtone->z != stone->z || vtone->w != vtone->w)
+	{
+		tone_copy(tonedest->getTone(), stone);
+		tone_copy(vtone, stone);
+		viewport->updatetone();
+	}
     return val;
 }
 

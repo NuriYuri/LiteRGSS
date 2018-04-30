@@ -4,6 +4,14 @@
 
 unsigned long CViewport_Element::render_count = 0;
 
+CViewport_Element::CViewport_Element() : CDrawable_Element() 
+{
+	render = nullptr;
+	linkedTone = nullptr;
+	shader = nullptr;
+	color_copy = nullptr;
+}
+
 CViewport_Element::~CViewport_Element() 
 {
     if(render != nullptr)
@@ -13,6 +21,8 @@ CViewport_Element::~CViewport_Element()
         else
             delete render;
         render_count--;
+		delete shader;
+		delete color_copy;
     }
     render = nullptr;
 };
@@ -27,13 +37,8 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
         sf::View wview = view;
         sf::View tview = view;
         wview.setRotation(0);
-        //wview.setSize(ScreenWidth, ScreenHeight);
         target.setView(wview);
-        /* Loading the Sahders */
-        globalshader->setUniform("tone", tone);
-        sf::Color* col = reinterpret_cast<sf::Color*>(RDATA(rColor)->data);
-        sf::Glsl::Vec4 color(col->r / 255.0f, col->g / 255.0f, col->b / 255.0f, col->a / 255.0f);
-        globalshader->setUniform("color", color);
+		sf::Color* col = check_up_color();
         render->clear(*col);
         /* Adjusting the Texture view */
         tview.setViewport(sf::FloatRect(0.0f, 0.0f, 1.0f, 1.0f));
@@ -43,8 +48,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
             (*sp)->drawFast(*render);
         render->display();
         sf::Sprite sp(render->getTexture());
-        target.draw(sp, globalshader);
-        reset_globalshader();
+        target.draw(sp, shader);
     }
     else
     {
@@ -72,6 +76,32 @@ void CViewport_Element::clearStack()
     stack.clear();
 }
 
+sf::Glsl::Vec4* CViewport_Element::getTone() 
+{
+	return &tone; 
+};
+
+void CViewport_Element::updatetone()
+{
+	if(shader)
+		shader->setUniform("tone", tone);
+}
+
+sf::Color* CViewport_Element::check_up_color() const
+{
+	sf::Color* col = reinterpret_cast<sf::Color*>(RDATA(rColor)->data);
+	if (*col != *color_copy)
+	{
+		sf::Glsl::Vec4 color(col->r / 255.0f, col->g / 255.0f, col->b / 255.0f, col->a / 255.0f);
+		shader->setUniform("color", color);
+		color_copy->r = col->r;
+		color_copy->g = col->g;
+		color_copy->b = col->b;
+		color_copy->a = col->a;
+	}
+	return col;
+}
+
 /* ---- Shader Part ---- */
 /* Thaks to https://github.com/Ancurio/mkxp/blob/master/shader/sprite.frag (Ancurio & urkle) */
 const std::string ViewportGlobalFragmentShader = \
@@ -91,27 +121,9 @@ const std::string ViewportGlobalFragmentShader = \
     "   gl_FragColor = frag;" \
     "}";
 
-sf::Shader* CViewport_Element::globalshader = nullptr;
-
-void CViewport_Element::load_globalshader()
-{
-    if(globalshader == nullptr)
-        globalshader = new sf::Shader();
-    if(globalshader->loadFromMemory(ViewportGlobalFragmentShader, sf::Shader::Fragment))
-    {
-        globalshader->setUniform("texture", sf::Shader::CurrentTexture);
-        reset_globalshader();
-    }
-}
-
 
 sf::Glsl::Vec4 __Viewport_reset_tone(0.0f, 0.0f, 0.0f, 0.0f);
 
-void CViewport_Element::reset_globalshader()
-{
-    globalshader->setUniform("tone", __Viewport_reset_tone);
-    globalshader->setUniform("color", __Viewport_reset_tone);
-}
 
 void CViewport_Element::reset_render()
 {
@@ -132,4 +144,13 @@ void CViewport_Element::create_render()
     render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));
     render->setSmooth(SmoothScreen);
     render_count++;
+	/* Create shader at the same time */
+	shader = new sf::Shader();
+	if (shader->loadFromMemory(ViewportGlobalFragmentShader, sf::Shader::Fragment))
+	{
+		shader->setUniform("texture", sf::Shader::CurrentTexture);
+		shader->setUniform("tone", __Viewport_reset_tone);
+		shader->setUniform("color", __Viewport_reset_tone);
+	}
+	color_copy = new sf::Color(0, 0, 0, 0);
 }
