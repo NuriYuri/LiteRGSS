@@ -219,7 +219,8 @@ VALUE rb_Yuki_getClipboard(VALUE self)
 		initClipboard();
 
 	if (is_fail || is_host)
-		return string;
+		// return rb_str_new(string.toAnsiString().c_str(), string.getSize());
+		return Qnil;
 
 	// Dangerous! Wipes all previous events!
 	XSync(display, true);
@@ -236,7 +237,8 @@ VALUE rb_Yuki_getClipboard(VALUE self)
 		if (event.xselection.selection != selection || event.xselection.target != utf8_text)
 		{
 			std::cerr << "Failed to convert selection." << std::endl;
-			return string;
+			// return rb_str_new(string.toAnsiString().c_str(), string.getSize());
+			return Qnil;
 		}
 
 		if (event.xselection.property)
@@ -254,7 +256,7 @@ VALUE rb_Yuki_getClipboard(VALUE self)
 
 			if (target == utf8_text)
 			{
-				ret_val = rb_str_new(data, size);
+				ret_val = rb_str_new((const char*)data, size);
 				XFree(data);
 			}
 
