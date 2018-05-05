@@ -47,7 +47,8 @@ module LiteRGSS
     end
     # Show a transition between the frozen Graphics and the new Graphic state
     # @param nb_frame [Integer] the number of frames the transition lasts
-    def transition(nb_frame)
+    # @param bitmap [LiteRGSS::Bitmap] the bitmap to use to perform the transition
+    def transition(nb_frame = Config::FrameRate, bitmap = nil)
     end
     # Return an array containing the possible 32 bits fullscreen resolutions
     # @return [Array<Array(width, height)>]
@@ -56,11 +57,6 @@ module LiteRGSS
     # Reload the sprite stack (z_order processing)
     # @return [self]
     def reload_stack
-    end
-    # Force the Window Framerate
-    # Use this to get a real VSYNC
-    # @param framerate [Integer] 0 means unlimited
-    def set_window_framerate(framerate)
     end
     # Update only the sprite display (does not increase the frame_count as well)
     # @return [self]
@@ -76,6 +72,9 @@ module LiteRGSS
       # Return the game screen height
       # @return [Integer]
       attr_reader :height
+      # Return the screen brightness (between 0 and 255)
+      # @return [Integer]
+      attr_accessor :brightness
     end
   end
   # Class that defines a rectangular surface of a Graphical element
@@ -319,6 +318,9 @@ module LiteRGSS
     # @return [Integer]
     def __index__
     end
+    # Does nothing (RGSS compatibility)
+    def update
+    end
   end
   # Class that describe a sprite shown on the screen or inside a viewport
   # @note Sprites cannot be saved, loaded from file nor cloned in the memory
@@ -394,6 +396,15 @@ module LiteRGSS
     # The sprite viewport
     # @return [LiteRGSS::Viewport, nil]
     attr_reader :viewport
+    # If the sprite texture is mirrored
+    # @return [Boolean]
+    attr_accessor :mirror
+    # Return the sprite width
+    # @return [Integer]
+    attr_reader :width
+    # Return the sprite height
+    # @return [Integer]
+    attr_reader :height
   end
   # Class that describes a text shown on the screen or inside a viewport
   # @note Text cannot be saved, loaded from file nor cloned in the memory
@@ -417,6 +428,12 @@ module LiteRGSS
     # Indicate if the text is disposed or not
     # @return [Boolean]
     def disposed?
+    end
+    # Define the position of the text
+    # @param x [Numeric]
+    # @param y [Numeric]
+    # @return [self]
+    def set_position(x, y)
     end
     # The x coordinate of the text surface
     # @return [Numeric]
@@ -588,6 +605,11 @@ module LiteRGSS
     # Indicate the direction of the Inputs : 7 = upper left, 9 = upper right, 1 = lower left, 3 = lower right or dir4
     # @return [Integer]
     def dir8
+    end
+    # Return the entered text by the user
+    # @note If you press CTRL+Letter the result is "\u0001" + A - Letter, ex : CTRL+C = "\u0003"
+    # @return [String, nil] nil means no text has been entered
+    def get_text
     end
     class << self
       # ID of the main joypad (for dir4 and dir8)
@@ -857,6 +879,126 @@ module LiteRGSS
       # The vertical mouse wheel delta
       # @return [Integer]
       attr_accessor :wheel
+    end
+  end
+  # Shader loaded applicable to a ShaderedSprite
+  class Shader
+    # Define a Fragment shader
+    Fragment = sf::Shader::Type::Fragment
+    # Define a Vertex shader
+    Vertex = sf::Shader::Type::Vertex
+    # Define a Geometry shader
+    Geometry = sf::Shader::Type::Geometry
+    # @overload load(fragment_code)
+    #   Load a fragment shader from memory
+    #   @param framgment_code [String] shader code of the fragment shader
+    # @overload load(code, type)
+    #   Load a shader from memory
+    #   @param code [String] the code of the shader
+    #   @param type [Integer] the type of shader (Fragment, Vertex, Geometry)
+    # @overload load(vertex_code, fragment_code)
+    #   Load a vertex and fragment shader from memory
+    #   @param vertex_code [String]
+    #   @param fragment_code [String]
+    # @overload load(vertex_code, geometry_code, fragment_code)
+    #   Load a full shader from memory
+    #   @param vertex_code [String]
+    #   @param geometry_code [String]
+    #   @param fragment_code [String]
+    def load(*args)
+    end
+    alias initialize load
+    # Set a Float type uniform
+    # @param name [String] name of the uniform
+    # @param uniform [Float, Array<Float>] Array must have 2, 3 or 4 Floats
+    def set_float_uniform(name, uniform)
+    
+    end
+    # Set a Integer type uniform
+    # @param name [String] name of the uniform
+    # @param uniform [Integer, Array<Integer>] Array must have 2, 3 or 4 Integers
+    def set_int_uniform(name, uniform)
+    
+    end
+    # Set a Boolean type uniform
+    # @param name [String] name of the uniform
+    # @param uniform [Boolean, Array<Boolean>]  Array must have 2, 3 or 4 Booleans
+    def set_bool_uniform(name, uniform)
+    
+    end
+    # Set a Texture type uniform
+    # @param name [String] name of the uniform
+    # @param uniform [LiteRGSS::Bitmap, nil] nil means sf::Shader::CurrentTexture
+    def set_texture_uniform(name, uniform)
+    
+    end
+    # Set a Matrix type uniform (3x3 or 4x4)
+    # @param name [String] name of the uniform
+    # @param uniform [Array<Float>] Array must be 9 for 3x3 matrix or 16 for 4x4 matrix
+    def set_matrix_uniform(name, uniform)
+    
+    end
+    # Set a Float Array type uniform
+    # @param name [String] name of the uniform
+    # @param uniform [Array<Float>]
+    def set_float_array_uniform(name, uniform)
+    
+    end
+  end
+  # Class that describe a Shadered Sprite
+  class ShaderedSprite < Sprite
+    # Set the sprite shader
+    # @return [Shader]
+    attr_accessor :shader
+  end
+end
+# Module of things made by Nuri Yuri
+module Yuki
+  # Get the clipboard contents
+  # @return [String, nil] nil if no clipboard or incompatible clipboard
+  def get_clipboard
+  end
+  # Set the clipboard text contents
+  # @param text [String]
+  def set_clipboard(text)
+  
+  end
+  # Class that helps to read Gif
+  class GifReader
+    # Return the width of the Gif image
+    # @return [Integer]
+    attr_reader :width
+    # Return the height of the Gif image
+    # @return [Integer]
+    attr_reader :height
+    # Return the frame index of the Gif image
+    # @return [Integer]
+    attr_accessor :frame
+    # Return the number of frame in the Gif image
+    # @return [Integer]
+    attr_reader :frame_count
+    # Create a new GifReader
+    # @param filenameordata [String]
+    # @param from_memory [Boolean]
+    def initialize(filenameordata, from_memory = false)
+    
+    end
+    # Update the gif animation
+    # @param bitmap [LiteRGSS::Bitmap] texture that receive the update
+    # @return [self]
+    def update(bitmap)
+    end
+    # Draw the current frame in a bitmap
+    # @param bitmap [LiteRGSS::Bitmap] texture that receive the frame
+    # @return [self]
+    def draw(bitmap)
+    end
+    # Set the delta counter used to count frames
+    # @param value [Numeric] the number of miliseconds per frame
+    def self.delta_counter=(value)
+    end
+    # Describe an error that happend during gif processing
+    class Error < StandardError
     end
   end
 end
