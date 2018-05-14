@@ -561,7 +561,7 @@ namespace sf
 		float maxX = 0.f;
 		float maxY = 0.f;
 		Uint32 prevChar = 0;
-		for (std::size_t i = 0; i < m_string.getSize(); ++i)
+		for (std::size_t i = 0; i < m_string.getSize() && i < m_numberCharsToDraw; ++i)
 		{
 			Uint32 curChar = m_string[i];
 
