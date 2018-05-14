@@ -48,6 +48,7 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "height", _rbf rb_Graphics_height, 0);
     rb_define_module_function(rb_mGraphics, "reload_stack", _rbf rb_Graphics_ReloadStack, 0);
     rb_define_module_function(rb_mGraphics, "update_no_input", _rbf rb_Graphics_update_no_input_count, 0);
+    rb_define_module_function(rb_mGraphics, "update_only_input", _rbf rb_Graphics_update_only_input, 0);
     rb_define_module_function(rb_mGraphics, "brightness", _rbf rb_Graphics_getBrightness, 0);
     rb_define_module_function(rb_mGraphics, "brightness=", _rbf rb_Graphics_setBrightness, 1);
     /* creating the element table */
@@ -187,7 +188,7 @@ VALUE rb_Graphics_update(VALUE self)
     GraphicUpdateMessage* message = 
         reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, (void*)&Graphics_stack, NULL, NULL));
     /* Message Processing */
-    local_Graphics_Update_Process_Event(message); // Here because I need to access to Ruby Data
+    local_Graphics_Update_Process_Event(message);
     if(message != nullptr)
         return local_Graphics_Update_RaiseError(self, message);
     /* End of Graphics.update process */
@@ -209,6 +210,18 @@ VALUE rb_Graphics_update_no_input_count(VALUE self)
 	if (message != nullptr)
 		return local_Graphics_Update_RaiseError(self, message);
 	/* End of Graphics.update process */
+	InsideGraphicsUpdate = false;
+	return self;
+}
+
+VALUE rb_Graphics_update_only_input(VALUE self)
+{
+	GRAPHICS_PROTECT
+	InsideGraphicsUpdate = true;
+	GraphicUpdateMessage* message = nullptr;
+	local_Graphics_Update_Process_Event(message);
+	if (message != nullptr)
+		return local_Graphics_Update_RaiseError(self, message);
 	InsideGraphicsUpdate = false;
 	return self;
 }

@@ -17,8 +17,8 @@ VALUE rb_Graphics_set_frame_count(VALUE self, VALUE val);
 VALUE rb_Graphics_width(VALUE self);
 VALUE rb_Graphics_height(VALUE self);
 VALUE rb_Graphics_ReloadStack(VALUE self);
-VALUE rb_Graphics_setWindowFramerate(VALUE self, VALUE framerate);
 VALUE rb_Graphics_update_no_input_count(VALUE self);
+VALUE rb_Graphics_update_only_input(VALUE self);
 VALUE rb_Graphics_getBrightness(VALUE self);
 VALUE rb_Graphics_setBrightness(VALUE self, VALUE brightness);
 
