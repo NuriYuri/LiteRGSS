@@ -149,7 +149,7 @@ VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self)
     GRAPHICS_PROTECT
     if(Graphics_freeze_sprite == nullptr)
         return self;
-    long time = local_LoadFrameRateFromConfigs();
+	long time = 8; //< RGSS doc
     if(argc >= 1)
 		time = rb_num2long(argv[0]);
     time = normalize_long(time, 1, 0xFFFF);
