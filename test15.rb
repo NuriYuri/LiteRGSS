@@ -28,7 +28,6 @@ EOF
 
 $LOAD_PATH << "."
 Graphics.start
-Graphics.set_window_framerate(0)
 @a = ShaderedSprite.new
 @a.bitmap = Bitmap.new("test.jpg")
 @bmp = Bitmap.new("battle2.png")

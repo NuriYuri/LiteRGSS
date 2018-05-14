@@ -5,6 +5,7 @@
 #include <string>
 #include <cmath>
 #include "ruby.h" // Windows Patch
+#include "Texture.hpp"
 #include <SFML/Graphics.hpp>
 #include "Graphics.h"
 #include "Color.h"

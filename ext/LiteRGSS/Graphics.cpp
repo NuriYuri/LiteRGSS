@@ -71,10 +71,16 @@ VALUE rb_Graphics_start(VALUE self)
         style = sf::Style::Fullscreen;
     game_window = new sf::RenderWindow(vmode, local_LoadTitleFromConfigs(), style);
     game_window->setMouseCursorVisible(false);
-	game_window->setVerticalSyncEnabled(true);
-	game_window->setFramerateLimit(0);
-	/* Input adjustement */
 	framerate = local_LoadFrameRateFromConfigs();
+	/* VSYNC choice */
+	if(local_LoadVSYNCFromConfigs())
+		game_window->setVerticalSyncEnabled(true);
+	else
+	{
+		game_window->setVerticalSyncEnabled(false);
+		game_window->setFramerateLimit(framerate);
+	}
+	/* Input adjustement */
     L_Input_Reset_Clocks();
     L_Input_Setusec_threshold(1000000 / framerate);
     frame_count = 0;
