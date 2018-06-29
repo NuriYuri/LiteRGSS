@@ -12,6 +12,7 @@
 #include "Tone.h"
 #include "Rect.h"
 #include "Bitmap.h"
+#include "Image.h"
 #include "Viewport.h"
 #include "Sprite.h"
 #include "Fonts.h"
@@ -34,6 +35,7 @@ extern VALUE rb_mLiteRGSS;
 extern VALUE rb_mGraphics;
 extern VALUE rb_mConfig;
 extern VALUE rb_cBitmap;
+extern VALUE rb_cImage;
 extern VALUE rb_cSprite;
 extern VALUE rb_cRect;
 extern VALUE rb_cViewport;
@@ -58,6 +60,7 @@ extern ID rb_iElementTable;
 void Init_Graphics();
 
 void Init_Bitmap();
+void Init_Image();
 void Init_Sprite();
 void Init_Rect();
 void Init_Viewport();

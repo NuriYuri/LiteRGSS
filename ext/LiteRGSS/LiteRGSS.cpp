@@ -14,6 +14,7 @@ extern "C" {
 
     Init_Graphics();
     Init_Bitmap();
+    Init_Image();
     Init_Sprite();
     Init_Rect();
     Init_Viewport();

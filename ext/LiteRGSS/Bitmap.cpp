@@ -42,10 +42,10 @@ void Init_Bitmap()
     rb_define_method(rb_cBitmap, "rect", _rbf rb_Bitmap_Rect, 0);
     rb_define_method(rb_cBitmap, "update", _rbf rb_Bitmap_Update, 0);
     rb_define_method(rb_cBitmap, "blt", _rbf rb_Bitmap_blt, 4);
-	rb_define_method(rb_cBitmap, "clear_rect", _rbf rb_Bitmap_clear_rect, 4);
-	rb_define_method(rb_cBitmap, "fill_rect", _rbf rb_Bitmap_fill_rect, 5);
-	rb_define_method(rb_cBitmap, "to_png", _rbf rb_Bitmap_toPNG, 0);
-	rb_define_method(rb_cBitmap, "to_png_file", _rbf rb_Bitmap_toPNG_file, 1);
+    rb_define_method(rb_cBitmap, "clear_rect", _rbf rb_Bitmap_clear_rect, 4);
+    rb_define_method(rb_cBitmap, "fill_rect", _rbf rb_Bitmap_fill_rect, 5);
+    rb_define_method(rb_cBitmap, "to_png", _rbf rb_Bitmap_toPNG, 0);
+    rb_define_method(rb_cBitmap, "to_png_file", _rbf rb_Bitmap_toPNG_file, 1);
 }
 
 VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self)
