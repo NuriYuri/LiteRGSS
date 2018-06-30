@@ -39,6 +39,8 @@ void rb_Viewport_Mark(CViewport_Element* viewport)
     rb_gc_mark(viewport->rTone);
     rb_gc_mark(viewport->rColor);
     rb_gc_mark(viewport->rZ);
+	rb_gc_mark(viewport->rAngle);
+	rb_gc_mark(viewport->rZoom);
 }
 
 VALUE rb_Viewport_Alloc(VALUE klass)
@@ -75,6 +77,10 @@ void Init_Viewport()
     rb_define_method(rb_cViewport, "visible=", _rbf rb_Viewport_setVisible, 1);
     rb_define_method(rb_cViewport, "z", _rbf rb_Viewport_getZ, 0);
     rb_define_method(rb_cViewport, "z=", _rbf rb_Viewport_setZ, 1);
+    rb_define_method(rb_cViewport, "zoom", _rbf rb_Viewport_getZoom, 0);
+    rb_define_method(rb_cViewport, "zoom=", _rbf rb_Viewport_setZoom, 1);
+    rb_define_method(rb_cViewport, "angle", _rbf rb_Viewport_getAngle, 0);
+    rb_define_method(rb_cViewport, "angle=", _rbf rb_Viewport_setAngle, 1);
     rb_define_method(rb_cViewport, "reload_stack", _rbf rb_Viewport_ReloadStack, 0);
     rb_define_method(rb_cViewport, "__index__", _rbf rb_Viewport_Index, 0);
 
@@ -116,6 +122,8 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     rb_ary_push(table, self);
     viewport->setOx(0);
     viewport->setOy(0);
+	viewport->rAngle = LONG2FIX(0);
+	viewport->rZoom = LONG2FIX(1);
     Viewport_SetView(viewport, rb_num2long(x), rb_num2long(y), rb_num2long(width), rb_num2long(height));
     /* Creating rect */
     VALUE rc = rb_class_new_instance(argc, argv, rb_cRect);
@@ -334,6 +342,62 @@ VALUE rb_Viewport_setZ(VALUE self, VALUE val)
     return self;
 }
 
+void Viewport_AdjustZoomAngle(CViewport_Element* viewport, VALUE rect)
+{
+	if (RDATA(rect)->data == nullptr)
+		return;
+	long x, y, width, height;
+	CRect_Element* srect;
+	Data_Get_Struct(rect, CRect_Element, srect);
+	sf::IntRect* rc = srect->getRect();
+	sf::View* view = viewport->getView();
+	x = rc->left;
+	y = rc->top;
+	width = rc->width;
+	height = rc->height;
+	if (width & 1)
+		width++;
+	if (height & 1)
+		height++;
+	view->setCenter(static_cast<float>(viewport->getOx() + width / 2),
+		static_cast<float>(viewport->getOy() + height / 2));
+	view->setSize(static_cast<float>(width), static_cast<float>(height));
+	view->setRotation(-NUM2DBL(viewport->rAngle));
+	view->zoom(NUM2DBL(viewport->rZoom));
+	float sw = static_cast<float>(ScreenWidth);
+	float sh = static_cast<float>(ScreenHeight);
+	sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
+	view->setViewport(frect);
+}
+
+VALUE rb_Viewport_getAngle(VALUE self)
+{
+	GET_VIEWPORT;
+	return viewport->rAngle;
+}
+
+VALUE rb_Viewport_setAngle(VALUE self, VALUE val)
+{
+	GET_VIEWPORT;
+	viewport->rAngle = LONG2NUM(NUM2LONG(val) % 360);
+	Viewport_AdjustZoomAngle(viewport, viewport->rRect);
+	return self;
+}
+
+VALUE rb_Viewport_getZoom(VALUE self)
+{
+	GET_VIEWPORT;
+	return viewport->rZoom;
+}
+
+VALUE rb_Viewport_setZoom(VALUE self, VALUE val)
+{
+	GET_VIEWPORT;
+	viewport->rZoom = DBL2NUM(1.0 / normalize_double(NUM2DBL(val), 0.001, 1000.0));
+	Viewport_AdjustZoomAngle(viewport, viewport->rRect);
+	return self;
+}
+
 VALUE rb_Viewport_ReloadStack(VALUE self)
 {
     GET_VIEWPORT
@@ -378,6 +442,8 @@ void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, l
     view->setCenter(static_cast<float>(viewport->getOx() + width / 2), 
                     static_cast<float>(viewport->getOy() + height / 2));
     view->setSize(static_cast<float>(width), static_cast<float>(height));
+	view->setRotation(-NUM2DBL(viewport->rAngle));
+	view->zoom(NUM2DBL(viewport->rZoom));
     float sw = static_cast<float>(ScreenWidth);
     float sh = static_cast<float>(ScreenHeight);
     sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);

@@ -42,6 +42,8 @@ class CViewport_Element : public CDrawable_Element {
         VALUE rTone;
         VALUE rColor;
         VALUE rZ;
+		VALUE rAngle;
+		VALUE rZoom;
         /* Shader related stuff */
         static unsigned long render_count;
 	private:

@@ -35,7 +35,7 @@ VALUE rb_Shader_Alloc(VALUE klass)
 
 void Init_Shader()
 {
-	rb_cShader = rb_define_class_under(rb_mLiteRGSS, "Shader", rb_cObject); //<--- Should inherit of rb_cBlendMode
+	rb_cShader = rb_define_class_under(rb_mLiteRGSS, "Shader", rb_cBlendMode); //<--- Should inherit of rb_cBlendMode
 	rb_define_alloc_func(rb_cShader, rb_Shader_Alloc);
 	rb_define_method(rb_cShader, "initialize", _rbf rb_Shader_loadFromMemory, -1);
 	rb_define_method(rb_cShader, "load", _rbf rb_Shader_loadFromMemory, -1);
@@ -115,7 +115,6 @@ VALUE rb_Shader_setFloatUniform(VALUE self, VALUE name, VALUE uniform)
 	}
 	else
 	{
-		rb_check_type(uniform, T_FLOAT);
 		shader->setUniform(rb_string_value_cstr(&name), static_cast<float>(NUM2DBL(uniform)));
 	}
 	return self;

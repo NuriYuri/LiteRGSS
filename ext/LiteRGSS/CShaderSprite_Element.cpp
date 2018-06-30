@@ -7,7 +7,7 @@ void CShaderSprite_Element::draw(sf::RenderTarget& target) const
 		if (render_states == nullptr)
 			target.draw(sprite);
 		else
-			target.draw(sprite, render_states->shader);
+			target.draw(sprite, *render_states);//, render_states->shader);
     }
 }
 

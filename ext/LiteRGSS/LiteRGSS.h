@@ -20,6 +20,7 @@
 #include "Input.h"
 #include "Table.h"
 #include "Yuki.h"
+#include "BlendMode.h"
 #include "Shader.h"
 #include "ShaderSprite.h"
 #include "Yuki_Gif.h"
@@ -48,6 +49,7 @@ extern VALUE rb_mMouse;
 extern VALUE rb_cTable;
 extern VALUE rb_mYuki;
 extern VALUE rb_cYukiGifReader;
+extern VALUE rb_cBlendMode;
 extern VALUE rb_cShader;
 extern VALUE rb_cShaderSprite;
 
@@ -74,6 +76,7 @@ void Init_Yuki();
 void Init_Shader();
 void Init_ShaderSprite();
 void Init_YukiGifReader();
+void Init_BlendMode();
 
 inline long normalize_long(long value, long min, long max) {
     if(value < min)

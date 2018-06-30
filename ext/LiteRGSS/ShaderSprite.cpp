@@ -62,7 +62,7 @@ VALUE rb_ShaderSprite_setShader(VALUE self, VALUE shader)
 {
 	sf::RenderStates* render_state;
 	GET_SHADER_SPRITE;
-	if (rb_obj_is_kind_of(shader, rb_cShader) == Qtrue) // <--- rb_cBlendMode and not rb_cShader
+	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue) 
 	{
 		Data_Get_Struct(shader, sf::RenderStates, render_state);
 		if (render_state != nullptr)

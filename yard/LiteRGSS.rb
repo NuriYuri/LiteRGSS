@@ -291,6 +291,12 @@ module LiteRGSS
     # The viewport z property
     # @return [Numeric]
     attr_accessor :z
+    # Angle of the viewport contents
+    # @return [Integer]
+    attr_accessor :angle
+    # Zoom of the viewport contents
+    # @return [Integer]
+    attr_accessor :zoom
     # Create a new Viewport
     # @param x [Integer] x position of the surface
     # @param y [Integer] y position of the surface
@@ -881,8 +887,58 @@ module LiteRGSS
       attr_accessor :wheel
     end
   end
+  # BlendMode applicable to a ShaderedSprite
+  class BlendMode
+    # Add equation : Pixel = Src * SrcFactor + Dst * DstFactor
+    Add = sf::BlendMode::Equation::Add
+    # Substract equation : Pixel = Src * SrcFactor - Dst * DstFactor
+    Subtract = sf::BlendMode::Equation::Subtract
+    # Reverse substract equation : Pixel = Dst * DstFactor - Src * SrcFactor.
+    ReverseSubtract = sf::BlendMode::Equation::ReverseSubtract
+    # Zero factor : (0, 0, 0, 0)
+    Zero = sf::BlendMode::Factor::Zero
+    # One factor : (1, 1, 1, 1)
+    One = sf::BlendMode::Factor::One
+    # Src color factor : (src.r, src.g, src.b, src.a)
+    SrcColor = sf::BlendMode::Factor::SrcColor
+    # One minus src color factor : (1, 1, 1, 1) - (src.r, src.g, src.b, src.a)
+    OneMinusSrcColor = sf::BlendMode::Factor::OneMinusSrcColor
+    # Dest color factor : (dst.r, dst.g, dst.b, dst.a)
+    DstColor = sf::BlendMode::Factor::DstColor
+    # One minus dest color factor : (1, 1, 1, 1) - (dst.r, dst.g, dst.b, dst.a)
+    OneMinusDstColor = sf::BlendMode::Factor::OneMinusDstColor
+    # Src alpha factor : (src.a, src.a, src.a, src.a)
+    SrcAlpha = sf::BlendMode::Factor::SrcAlpha
+    # One minus src alpha factor : (1, 1, 1, 1) - (src.a, src.a, src.a, src.a)
+    OneMinusSrcAlpha = sf::BlendMode::Factor::OneMinusSrcAlpha
+    # Dest alpha factor : (dst.a, dst.a, dst.a, dst.a)
+    DstAlpha = sf::BlendMode::Factor::DstAlpha
+    # One minus dest alpha factor : (1, 1, 1, 1) - (dst.a, dst.a, dst.a, dst.a)
+    OneMinusDstAlpha = sf::BlendMode::Factor::OneMinusDstAlpha
+    # Return the source color factor
+    # @return [Integer]
+    attr_accessor :color_src_factor
+    # Return the destination color factor
+    # @return [Integer]
+    attr_accessor :color_dest_factor
+    # Return the source alpha factor
+    # @return [Integer]
+    attr_accessor :alpha_src_factor
+    # Return the destination alpha factor
+    # @return [Integer]
+    attr_accessor :alpha_dest_factor
+    # Return the color equation
+    # @return [Integer]
+    attr_accessor :color_equation
+    # Return the alpha equation
+    # @return [Integer]
+    attr_accessor :alpha_equation
+    # Set the RMXP blend_type : 0 = normal, 1 = addition, 2 = substraction
+    # @return [Integer]
+    attr_accessor :blend_type
+  end
   # Shader loaded applicable to a ShaderedSprite
-  class Shader
+  class Shader < BlendMode
     # Define a Fragment shader
     Fragment = sf::Shader::Type::Fragment
     # Define a Vertex shader

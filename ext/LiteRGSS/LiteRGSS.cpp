@@ -25,6 +25,7 @@ extern "C" {
     Init_Input();
     Init_Table();
 	Init_Yuki();
+	Init_BlendMode();
 	Init_Shader();
 	Init_ShaderSprite();
 	Init_YukiGifReader();
