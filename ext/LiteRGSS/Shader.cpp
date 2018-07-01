@@ -1,4 +1,5 @@
 #include "LiteRGSS.h"
+#include "CTone_Element.h"
 
 VALUE rb_cShader = Qnil;
 
@@ -112,6 +113,23 @@ VALUE rb_Shader_setFloatUniform(VALUE self, VALUE name, VALUE uniform)
 			sf::Glsl::Vec2 vect2(NUM2DBL(rb_ary_entry(uniform, 0)), NUM2DBL(rb_ary_entry(uniform, 1)));
 			shader->setUniform(rb_string_value_cstr(&name), vect2);
 		}
+	}
+	else if (rb_obj_is_kind_of(uniform, rb_cColor) == Qtrue)
+	{
+		sf::Color* color;
+		Data_Get_Struct(uniform, sf::Color, color);
+		if (color != nullptr)
+		{
+			sf::Glsl::Vec4 vect4(color->r / 255.0, color->g / 255.0, color->b / 255.0, color->a / 255.0);
+			shader->setUniform(rb_string_value_cstr(&name), vect4);
+		}
+	}
+	else if (rb_obj_is_kind_of(uniform, rb_cTone) == Qtrue)
+	{
+		CTone_Element* tone;
+		Data_Get_Struct(uniform, CTone_Element, tone);
+		if(tone != nullptr)
+			shader->setUniform(rb_string_value_cstr(&name), *tone->getTone());
 	}
 	else
 	{

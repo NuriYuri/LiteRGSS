@@ -966,7 +966,7 @@ module LiteRGSS
     alias initialize load
     # Set a Float type uniform
     # @param name [String] name of the uniform
-    # @param uniform [Float, Array<Float>] Array must have 2, 3 or 4 Floats
+    # @param uniform [Float, Array<Float>, LiteRGSS::Color, LiteRGSS::Tone] Array must have 2, 3 or 4 Floats
     def set_float_uniform(name, uniform)
     
     end
@@ -1004,8 +1004,11 @@ module LiteRGSS
   # Class that describe a Shadered Sprite
   class ShaderedSprite < Sprite
     # Set the sprite shader
-    # @return [Shader]
+    # @return [Shader, BlendMode]
     attr_accessor :shader
+    # Set the sprite BlendMode
+    # @return [Shader, BlendMode]
+    attr_accessor :blendmode
   end
 end
 # Module of things made by Nuri Yuri
