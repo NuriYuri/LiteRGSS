@@ -420,11 +420,20 @@ VALUE rb_Viewport_setRenderState(VALUE self, VALUE val)
 		{
 			viewport->setRenderStates(render_state);
 			viewport->rRenderState = val;
+			viewport->create_render(); // Make sure the global render is initialized
+			viewport->updatetone();
 			return self;
 		}
 	}
-	viewport->rRenderState = Qfalse; // False to prevent intempestive delete
 	viewport->setRenderStates(nullptr);
+	if (viewport->rColor != Qnil && viewport->rTone != Qnil)
+	{
+		viewport->rRenderState = Qnil;
+		viewport->create_render(); // Restore the old render
+		viewport->updatetone();
+	}
+	else
+		viewport->rRenderState = Qfalse; // False to prevent intempestive delete
 	return self;
 }
 
