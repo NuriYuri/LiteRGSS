@@ -4,24 +4,27 @@
 #include "CSprite_Element.h"
 
 class CViewport_Element : public CDrawable_Element {
-    private:
+    protected:
         long ox, oy;
         sf::View view;
         std::vector<CDrawable_Element*> stack;
         sf::Glsl::Vec4 tone;
         CTone_Element* linkedTone;
-        sf::RenderTexture* render;
-		sf::Shader* shader;
+        /*sf::RenderTexture* render;
+		sf::Shader* shader;*/
 		sf::Color* color_copy;
         bool visible;
+		sf::RenderStates* render_states;
     public:
-		CViewport_Element();// : CDrawable_Element() { render = nullptr; linkedTone = nullptr; };
+		CViewport_Element();
         ~CViewport_Element();
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
-        bool isViewport() const override { return true; };
-        bool isPureSprite() const override { return false; };
+		bool isViewport() const override;
+		bool isPureSprite() const override;
         sf::View* getView() {return &view;};
+		sf::RenderStates* getRenderStates();
+		void setRenderStates(sf::RenderStates* states);
         long getOx() {return ox;};
         long getOy() {return oy;};
         void setOx(long nox) {ox = nox;};
@@ -30,13 +33,13 @@ class CViewport_Element : public CDrawable_Element {
         void clearStack();
         sf::Glsl::Vec4* getTone();
 		void updatetone();
-        void setLinkedTone(CTone_Element* _tone) {linkedTone = _tone;};
-        CTone_Element* getLinkedTone() { return linkedTone;};
-        void reset_render();
+		void setLinkedTone(CTone_Element* _tone);
+		CTone_Element* getLinkedTone();
+        // void reset_render();
         void create_render();
-        void setVisible(bool value) { visible = value;};
+		void setVisible(bool value);
         bool getVisible() { return visible; };
-        const std::vector<CDrawable_Element*>* getStack() { return &stack; };
+		const std::vector<CDrawable_Element*>* getStack();
         /* Ruby Ivar */
         VALUE rRect;
         VALUE rTone;
@@ -44,8 +47,10 @@ class CViewport_Element : public CDrawable_Element {
         VALUE rZ;
 		VALUE rAngle;
 		VALUE rZoom;
+		VALUE rRenderState;
         /* Shader related stuff */
-        static unsigned long render_count;
+		static sf::RenderTexture* render;
+		static sf::Sprite* render_sprite;
 	private:
 		sf::Color* check_up_color() const;
 };

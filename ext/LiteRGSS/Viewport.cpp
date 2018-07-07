@@ -41,6 +41,7 @@ void rb_Viewport_Mark(CViewport_Element* viewport)
     rb_gc_mark(viewport->rZ);
 	rb_gc_mark(viewport->rAngle);
 	rb_gc_mark(viewport->rZoom);
+	rb_gc_mark(viewport->rRenderState);
 }
 
 VALUE rb_Viewport_Alloc(VALUE klass)
@@ -81,6 +82,10 @@ void Init_Viewport()
     rb_define_method(rb_cViewport, "zoom=", _rbf rb_Viewport_setZoom, 1);
     rb_define_method(rb_cViewport, "angle", _rbf rb_Viewport_getAngle, 0);
     rb_define_method(rb_cViewport, "angle=", _rbf rb_Viewport_setAngle, 1);
+    rb_define_method(rb_cViewport, "shader", _rbf rb_Viewport_getRenderState, 0);
+    rb_define_method(rb_cViewport, "shader=", _rbf rb_Viewport_setRenderState, 1);
+	rb_define_method(rb_cViewport, "blendmode", _rbf rb_Viewport_getRenderState, 0);
+	rb_define_method(rb_cViewport, "blendmode=", _rbf rb_Viewport_setRenderState, 1);
     rb_define_method(rb_cViewport, "reload_stack", _rbf rb_Viewport_ReloadStack, 0);
     rb_define_method(rb_cViewport, "__index__", _rbf rb_Viewport_Index, 0);
 
@@ -398,6 +403,31 @@ VALUE rb_Viewport_setZoom(VALUE self, VALUE val)
 	return self;
 }
 
+VALUE rb_Viewport_getRenderState(VALUE self)
+{
+	GET_VIEWPORT;
+	return viewport->rRenderState;
+}
+
+VALUE rb_Viewport_setRenderState(VALUE self, VALUE val)
+{
+	sf::RenderStates* render_state;
+	GET_VIEWPORT;
+	if (rb_obj_is_kind_of(val, rb_cBlendMode) == Qtrue)
+	{
+		Data_Get_Struct(val, sf::RenderStates, render_state);
+		if (render_state)
+		{
+			viewport->setRenderStates(render_state);
+			viewport->rRenderState = val;
+			return self;
+		}
+	}
+	viewport->rRenderState = Qfalse; // False to prevent intempestive delete
+	viewport->setRenderStates(nullptr);
+	return self;
+}
+
 VALUE rb_Viewport_ReloadStack(VALUE self)
 {
     GET_VIEWPORT
@@ -448,5 +478,5 @@ void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, l
     float sh = static_cast<float>(ScreenHeight);
     sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
     view->setViewport(frect);
-    viewport->reset_render();
+    // viewport->reset_render();
 }
