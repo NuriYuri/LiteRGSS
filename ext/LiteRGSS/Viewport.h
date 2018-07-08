@@ -24,6 +24,8 @@ VALUE rb_Viewport_setZoom(VALUE self, VALUE val);
 VALUE rb_Viewport_Update(VALUE self);
 VALUE rb_Viewport_getZ(VALUE self);
 VALUE rb_Viewport_setZ(VALUE self, VALUE val);
+VALUE rb_Viewport_getRenderState(VALUE self);
+VALUE rb_Viewport_setRenderState(VALUE self, VALUE val);
 VALUE rb_Viewport_ReloadStack(VALUE self);
 VALUE rb_Viewport_Index(VALUE self);
 
