@@ -210,7 +210,7 @@ VALUE rb_Table_Save(VALUE self, VALUE limit)
 {
     GET_TABLE
     VALUE str1 = rb_str_new(reinterpret_cast<char*>(&table->header), sizeof(rb_Table_Struct_Header));
-    VALUE str2 = rb_str_new(reinterpret_cast<char*>(table->heap), table->header.data_size);
+    VALUE str2 = rb_str_new(reinterpret_cast<char*>(table->heap), table->header.data_size * sizeof(short));
     return rb_str_concat(str1, str2);
 }
 
