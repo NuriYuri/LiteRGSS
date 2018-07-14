@@ -31,5 +31,7 @@ extern sf::Texture* Graphics_freeze_texture;
 extern sf::Sprite* Graphics_freeze_sprite;
 extern sf::Shader* Graphics_freeze_shader;
 extern unsigned char Graphics_Brightness;
+extern sf::RenderTexture* Graphics_Render;
+extern sf::RenderStates* Graphics_States;
 
 #endif
