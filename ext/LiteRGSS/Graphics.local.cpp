@@ -6,6 +6,8 @@ double Graphics_Scale = 1;
 bool SmoothScreen = false;
 bool RGSSTransition = false;
 unsigned char Graphics_Brightness = 255;
+sf::RenderTexture* Graphics_Render = nullptr;
+sf::RenderStates* Graphics_States = nullptr;
 
 void* local_Graphics_Update_Internal(void* data)
 {
@@ -119,23 +121,41 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 {
     bool was_viewport = false;
     sf::View defview = game_window->getDefaultView();
+	sf::RenderTarget* render_target = game_window;
+	// Setting the default view parameters
     defview.setSize(ScreenWidth, ScreenHeight);
     defview.setCenter(round(ScreenWidth / 2.0f), round(ScreenHeight / 2.0f));
+	// Appying the default view to final renders
     game_window->setView(defview);
+	if (Graphics_Render)
+	{
+		Graphics_Render->setView(defview);
+		Graphics_Render->clear();
+		render_target = Graphics_Render;
+	}
+	// Rendering stuff
     for(auto element = stack->begin();element != stack->end(); element++)
     {
         if(was_viewport && !(*element)->isViewport())
-            game_window->setView(defview);
+			render_target->setView(defview);
         was_viewport = (*element)->isViewport();
-        (*element)->draw(*game_window);
+        (*element)->draw(*render_target);
     }
 	if (Graphics_freeze_sprite != nullptr)
 	{
 		if(RGSSTransition)
-			game_window->draw(*Graphics_freeze_sprite, Graphics_freeze_shader);
+			render_target->draw(*Graphics_freeze_sprite, Graphics_freeze_shader);
 		else
-			game_window->draw(*Graphics_freeze_sprite);
+			render_target->draw(*Graphics_freeze_sprite);
 	}
+	// Drawing render to window if finished
+	if (Graphics_Render)
+	{
+		Graphics_Render->display();
+		sf::Sprite sp(Graphics_Render->getTexture());
+		game_window->draw(sp, *Graphics_States);
+	}
+	// Update the brightness (applied to game_window)
 	if (Graphics_Brightness != 255)
 		local_Graphics_DrawBrightness();
 }
@@ -300,6 +320,15 @@ void local_Graphics_Take_Snapshot(sf::Texture* text)
         sh = sc_sz.y;
     text->create(sw, sh);
     text->update(*game_window, x, y);
+}
+
+void local_Graphics_initRender()
+{
+	if (Graphics_Render == nullptr && Graphics_States != nullptr)
+	{
+		Graphics_Render = new sf::RenderTexture();
+		Graphics_Render->create(ScreenWidth, ScreenHeight);
+	}
 }
 
 VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE* argv)
