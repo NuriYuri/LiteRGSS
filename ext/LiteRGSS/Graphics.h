@@ -21,6 +21,8 @@ VALUE rb_Graphics_update_no_input_count(VALUE self);
 VALUE rb_Graphics_update_only_input(VALUE self);
 VALUE rb_Graphics_getBrightness(VALUE self);
 VALUE rb_Graphics_setBrightness(VALUE self, VALUE brightness);
+VALUE rb_Graphics_getShader(VALUE self);
+VALUE rb_Graphics_setShader(VALUE self, VALUE shader);
 
 void global_Graphics_Bind(CDrawable_Element* element);
 void rb_Sprite_Free(void* data);

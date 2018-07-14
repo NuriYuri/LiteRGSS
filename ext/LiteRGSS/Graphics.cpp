@@ -8,6 +8,7 @@
 VALUE rb_mGraphics = Qnil;
 VALUE rb_eStoppedGraphics = Qnil;
 VALUE rb_eClosedWindow = Qnil;
+ID rb_iGraphicsShader = Qnil;
 
 long ScreenWidth = 640;
 long ScreenHeight = 480;
@@ -51,8 +52,11 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "update_only_input", _rbf rb_Graphics_update_only_input, 0);
     rb_define_module_function(rb_mGraphics, "brightness", _rbf rb_Graphics_getBrightness, 0);
     rb_define_module_function(rb_mGraphics, "brightness=", _rbf rb_Graphics_setBrightness, 1);
+    rb_define_module_function(rb_mGraphics, "shader", _rbf rb_Graphics_getShader, 0);
+    rb_define_module_function(rb_mGraphics, "shader=", _rbf rb_Graphics_setShader, 1);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
+	rb_iGraphicsShader = rb_intern("@__GraphicsShader");
 	/* Store the max texture size */
 	rb_define_const(rb_mGraphics, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));
 }
@@ -286,6 +290,23 @@ VALUE rb_Graphics_setBrightness(VALUE self, VALUE brightness)
 	return self;
 }
 
+VALUE rb_Graphics_getShader(VALUE self)
+{
+	return rb_ivar_get(self, rb_iGraphicsShader);
+}
+
+VALUE rb_Graphics_setShader(VALUE self, VALUE shader)
+{
+	GRAPHICS_PROTECT;
+	sf::RenderStates* render_state;
+	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue)
+	{
+		rb_ivar_set(self, rb_iGraphicsShader, shader);
+		Data_Get_Struct(shader, sf::RenderStates, render_state);
+		Graphics_States = render_state;
+		local_Graphics_initRender();
+	}
+}
 
 void global_Graphics_Bind(CDrawable_Element* element)
 {

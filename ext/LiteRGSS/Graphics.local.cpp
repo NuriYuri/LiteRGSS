@@ -141,19 +141,20 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
         was_viewport = (*element)->isViewport();
         (*element)->draw(*render_target);
     }
-	if (Graphics_freeze_sprite != nullptr)
-	{
-		if(RGSSTransition)
-			render_target->draw(*Graphics_freeze_sprite, Graphics_freeze_shader);
-		else
-			render_target->draw(*Graphics_freeze_sprite);
-	}
 	// Drawing render to window if finished
 	if (Graphics_Render)
 	{
 		Graphics_Render->display();
 		sf::Sprite sp(Graphics_Render->getTexture());
 		game_window->draw(sp, *Graphics_States);
+	}
+	// Display transition sprite
+	if (Graphics_freeze_sprite != nullptr)
+	{
+		if (RGSSTransition)
+			game_window->draw(*Graphics_freeze_sprite, Graphics_freeze_shader);
+		else
+			game_window->draw(*Graphics_freeze_sprite);
 	}
 	// Update the brightness (applied to game_window)
 	if (Graphics_Brightness != 255)
