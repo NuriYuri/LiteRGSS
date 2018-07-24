@@ -19,6 +19,7 @@
 #include "Text.h"
 #include "Input.h"
 #include "Table.h"
+#include "Table32.h"
 #include "Yuki.h"
 #include "BlendMode.h"
 #include "Shader.h"
@@ -47,6 +48,7 @@ extern VALUE rb_cText;
 extern VALUE rb_mInput;
 extern VALUE rb_mMouse;
 extern VALUE rb_cTable;
+extern VALUE rb_cTable32;
 extern VALUE rb_mYuki;
 extern VALUE rb_cYukiGifReader;
 extern VALUE rb_cBlendMode;
@@ -72,6 +74,7 @@ void Init_Fonts();
 void Init_Text();
 void Init_Input();
 void Init_Table();
+void Init_Table32();
 void Init_Yuki();
 void Init_Shader();
 void Init_ShaderSprite();

@@ -24,6 +24,7 @@ extern "C" {
     Init_Text();
     Init_Input();
     Init_Table();
+    Init_Table32();
 	Init_Yuki();
 	Init_BlendMode();
 	Init_Shader();
