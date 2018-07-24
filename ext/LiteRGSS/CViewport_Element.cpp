@@ -38,13 +38,15 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
     {
 		sf::Color* col;
         // Loading Window View
-        sf::View wview = view;
+       /* sf::View wview = view;
         wview.setRotation(0);
-        target.setView(wview);
+		wview.setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
+		wview.setSize(ScreenWidth, ScreenHeight);
+        target.setView(wview);*/
 		// Loading Target view
 		const sf::Vector2f view_size = view.getSize();
 		sf::View tview = view;
-		tview.setViewport(sf::FloatRect(0.0f, 0.0f, view_size.x / ScreenWidth, view_size.y / ScreenHeight));
+		//tview.setViewport(sf::FloatRect(0.0f, 0.0f, view_size.x / ScreenWidth, view_size.y / ScreenHeight));
 		render->setView(tview);
 		// Clearing render
 		if (render_states->shader)
@@ -58,7 +60,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
         render->display();
 		// Update internal texture & draw result to Window
 		render_sprite->setTexture(render->getTexture());
-		render_sprite->setTextureRect(sf::IntRect(0, 0, static_cast<int>(view_size.x), static_cast<int>(view_size.y)));
+		//render_sprite->setTextureRect(sf::IntRect(0, 0, static_cast<int>(view_size.x), static_cast<int>(view_size.y)));
 		target.draw(*render_sprite, *render_states);
 		/*sf::Sprite sp(render->getTexture());
 		sp.setTextureRect(sf::IntRect(0, 0, static_cast<int>(view_size.x), static_cast<int>(view_size.y)));

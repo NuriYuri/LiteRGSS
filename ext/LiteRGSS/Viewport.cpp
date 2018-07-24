@@ -197,7 +197,7 @@ VALUE rb_Viewport_getOX(VALUE self)
 
 VALUE rb_Viewport_setOX(VALUE self, VALUE val)
 {
-    GET_VIEWPORT
+	GET_VIEWPORT
     viewport->setOx(rb_num2long(val));
     Viewport_AdjustOXY(viewport, viewport->rRect);
     return val;
