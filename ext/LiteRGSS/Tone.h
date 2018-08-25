@@ -16,4 +16,7 @@ VALUE rb_Tone_to_s(VALUE self);
 VALUE rb_Tone_Load(VALUE self, VALUE str);
 VALUE rb_Tone_Save(VALUE self, VALUE limit);
 
+CTone_Element* rb_Tone_get_tone(VALUE self);
+void rb_Tone_test_tone(VALUE self);
+
 #endif

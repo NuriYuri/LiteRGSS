@@ -17,6 +17,13 @@ VALUE rb_Image_clear_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE heigh
 VALUE rb_Image_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height, VALUE color);
 VALUE rb_Image_toPNG(VALUE self);
 VALUE rb_Image_toPNG_file(VALUE self, VALUE filename);
+VALUE rb_Image_get_pixel(VALUE self, VALUE x, VALUE y);
+VALUE rb_Image_set_pixel(VALUE self, VALUE x, VALUE y, VALUE color);
+VALUE rb_Image_get_pixel_alpha(VALUE self, VALUE x, VALUE y);
+VALUE rb_Image_stretch_blt(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect);
 bool rb_Image_LoadLodePNG(sf::Image* img, char* str, long from_memory_size);
+
+sf::Image* rb_Image_get_image(VALUE self);
+void rb_Image_test_image(VALUE self);
 
 #endif

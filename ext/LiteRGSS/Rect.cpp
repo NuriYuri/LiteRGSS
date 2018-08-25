@@ -4,7 +4,7 @@
 
 VALUE rb_cRect = Qnil;
 
-#define RECT_PROTECT if(RDATA(self)->data == nullptr) { return Qnil; }
+#define RECT_PROTECT if(RDATA(self)->data == nullptr) { rb_raise(rb_eRGSSError, "Disposed Rect.");; }
 
 #define GET_RECT CRect_Element* rect; \
     Data_Get_Struct(self, CRect_Element, rect); \
@@ -275,6 +275,21 @@ VALUE rb_Rect_to_s(VALUE self)
     GET_RECT
     sf::IntRect* srect = rect->getRect();
     return rb_sprintf("(%d, %d, %d, %d)", srect->left, srect->top, srect->width, srect->height);
+}
+
+CRect_Element* rb_Rect_get_rect(VALUE self)
+{
+	rb_Rect_test_rect(self);
+	GET_RECT;
+	return rect;
+}
+
+void rb_Rect_test_rect(VALUE self)
+{
+	if (rb_obj_is_kind_of(self, rb_cRect) != Qtrue)
+	{
+		rb_raise(rb_eTypeError, "Expected Rect got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
+	}
 }
 
 void __Rect_Check_LinkedObject(CRect_Element* rect)

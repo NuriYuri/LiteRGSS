@@ -16,4 +16,7 @@ VALUE rb_Color_Load(VALUE self, VALUE str);
 VALUE rb_Color_Save(VALUE self, VALUE limit);
 VALUE rb_Color_to_s(VALUE self);
 
+sf::Color* rb_Color_get_color(VALUE self);
+void rb_Color_test_color(VALUE self);
+
 #endif

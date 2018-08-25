@@ -5,7 +5,6 @@ VALUE rb_cColor = Qnil;
 #define COLOR_PROTECT if(RDATA(self)->data == nullptr) \
 {\
     rb_raise(rb_eRGSSError, "Freed Color."); \
-    return self; \
 }
 
 #define GET_COLOR sf::Color* color; \
@@ -182,4 +181,20 @@ VALUE rb_Color_to_s(VALUE self)
 {
     GET_COLOR
     return rb_sprintf("(%d, %d, %d, %d)", color->r, color->g, color->b, color->a);
+}
+
+sf::Color* rb_Color_get_color(VALUE self)
+{
+	rb_Color_test_color(self);
+	GET_COLOR;
+	return color;
+}
+
+void rb_Color_test_color(VALUE self)
+{
+
+	if (rb_obj_is_kind_of(self, rb_cColor) != Qtrue)
+	{
+		rb_raise(rb_eTypeError, "Expected Color got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
+	}
 }

@@ -6,7 +6,6 @@ VALUE rb_cTone = Qnil;
 #define TONE_PROTECT if(RDATA(self)->data == nullptr) \
 {\
     rb_raise(rb_eRGSSError, "Freed Tone."); \
-    return self; \
 }
 
 #define GET_TONE CTone_Element* tone; \
@@ -174,6 +173,21 @@ VALUE rb_Tone_to_s(VALUE self)
         static_cast<int>(tonev->y * 255),
         static_cast<int>(tonev->z * 255),
         static_cast<int>(tonev->w * 255));
+}
+
+CTone_Element* rb_Tone_get_tone(VALUE self)
+{
+	rb_Tone_test_tone(self);
+	GET_TONE;
+	return tone;
+}
+
+void rb_Tone_test_tone(VALUE self)
+{
+	if (rb_obj_is_kind_of(self, rb_cTone) != Qtrue)
+	{
+		rb_raise(rb_eTypeError, "Expected Tone got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
+	}
 }
 
 VALUE rb_Tone_Load(VALUE self, VALUE str)

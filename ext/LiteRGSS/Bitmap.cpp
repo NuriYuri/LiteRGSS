@@ -297,6 +297,7 @@ bool rb_Bitmap_LoadLodePNG(sf::Texture* text, char* str, long from_memory_size)
 sf::Texture* rb_Bitmap_getTexture(VALUE self)
 {
 	CBitmap_Element* bitmap;
+	rb_Bitmap_test_bitmap(self);
 	Data_Get_Struct(self, CBitmap_Element, bitmap);
 	if (bitmap == nullptr)
 	{
@@ -304,4 +305,12 @@ sf::Texture* rb_Bitmap_getTexture(VALUE self)
 		return nullptr;
 	}
 	return bitmap->getTexture();
+}
+
+void rb_Bitmap_test_bitmap(VALUE self)
+{
+	if (rb_obj_is_kind_of(self, rb_cBitmap) != Qtrue)
+	{
+		rb_raise(rb_eTypeError, "Expected Bitmap got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
+	}
 }

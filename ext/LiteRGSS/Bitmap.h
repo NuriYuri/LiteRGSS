@@ -19,5 +19,6 @@ VALUE rb_Bitmap_toPNG(VALUE self);
 VALUE rb_Bitmap_toPNG_file(VALUE self, VALUE filename);
 bool rb_Bitmap_LoadLodePNG(sf::Texture* text, char* str, long from_memory_size);
 sf::Texture* rb_Bitmap_getTexture(VALUE self);
+void rb_Bitmap_test_bitmap(VALUE self);
 
 #endif

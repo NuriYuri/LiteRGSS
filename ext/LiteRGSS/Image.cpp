@@ -7,7 +7,6 @@ VALUE rb_cImage = Qnil;
 #define IMAGE_PROTECT if(RDATA(self)->data == nullptr) \
 {\
     rb_raise(rb_eRGSSError, "Disposed Image."); \
-    return self; \
 }
 
 #define GET_IMAGE sf::Image* img; \
@@ -42,6 +41,10 @@ void Init_Image()
     rb_define_method(rb_cImage, "rect", _rbf rb_Image_Rect, 0);
     rb_define_method(rb_cImage, "copy_to_bitmap", _rbf rb_Image_Copy_to_Bitmap, 1);
     rb_define_method(rb_cImage, "blt", _rbf rb_Image_blt, 4);
+	rb_define_method(rb_cImage, "stretch_blt", _rbf rb_Image_stretch_blt, 3);
+	rb_define_method(rb_cImage, "get_pixel", _rbf rb_Image_get_pixel, 2);
+	rb_define_method(rb_cImage, "get_pixel_alpha", _rbf rb_Image_get_pixel_alpha, 2);
+	rb_define_method(rb_cImage, "set_pixel", _rbf rb_Image_set_pixel, 3);
     rb_define_method(rb_cImage, "clear_rect", _rbf rb_Image_clear_rect, 4);
     rb_define_method(rb_cImage, "fill_rect", _rbf rb_Image_fill_rect, 5);
     rb_define_method(rb_cImage, "to_png", _rbf rb_Image_toPNG, 0);
@@ -251,6 +254,112 @@ VALUE rb_Image_toPNG_file(VALUE self, VALUE filename)
 	if (lodepng_encode32_file(RSTRING_PTR(filename), img->getPixelsPtr(), img->getSize().x, img->getSize().y) != 0)
 		return Qfalse;
 	return Qtrue;
+}
+
+VALUE rb_Image_get_pixel(VALUE self, VALUE x, VALUE y)
+{
+	GET_IMAGE;
+	unsigned long px = NUM2ULONG(x);
+	unsigned long py = NUM2ULONG(y);
+	sf::Vector2u size = img->getSize();
+	if (px < size.x && py < size.y)
+	{
+		sf::Color color = img->getPixel(px, py);
+		VALUE argv[4] = { LONG2FIX(color.r), LONG2FIX(color.g), LONG2FIX(color.b), LONG2FIX(color.a) };
+		return rb_class_new_instance(4, argv, rb_cColor);
+	}
+	return Qnil;
+}
+
+VALUE rb_Image_get_pixel_alpha(VALUE self, VALUE x, VALUE y)
+{
+	GET_IMAGE;
+	unsigned long px = NUM2ULONG(x);
+	unsigned long py = NUM2ULONG(y);
+	sf::Vector2u size = img->getSize();
+	if (px < size.x && py < size.y)
+	{
+		sf::Color color = img->getPixel(px, py);
+		return LONG2FIX(color.a);
+	}
+	return LONG2FIX(0);
+}
+
+VALUE rb_Image_set_pixel(VALUE self, VALUE x, VALUE y, VALUE color)
+{
+	GET_IMAGE;
+	unsigned long px = NUM2ULONG(x);
+	unsigned long py = NUM2ULONG(y);
+	sf::Vector2u size = img->getSize();
+	if (px < size.x && py < size.y)
+	{
+		sf::Color* color2 = rb_Color_get_color(color);
+		Data_Get_Struct(color, sf::Color, color2);
+		if(color2 != nullptr)
+			img->setPixel(px, py, *color2);
+	}
+	return self;
+}
+
+VALUE rb_Image_stretch_blt(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect)
+{
+	GET_IMAGE;
+	CRect_Element* dst_rc = rb_Rect_get_rect(dest_rect);
+	CRect_Element* src_rc = rb_Rect_get_rect(src_rect);
+	sf::Image* src_img = rb_Image_get_image(src_image);
+	int s_w = src_rc->getRect()->width;
+	int d_w = dst_rc->getRect()->width;
+	int s_h = src_rc->getRect()->height;
+	int d_h = dst_rc->getRect()->height;
+	int os_x = src_rc->getRect()->left;
+	int os_y = src_rc->getRect()->top;
+	int od_x = dst_rc->getRect()->left;
+	int od_y = dst_rc->getRect()->top;
+	sf::Vector2u simg_size = src_img->getSize();
+	sf::Vector2u dimg_size = img->getSize();
+	int s_x, s_y, d_x, d_y;
+	for (int y = 0; y < d_h; y++)
+	{
+		d_y = y + od_y;
+		if (d_y >= dimg_size.y)
+			break;
+		if (d_y < 0)
+			continue;
+		s_y = y * s_h / d_h + os_y;
+		if (s_y >= simg_size.y)
+			break;
+		if (s_y < 0)
+			continue;
+		for (int x = 0; x < d_w; x++)
+		{
+			d_x = x + od_x;
+			if (d_x >= dimg_size.x)
+				break;
+			if (d_x < 0)
+				continue;
+			s_x = x * s_w / d_w + os_x;
+			if (s_x >= simg_size.x)
+				break;
+			if (s_x < 0)
+				continue;
+			img->setPixel(d_x, d_y, src_img->getPixel(s_x, s_y));
+		}
+	}
+}
+
+sf::Image* rb_Image_get_image(VALUE self)
+{
+	rb_Image_test_image(self);
+	GET_IMAGE;
+	return img;
+}
+
+void rb_Image_test_image(VALUE self)
+{
+	if (rb_obj_is_kind_of(self, rb_cImage) != Qtrue)
+	{
+		rb_raise(rb_eTypeError, "Expected Image got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
+	}
 }
 
 bool rb_Image_LoadLodePNG(sf::Image* img, char* str, long from_memory_size)
