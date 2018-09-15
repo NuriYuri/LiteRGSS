@@ -1,64 +1,36 @@
-Lite RGSS
-==
-What is Lite RGSS ?
---
-It's a library like the original RGSS that allows the Game creation in Ruby. Lite RGSS will focus on things that are easy and simple to do, that's why for no there wont be bending options, tone, wave on sprite and stuff like that.
+# Lite RGSS
+## What is Lite RGSS ?
 
-I'm writting the library on my free time so I will not do spectacular thing ^^
+`LiteRGSS` is a little Ruby Game library that reproduces some features of the RGSS. It has been written with `SFML` for the Graphical part.
 
-What is currently done
---
+Nuri Yuri wrote LiteRGSS during his free time, that's why [SFML](https://www.sfml-dev.org/index-fr.php"SFML") has been used (easy to use, nothing to learn) and wanted to have a RGSS like library that was usable directly with the MRI (to allow thing like `require "socket"` which is impossible with `mkxp` and other RGSS like library)
+
+## What is currently done ?
+
 * The Graphics.update function
 * The creation of a Bitmap (+dispose)
 * The creation of a Sprite (+dispose +bitmap=)
-The rest will be done later.
 
-What does Lite RGSS need to run ?
---
-For now : Ruby and SFML.
+## Why using LiteRGSS instead of RGSS1 RGSS2 or RGSS3 ?
 
-How to build Lite RGSS ? (Under Linux)
---
-First, install the dependencies :
+LiteRGSS is a fully OpenSource project where everyone is free to contribute. The RGSS from enterbrain is highly closed and using a very old version of Ruby.
 
-    sudo gem install rake-compiler
-    sudo apt-get install libsfml-dev
-Then if it's the first time you build or if you updated the library, execute the following command where the "Rakefile" is present :
+If you use LiteRGSS you can freely include any Ruby STD library (like socket) or any Ruby Gem.
 
-    rake clean
-   And then compile the library using :
-   
+## LiteRGSS vs RGSS
 
-    rake compile
+LiteRGSS doesn't gives a default Audio module, I consider you should be free to choose whatever you want to use to process Audio in your game. Personally I like Fmod so I made a Fmod Audio module using [RubyFmod](https://github.com/NuriYuri/Ruby-Fmod). If you want you can use an other gem or make your own Audio module using OpenAL (or SFML-Audio).
 
-The library will be in the ./lib directory as an .so file, you can require it from a ruby script (using relative path).
+LiteRGSS doesn't display text inside bitmaps. It uses a different system : the [Text](https://psdk.pokemonworkshop.fr/litergss/LiteRGSS/Text.html) object (a sprite like object but for texts) and the [Fonts](https://psdk.pokemonworkshop.fr/litergss/LiteRGSS/Fonts.html) module. See the documentation to learn more about those two things.
 
-How to build Lite RGSS under Windows ?
---
+LiteRGSS doesn't allow tone and color (or wave) inside Sprites. If you want sprites with that sort of processing, use the [ShaderedSprites](https://psdk.pokemonworkshop.fr/litergss/LiteRGSS/ShaderedSprite.html). By the way, LiteRGSS allow Shader processing on tone (faster than in sprites) and in the Graphics module (more global), with this ability you can for example implement HqnX, ScaleX or SABR filter if you want Higher screen resolution without remaking all your ressources :)
 
-- Install [Ruby](https://rubyinstaller.org/ "Ruby Installer")
-- Install the dev kit using `ridk install` (chose 3 and when everything is done press enter)
-- Enable the dev kit using `ridk enable`
-- Move the SFML file to msys64/mingw64 (download the MinGW version of SFML that match with your ruby architecture x64/x86 and move the lib, include and bin directories)
-- Go to the LiteRGSS directory
-- run `rake compile` (it'll probably takes a lot of time)
+## How to use the LiteRGSS ?
 
-How to start correctly Lite RGSS ?
---
-If you loaded the LiteRGSS library nothing can be shown until you called `LiteRGSS::Graphics.start`. This function takes the parameters of `LiteRGSS::Config` to build the Window.
-**List of parameters :**
-* ScreenWidth : The number of pixel wide the screen should be (between 160 and the max fullscreen resolution). / Default: 640
-* ScreenHeight : The number of pixel high the screen should be (between 144 and the max fullscreen resolution). / Default: 480
-* FrameRate : The number of frame per second. / Default: 60
-* Title : The title of the window. / Default : LiteRGSS
-* Vsync : If the game uses Vertical Synchronization. / Default : true
+All the explaination (building, using) are on the official doc : https://psdk.pokemonworkshop.fr/litergss/
 
-How to stop Lite RGSS ?
---
-If the player did not hit the close button, you should call `LiteRGSS::Graphics.stop`. It'll destroy the game window. (But not the sprites, viewport and stuff.)
+## Specials Thanks
 
-Specials Thanks
---
 * SFML for their library https://www.sfml-dev.org
 * NetSurf Browser for their gif library :) https://netsurf-browser.org
 * Lode Vandevenne for LodePNG

@@ -28,4 +28,4 @@ ext/LiteRGSS/ruby.h
 yard/doc
 yard/*.html
 mkmf.log
-pkg/LiteRGSS-0.1.1/*
+pkg/*

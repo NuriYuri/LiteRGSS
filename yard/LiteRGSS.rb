@@ -48,7 +48,7 @@ module LiteRGSS
     # Show a transition between the frozen Graphics and the new Graphic state
     # @param nb_frame [Integer] the number of frames the transition lasts
     # @param bitmap [LiteRGSS::Bitmap] the bitmap to use to perform the transition
-    def transition(nb_frame = Config::FrameRate, bitmap = nil)
+    def transition(nb_frame = 8, bitmap = nil)
     end
     # Return an array containing the possible 32 bits fullscreen resolutions
     # @return [Array<Array(width, height)>]
@@ -61,6 +61,10 @@ module LiteRGSS
     # Update only the sprite display (does not increase the frame_count as well)
     # @return [self]
     def update_no_input
+    end
+    # Update only the Inputs (no graphic processing but perform message processing)
+    # @return [self]
+    def update_only_input
     end
     class << self
       # Return the number of frames shown on the screen
@@ -75,6 +79,8 @@ module LiteRGSS
       # Return the screen brightness (between 0 and 255)
       # @return [Integer]
       attr_accessor :brightness
+      # @return [LiteRGSS::Shader, nil] shader used on the whole screen
+      attr_accessor :shader
     end
   end
   # Class that defines a rectangular surface of a Graphical element
@@ -267,6 +273,147 @@ module LiteRGSS
     # @return [Rect]
     def rect
     end
+    # Update the content of the bitmap (when operations where done on the bitmap)
+    def update
+    end
+    # Blit an other bitmap to this bitmap (replace pixels!)
+    # @param x [Integer] dest x coordinate
+    # @param y [Integer] dest y coordinate
+    # @param source_bitmap [Bitmap] bitmap containing the copied pixels
+    # @param source_rect [Rect] surface of the source_bitmap containing the copied pixels
+    def blt(x, y, source_bitmap, source_rect)
+    end
+    # Clear a portion of the bitmap
+    # @param x [Integer] left corner coordinate
+    # @param y [Integer] top corner coordinate
+    # @param width [Integer] width of the cleared surface
+    # @param height [Integer] height of the cleared surface
+    def clear_rect(x, y, width, height)
+    end
+    # Fill a portion of the bitmap with a color
+    # @param x [Integer] left corner coordinate
+    # @param y [Integer] top corner coordinate
+    # @param width [Integer] width of the filled surface
+    # @param height [Integer] height of the filled surface
+    # @param color [Color] color to fill
+    def fill_rect(x, y, width, height, color)
+    end
+    # Convert bitmap to PNG
+    # @return [String, nil] contents of the PNG, nil if couldn't be converted to PNG
+    def to_png
+    end
+    # Save the bitmap to a PNG file
+    # @param filename [String] Name of the PNG file
+    # @return [Boolean] success of the operation
+    def to_png_file(filename)
+    end
+  end
+  # Class that is dedicated to perform Image operation in Memory before displaying those operations inside a Bitmap
+  class Image
+    # Create a new image
+    # @param filename_or_memory [String]
+    # @param from_memory [Boolean]
+    def initialize(filename_or_memory, from_memory = false)
+    end
+    # Free the image
+    # @return [self]
+    def dispose
+    end
+    # Indicate if the image is freed or not
+    # @return [Boolean]
+    def disposed?
+    end
+    # Returns the width of the image
+    # @return [Integer]
+    def width
+    end
+    # Returns the heigth of the image
+    # @return [Integer]
+    def height
+    end
+    # Returns the surface of the image
+    # @return [Rect]
+    def rect
+    end
+    # Copy the image content to the bitmap (Bitmap must be the same size of the image)
+    # @param bitmap [Bitmap]
+    # @return [self]
+    def copy_to_bitmap(bitmap)
+    end
+    # Blit an other image to this image (process alpha)
+    # @param x [Integer] dest x coordinate
+    # @param y [Integer] dest y coordinate
+    # @param source [Image] image containing the copied pixels
+    # @param source_rect [Rect] surface of the source containing the copied pixels
+    def blt(x, y, source, source_rect)
+    end
+    # Blit an other image to this image (replace the pixels)
+    # @param x [Integer] dest x coordinate
+    # @param y [Integer] dest y coordinate
+    # @param source [Image] image containing the copied pixels
+    # @param source_rect [Rect] surface of the source containing the copied pixels
+    def blt!(x, y, source, source_rect)
+    end
+    # Stretch blit an other image to this image (process alpha)
+    # @param dest_rect [Rect] surface of the current image where to copy pixels
+    # @param source [Image] image containing the copied pixels
+    # @param source_rect [Rect] surface of the source containing the copied pixels
+    def stretch_blt(dest_rect, source, source_rect)
+    end
+    # Stretch blit an other image to this image (replace the pixels)
+    # @param dest_rect [Rect] surface of the current image where to copy pixels
+    # @param source [Image] image containing the copied pixels
+    # @param source_rect [Rect] surface of the source containing the copied pixels
+    def stretch_blt!(dest_rect, source, source_rect)
+    end
+    # Clear a portion of the image
+    # @param x [Integer] left corner coordinate
+    # @param y [Integer] top corner coordinate
+    # @param width [Integer] width of the cleared surface
+    # @param height [Integer] height of the cleared surface
+    def clear_rect(x, y, width, height)
+    end
+    # Fill a portion of the image with a color
+    # @param x [Integer] left corner coordinate
+    # @param y [Integer] top corner coordinate
+    # @param width [Integer] width of the filled surface
+    # @param height [Integer] height of the filled surface
+    # @param color [Color] color to fill
+    def fill_rect(x, y, width, height, color)
+    end
+    # Get a pixel color
+    # @param x [Integer] x coordinate of the pixel
+    # @param y [Integer] y coordinate of the pixel
+    # @return [Color, nil] nil means x,y is outside of the Image surface
+    def get_pixel(x, y)
+    end
+    # Get a pixel alpha
+    # @param x [Integer] x coordinate of the pixel
+    # @param y [Integer] y coordinate of the pixel
+    # @return [Integer, 0]
+    def get_pixel_alpha(x, y)
+    end
+    # Set a pixel color
+    # @param x [Integer] x coordinate of the pixel
+    # @param y [Integer] y coordinate of the pixel
+    # @param color [Color] new color of the pixel
+    # @return [self]
+    def set_pixel(x, y, color)
+    end
+    # Change the alpha of all the pixel that match the input color
+    # @param color [Color] color to match
+    # @param alpha [Integer] new apha value of the pixel that match color
+    def create_mask(color, alpha)
+    end
+    # Convert Image to PNG
+    # @return [String, nil] contents of the PNG, nil if couldn't be converted to PNG
+    def to_png
+    end
+    # Save the Image to a PNG file
+    # @param filename [String] Name of the PNG file
+    # @return [Boolean] success of the operation
+    def to_png_file(filename)
+    end
   end
   # Class that describes a surface of the screen where texts and sprites are shown (with some global effect)
   class Viewport
@@ -297,6 +444,10 @@ module LiteRGSS
     # Zoom of the viewport contents
     # @return [Integer]
     attr_accessor :zoom
+    # @return [Shader, BlendMode] Blend Mode of the viewport (can be specified in the shader)
+    attr_accessor :blendmode
+    # @return [Shader, BlendMode] Shader of the viewport (include the BlendMode properties)
+    attr_accessor :shader
     # Create a new Viewport
     # @param x [Integer] x position of the surface
     # @param y [Integer] y position of the surface

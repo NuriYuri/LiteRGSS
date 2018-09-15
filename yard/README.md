@@ -15,20 +15,25 @@ LiteRGSS (Graphic) depends on `SFML` and Ruby (`MRI`). On an debian system (Debi
 
 I currently cannot build the LiteRGSS for all platforms (because I don't have these and the version of Ruby and SFML differ on every platforms). You would also want to modify some things inside the LiteRGSS core so here is the way to build LiteRGSS :
 
+- Install the dependancies `sudo apt-get install -y build-essential` and `sudo apt-get install -y ruby ruby-dev`
 - Install [rake-compiler](https://github.com/rake-compiler/rake-compiler"rake-compiler") : `sudo gem install rake-compiler`
 - Clone the repo
 - Go to the folder that contains the "Rakefile"
+- run `rake clean`
 - run `rake compile`
 
 The result will be inside the lib directory as `LiteRGSS.so` move it to your project and don't forget to give the dependencies with it.
+
+LiteRGSS depends on SFML 2.5.0, for debian distributions you can grab the SFML 2.5 deb here : https://gitlab.com/NuriYuri/PSDK-DEP
 
 ### Building under Windows
 
 - Install [Ruby](https://rubyinstaller.org/ "Ruby Installer")
 - Install the dev kit using `ridk install` (chose 3 and when everything is done press enter)
 - Enable the dev kit using `ridk enable`
-- Move the SFML file to msys64/mingw64 (download the MinGW version of SFML that match with your ruby architecture x64/x86 and move the lib, include and bin directories)
+- Move the SFML file to msys64/mingw64 under win x64 or to msys32/mingw32 under win x86 (download the MinGW version of SFML that match with your ruby architecture x64/x86 and move the lib, include and bin directories)
 - Go to the LiteRGSS directory
+- run `rake clean`
 - run `rake compile` (it'll probably takes a lot of time)
 
 ### Basic example of the LiteRGSS use
@@ -45,7 +50,7 @@ Your main script :
     $scene.main while $scene
     
     Graphics.stop #> Close the main window
-   Inside your `$scene.update` method :
+ Inside your `$scene.update` method :
 
     def update
       Graphics.update #> Show the last frame and fetch the new inputs for the current frame

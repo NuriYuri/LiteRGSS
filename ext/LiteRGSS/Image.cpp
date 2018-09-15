@@ -41,12 +41,15 @@ void Init_Image()
     rb_define_method(rb_cImage, "rect", _rbf rb_Image_Rect, 0);
     rb_define_method(rb_cImage, "copy_to_bitmap", _rbf rb_Image_Copy_to_Bitmap, 1);
     rb_define_method(rb_cImage, "blt", _rbf rb_Image_blt, 4);
+    rb_define_method(rb_cImage, "blt!", _rbf rb_Image_blt_fast, 4);
 	rb_define_method(rb_cImage, "stretch_blt", _rbf rb_Image_stretch_blt, 3);
+	rb_define_method(rb_cImage, "stretch_blt!", _rbf rb_Image_stretch_blt_fast, 3);
 	rb_define_method(rb_cImage, "get_pixel", _rbf rb_Image_get_pixel, 2);
 	rb_define_method(rb_cImage, "get_pixel_alpha", _rbf rb_Image_get_pixel_alpha, 2);
 	rb_define_method(rb_cImage, "set_pixel", _rbf rb_Image_set_pixel, 3);
     rb_define_method(rb_cImage, "clear_rect", _rbf rb_Image_clear_rect, 4);
     rb_define_method(rb_cImage, "fill_rect", _rbf rb_Image_fill_rect, 5);
+	rb_define_method(rb_cImage, "create_mask", _rbf rb_Image_create_mask, 2);
     rb_define_method(rb_cImage, "to_png", _rbf rb_Image_toPNG, 0);
     rb_define_method(rb_cImage, "to_png_file", _rbf rb_Image_toPNG_file, 1);
 }
@@ -147,33 +150,31 @@ VALUE rb_Image_Copy_to_Bitmap(VALUE self, VALUE bitmap)
     return self;
 }
 
-VALUE rb_Image_blt(VALUE self, VALUE x, VALUE y, VALUE src_image, VALUE rect)
+VALUE rb_Image_blt_fast(VALUE self, VALUE x, VALUE y, VALUE src_image, VALUE rect)
 {
     GET_IMAGE
-    if(rb_obj_is_kind_of(rect, rb_cRect) != Qtrue)
-    {
-        rb_raise(rb_eTypeError, "Expected Rect got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(rect))));
-        return Qnil;
-    }
-    if(rb_obj_is_kind_of(src_image, rb_cImage) != Qtrue)
-    {
-        rb_raise(rb_eTypeError, "Expected Image got %s", RSTRING_PTR(rb_class_name(CLASS_OF(src_image))));
-        return self;
-    }
-    sf::Image* img2;
-    Data_Get_Struct(src_image, sf::Image, img2);
-    CRect_Element* s_rect;
-    Data_Get_Struct(rect, CRect_Element, s_rect);
-    if(RDATA(src_image)->data == nullptr) 
-    {
-        rb_raise(rb_eRGSSError, "Disposed Image."); 
-        return self; 
-    }
+    sf::Image* img2 = rb_Image_get_image(src_image);
+    CRect_Element* s_rect = rb_Rect_get_rect(rect);
     img->copy(
         *img2,
         NUM2ULONG(x),
         NUM2ULONG(y),
         *s_rect->getRect()
+    );
+    return self;
+}
+
+VALUE rb_Image_blt(VALUE self, VALUE x, VALUE y, VALUE src_image, VALUE rect)
+{
+    GET_IMAGE
+    sf::Image* img2 = rb_Image_get_image(src_image);
+    CRect_Element* s_rect = rb_Rect_get_rect(rect);
+    img->copy(
+        *img2,
+        NUM2ULONG(x),
+        NUM2ULONG(y),
+        *s_rect->getRect(),
+		true
     );
     return self;
 }
@@ -301,7 +302,7 @@ VALUE rb_Image_set_pixel(VALUE self, VALUE x, VALUE y, VALUE color)
 	return self;
 }
 
-VALUE rb_Image_stretch_blt(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect)
+VALUE rb_Image_stretch_blt_fast(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect)
 {
 	GET_IMAGE;
 	CRect_Element* dst_rc = rb_Rect_get_rect(dest_rect);
@@ -345,6 +346,74 @@ VALUE rb_Image_stretch_blt(VALUE self, VALUE dest_rect, VALUE src_image, VALUE s
 			img->setPixel(d_x, d_y, src_img->getPixel(s_x, s_y));
 		}
 	}
+	return self;
+}
+
+VALUE rb_Image_stretch_blt(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect)
+{
+	GET_IMAGE;
+	CRect_Element* dst_rc = rb_Rect_get_rect(dest_rect);
+	CRect_Element* src_rc = rb_Rect_get_rect(src_rect);
+	sf::Image* src_img = rb_Image_get_image(src_image);
+	sf::Color src, dest;
+	int s_w = src_rc->getRect()->width;
+	int d_w = dst_rc->getRect()->width;
+	int s_h = src_rc->getRect()->height;
+	int d_h = dst_rc->getRect()->height;
+	int os_x = src_rc->getRect()->left;
+	int os_y = src_rc->getRect()->top;
+	int od_x = dst_rc->getRect()->left;
+	int od_y = dst_rc->getRect()->top;
+	sf::Vector2u simg_size = src_img->getSize();
+	sf::Vector2u dimg_size = img->getSize();
+	int s_x, s_y, d_x, d_y;
+	unsigned char mina;
+	for (int y = 0; y < d_h; y++)
+	{
+		d_y = y + od_y;
+		if (d_y >= dimg_size.y)
+			break;
+		if (d_y < 0)
+			continue;
+		s_y = y * s_h / d_h + os_y;
+		if (s_y >= simg_size.y)
+			break;
+		if (s_y < 0)
+			continue;
+		for (int x = 0; x < d_w; x++)
+		{
+			d_x = x + od_x;
+			if (d_x >= dimg_size.x)
+				break;
+			if (d_x < 0)
+				continue;
+			s_x = x * s_w / d_w + os_x;
+			if (s_x >= simg_size.x)
+				break;
+			if (s_x < 0)
+				continue;
+			src = src_img->getPixel(s_x, s_y);
+			dest = img->getPixel(d_x, d_y);
+			if(dest.a > 0)
+			{
+				mina = 255 - src.a;
+				src.r = (src.r * src.a + dest.r * mina) / 255;
+				src.g = (src.g * src.a + dest.g * mina) / 255;
+				src.b = (src.b * src.a + dest.b * mina) / 255;
+				src.a += (dest.a * mina / 255);
+			}
+			img->setPixel(d_x, d_y, src);
+		}
+	}
+	return self;
+}
+
+VALUE rb_Image_create_mask(VALUE self, VALUE color, VALUE alpha)
+{
+	GET_IMAGE;
+	sf::Color* col = rb_Color_get_color(color);
+	img->createMaskFromColor(*col, NUM2ULONG(alpha));
+	return self;
 }
 
 sf::Image* rb_Image_get_image(VALUE self)
