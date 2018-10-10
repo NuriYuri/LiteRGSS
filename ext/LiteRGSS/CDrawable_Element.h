@@ -25,6 +25,6 @@ class CDrawable_Element {
         virtual bool isViewport() const = 0;
         virtual bool isPureSprite() const = 0;
         void setLinkedRect(CRect_Element* _rect) { linkedRect = _rect; };
-        CRect_Element* getLinkedRect() { return linkedRect; };
+        CRect_Element* getLinkedRect() const { return linkedRect; };
 };
 #endif

@@ -1,5 +1,6 @@
 #include "LiteRGSS.h"
 #include "CViewport_Element.h"
+#include "CRect_Element.h"
 #include "Graphics.local.h"
 
 sf::RenderTexture* CViewport_Element::render = nullptr;
@@ -37,6 +38,8 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
     if(render_states)
     {
 		sf::Color* col;
+		CRect_Element* rect = getLinkedRect();
+		sf::IntRect* intrect = rect ? rect->getRect() : nullptr;
         // Loading Window View
        /* sf::View wview = view;
         wview.setRotation(0);
@@ -60,6 +63,11 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
         render->display();
 		// Update internal texture & draw result to Window
 		render_sprite->setTexture(render->getTexture());
+		if (rect)
+		{
+			render_sprite->setTextureRect(*intrect);
+			render_sprite->setPosition(intrect->left, intrect->top);
+		}
 		//render_sprite->setTextureRect(sf::IntRect(0, 0, static_cast<int>(view_size.x), static_cast<int>(view_size.y)));
 		target.draw(*render_sprite, *render_states);
 		/*sf::Sprite sp(render->getTexture());
