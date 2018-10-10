@@ -54,6 +54,7 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "brightness=", _rbf rb_Graphics_setBrightness, 1);
     rb_define_module_function(rb_mGraphics, "shader", _rbf rb_Graphics_getShader, 0);
     rb_define_module_function(rb_mGraphics, "shader=", _rbf rb_Graphics_setShader, 1);
+	rb_define_module_function(rb_mGraphics, "resize_screen", _rbf rb_Graphics_resize_screen, 2);
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 	rb_iGraphicsShader = rb_intern("@__GraphicsShader");
@@ -306,6 +307,32 @@ VALUE rb_Graphics_setShader(VALUE self, VALUE shader)
 		Graphics_States = render_state;
 		local_Graphics_initRender();
 	}
+}
+
+VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
+{
+	ID swidth = rb_intern("ScreenWidth");
+	ID sheight = rb_intern("ScreenHeight");
+	/* Adjust screen resolution */
+	if (rb_const_defined(rb_mConfig, swidth))
+		rb_const_remove(rb_mConfig, swidth);
+	if (rb_const_defined(rb_mConfig, sheight))
+		rb_const_remove(rb_mConfig, sheight);
+	rb_const_set(rb_mConfig, swidth, INT2NUM(NUM2INT(width)));
+	rb_const_set(rb_mConfig, sheight, INT2NUM(NUM2INT(height)));
+	/* Close the window */
+	game_window->close();
+	delete game_window;
+	game_window = nullptr;
+	/* Restart Graphics */
+	rb_Graphics_start(self);
+	/* Reset viewport render */
+	if (CViewport_Element::render)
+	{
+		CViewport_Element::render->create(NUM2INT(width), NUM2INT(height));
+		CViewport_Element::render->setSmooth(SmoothScreen);
+	}
+	return self;
 }
 
 void global_Graphics_Bind(CDrawable_Element* element)
