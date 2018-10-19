@@ -116,6 +116,11 @@ void Init_Shape()
 	rb_define_method(rb_cShape, "height", _rbf rb_Shape_getHeight, 0);
 	rb_define_method(rb_cShape, "height=", _rbf rb_Shape_setHeight, 1);
 
+	rb_define_method(rb_cShape, "shader", _rbf rb_Shape_getShader, 0);
+	rb_define_method(rb_cShape, "shader=", _rbf rb_Shape_setShader, 1);
+	rb_define_method(rb_cShape, "blendmode", _rbf rb_Shape_getShader, 0);
+	rb_define_method(rb_cShape, "blendmode=", _rbf rb_Shape_setShader, 1);
+
 	rb_define_method(rb_cShape, "clone", _rbf rb_Shape_Copy, 0);
 	rb_define_method(rb_cShape, "dup", _rbf rb_Shape_Copy, 0);
 
@@ -224,6 +229,7 @@ VALUE rb_Shape_setBitmap(VALUE self, VALUE bitmap)
 		{
 			rect = rb_Rect_get_rect(shape->rRect);
 			rect->setElement(nullptr);
+			shape->setLinkedRect(nullptr);
 			shape->rRect = Qnil;
 		}
 		return self;
@@ -639,6 +645,31 @@ VALUE rb_Shape_setHeight(VALUE self, VALUE val)
 		size.y = NUM2DBL(val);
 		rectangle->setSize(size);
 	}
+	return self;
+}
+
+VALUE rb_Shape_getShader(VALUE self)
+{
+	GET_SHAPE;
+	return shape->rRenderStates;
+}
+
+VALUE rb_Shape_setShader(VALUE self, VALUE shader)
+{
+	sf::RenderStates* render_state;
+	GET_SHAPE;
+	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue)
+	{
+		Data_Get_Struct(shader, sf::RenderStates, render_state);
+		if (render_state != nullptr)
+		{
+			shape->rRenderStates = shader;
+			shape->setRenderState(render_state);
+			return self;
+		}
+	}
+	shape->rRenderStates = Qnil;
+	shape->setRenderState(nullptr);
 	return self;
 }
 

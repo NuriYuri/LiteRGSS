@@ -49,6 +49,8 @@ VALUE rb_Shape_getWidth(VALUE self);
 VALUE rb_Shape_setWidth(VALUE self, VALUE val);
 VALUE rb_Shape_getHeight(VALUE self);
 VALUE rb_Shape_setHeight(VALUE self, VALUE val);
+VALUE rb_Shape_getShader(VALUE self);
+VALUE rb_Shape_setShader(VALUE self, VALUE shader);
 
 VALUE rb_Shape_Copy(VALUE self);
 CShape_Element* rb_Shape_get_shape(VALUE self);
