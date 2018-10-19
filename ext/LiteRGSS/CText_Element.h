@@ -13,6 +13,7 @@ class CText_Element : public CDrawable_Element {
         void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return false; };
         bool isPureSprite() const override { return false; };
+		bool isShape() const override { return false; };
         sf::Text2* getText() { return &text;};
         void setVisible(bool value) { visible = value;};
         bool getVisible() { return visible; };

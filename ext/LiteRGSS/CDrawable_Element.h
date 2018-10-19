@@ -24,6 +24,7 @@ class CDrawable_Element {
         virtual void drawFast(sf::RenderTarget& target) const = 0;
         virtual bool isViewport() const = 0;
         virtual bool isPureSprite() const = 0;
+		virtual bool isShape() const = 0;
         void setLinkedRect(CRect_Element* _rect) { linkedRect = _rect; };
         CRect_Element* getLinkedRect() const { return linkedRect; };
 };

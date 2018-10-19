@@ -24,6 +24,7 @@
 #include "BlendMode.h"
 #include "Shader.h"
 #include "ShaderSprite.h"
+#include "Shape.h"
 #include "Yuki_Gif.h"
 
 #define _rbf (VALUE (*)(...))
@@ -54,6 +55,7 @@ extern VALUE rb_cYukiGifReader;
 extern VALUE rb_cBlendMode;
 extern VALUE rb_cShader;
 extern VALUE rb_cShaderSprite;
+extern VALUE rb_cShape;
 
 extern VALUE rb_eRGSSError;
 extern VALUE rb_eStoppedGraphics;
@@ -80,6 +82,7 @@ void Init_Shader();
 void Init_ShaderSprite();
 void Init_YukiGifReader();
 void Init_BlendMode();
+void Init_Shape();
 
 inline long normalize_long(long value, long min, long max) {
     if(value < min)

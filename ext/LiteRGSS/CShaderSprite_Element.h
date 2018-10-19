@@ -11,7 +11,8 @@ class CShaderSprite_Element : public CSprite_Element {
         void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return false; };
         bool isPureSprite() const override { return true; };
-		void setRenderState(sf::RenderStates* states) { render_states = states; };
+		bool isShape() const override;
+		void setRenderState(sf::RenderStates* states);
 		VALUE rRenderStates;
 };
 #endif

@@ -14,6 +14,7 @@ class CSprite_Element : public CDrawable_Element {
         void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return false; };
         bool isPureSprite() const override { return true; };
+		bool isShape() const override { return false; };
         sf::Sprite* getSprite() { return &sprite;};
         void setDrawable(bool value) { drawable = value;};
         bool getDrawable() { return drawable; };

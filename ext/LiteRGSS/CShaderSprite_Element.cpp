@@ -15,3 +15,13 @@ void CShaderSprite_Element::drawFast(sf::RenderTarget& target) const
 {
 	draw(target);
 }
+
+bool CShaderSprite_Element::isShape() const
+{
+	return false;
+}
+
+void CShaderSprite_Element::setRenderState(sf::RenderStates * states)
+{
+	render_states = states;
+}

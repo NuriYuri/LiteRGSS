@@ -40,4 +40,7 @@ VALUE rb_Sprite_getMirror(VALUE self);
 VALUE rb_Sprite_setMirror(VALUE self, VALUE val);
 VALUE rb_Sprite_width(VALUE self);
 VALUE rb_Sprite_height(VALUE self);
+
+CSprite_Element* rb_Sprite_get_sprite(VALUE self);
+void rb_Sprite_test_sprite(VALUE self);
 #endif

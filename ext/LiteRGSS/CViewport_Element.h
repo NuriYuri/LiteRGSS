@@ -22,6 +22,7 @@ class CViewport_Element : public CDrawable_Element {
         void drawFast(sf::RenderTarget& target) const override;
 		bool isViewport() const override;
 		bool isPureSprite() const override;
+		bool isShape() const override;
         sf::View* getView() {return &view;};
 		sf::RenderStates* getRenderStates();
 		void setRenderStates(sf::RenderStates* states);

@@ -99,6 +99,11 @@ bool CViewport_Element::isPureSprite() const
 	return false;
 }
 
+bool CViewport_Element::isShape() const
+{
+	return false;
+}
+
 sf::RenderStates * CViewport_Element::getRenderStates()
 {
 	return render_states;

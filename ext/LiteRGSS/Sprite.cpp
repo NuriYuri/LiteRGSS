@@ -7,7 +7,6 @@ VALUE rb_cSprite = Qnil;
 #define SPRITE_PROTECT if(RDATA(self)->data == nullptr) \
 {\
     rb_raise(rb_eRGSSError, "Disposed Sprite."); \
-    return self; \
 }
 
 #define GET_SPRITE CSprite_Element* sprite; \
@@ -492,4 +491,19 @@ VALUE rb_Sprite_height(VALUE self)
 {
 	VALUE rc = rb_Sprite_getRect(self);
 	return rb_Rect_getHeight(rc);
+}
+
+CSprite_Element* rb_Sprite_get_sprite(VALUE self)
+{
+	rb_Sprite_test_sprite(self);
+	GET_SPRITE;
+	return sprite;
+}
+
+void rb_Sprite_test_sprite(VALUE self)
+{
+	if (rb_obj_is_kind_of(self, rb_cSprite) != Qtrue)
+	{
+		rb_raise(rb_eTypeError, "Expected Sprite got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
+	}
 }

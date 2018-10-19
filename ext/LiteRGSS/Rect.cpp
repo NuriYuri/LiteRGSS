@@ -1,6 +1,7 @@
 #include "LiteRGSS.h"
 #include "CRect_Element.h"
 #include "CViewport_Element.h"
+#include "CShape_Element.h"
 
 VALUE rb_cRect = Qnil;
 
@@ -316,6 +317,12 @@ void __Rect_Check_LinkedObject(CRect_Element* rect)
 		}
 		sprite->getSprite()->setTextureRect(tmp_rect);
     }
+	/* Shape processing */
+	else if (el->isShape())
+	{
+		CShape_Element* shape = reinterpret_cast<CShape_Element*>(el);
+		shape->getShape()->setTextureRect(*rect->getRect());
+	}
     /* Window Processing */
     else
     {

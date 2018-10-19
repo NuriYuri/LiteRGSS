@@ -30,5 +30,6 @@ extern "C" {
 	Init_Shader();
 	Init_ShaderSprite();
 	Init_YukiGifReader();
+	Init_Shape();
   }
 }
