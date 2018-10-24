@@ -31,5 +31,6 @@ extern "C" {
 	Init_ShaderSprite();
 	Init_YukiGifReader();
 	Init_Shape();
+	Init_Window();
   }
 }

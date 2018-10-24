@@ -199,8 +199,17 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 VALUE rb_Shape_Dispose(VALUE self)
 {
 	GET_SHAPE;
-	delete shape;
 	RDATA(self)->data = nullptr;
+	/* Suppression du shape de ses stacks */
+	VALUE viewport = shape->rViewport;
+	VALUE table;
+	if (NIL_P(viewport))
+		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+	else
+		table = rb_ivar_get(viewport, rb_iElementTable);
+	rb_ary_delete(table, self);
+	shape->setOriginStack(nullptr);
+	rb_Shape_Free(shape);
 	return self;
 }
 

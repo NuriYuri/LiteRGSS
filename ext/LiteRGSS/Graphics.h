@@ -4,6 +4,7 @@
 #include "CSprite_Element.h"
 #include "CShaderSprite_Element.h"
 #include "CShape_Element.h"
+#include "CWindow_Element.h"
 #include <SFML/Graphics.hpp>
 
 VALUE rb_Graphics_start(VALUE self);
