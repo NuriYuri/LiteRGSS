@@ -5,7 +5,6 @@
 
 
 VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self);
-
 VALUE rb_Window_setWindowSkin(VALUE self, VALUE val);
 VALUE rb_Window_getWindowSkin(VALUE self);
 VALUE rb_Window_setWidth(VALUE self, VALUE val);

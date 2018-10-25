@@ -14,6 +14,7 @@ class CWindow_Element : public CDrawable_Element {
 		void updateVerticesBlt(long wt, long ht);
 		void allocateVerticesBlt(long delta_w, long nb2, long delta_h, long nb4);
 		void calculateVertices(long x, long y, long line, long cell, sf::Vector2i &a, sf::IntRect &rect);
+		void rectSet(sf::IntRect &rect, long x, long y, long width, long height);
     public:
 		CWindow_Element();
 		~CWindow_Element();
