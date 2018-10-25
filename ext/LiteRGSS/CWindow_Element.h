@@ -9,12 +9,16 @@ class CWindow_Element : public CDrawable_Element {
 		sf::Texture* texture;
         bool visible;
 		unsigned long num_vertices_line;
+		long counter;
 		sf::Sprite pause_sprite;
 		sf::Sprite cursor_sprite;
 		void updateVerticesBlt(long wt, long ht);
+		void updateVerticesStretch(long wt, long ht);
 		void allocateVerticesBlt(long delta_w, long nb2, long delta_h, long nb4);
 		void calculateVertices(long x, long y, long line, long cell, sf::Vector2i &a, sf::IntRect &rect);
 		void rectSet(sf::IntRect &rect, long x, long y, long width, long height);
+		void allocateVerticesStretch();
+		void calculateVerticesStretch(long x, long y, long line, long cell, sf::Vector2i &s, sf::Vector2i &a, sf::IntRect &rect);
     public:
 		CWindow_Element();
 		~CWindow_Element();
@@ -29,8 +33,17 @@ class CWindow_Element : public CDrawable_Element {
 		void setVertices(sf::VertexArray* _vertices);
 		sf::Texture* getTexture();
 		void setTexture(sf::Texture* text);
+		void update();
+		void updatePauseSprite();
+		void updateCursorSprite();
 		void updateVertices();
 		void updateContents();
+		void updateBackOpacity();
+		void updateContentsOpacity();
+		sf::Sprite* getPauseSprite();
+		sf::Sprite* getCursorSprite();
+		void resetPausePosition();
+		void resetCursorPosition(sf::IntRect* rect);
         /* Instance variable for Ruby */
         VALUE rViewport;
         VALUE rBitmap;
@@ -51,5 +64,7 @@ class CWindow_Element : public CDrawable_Element {
 		VALUE rPause;
 		VALUE rPauseX;
 		VALUE rPauseY;
+		VALUE rActive;
+		VALUE rStretch;
 };
 #endif

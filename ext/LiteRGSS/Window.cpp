@@ -51,6 +51,8 @@ void rb_Window_Mark(CWindow_Element* window)
 	rb_gc_mark(window->rPause);
 	rb_gc_mark(window->rPauseX);
 	rb_gc_mark(window->rPauseY);
+	rb_gc_mark(window->rActive);
+	rb_gc_mark(window->rStretch);
 }
 
 VALUE rb_Window_Alloc(VALUE klass)
@@ -68,6 +70,7 @@ void Init_Window()
 	rb_define_method(rb_cWindow, "initialize", _rbf rb_Window_Initialize, -1);
 	rb_define_method(rb_cWindow, "dispose", _rbf rb_Window_Dispose, 0);
 	rb_define_method(rb_cWindow, "disposed?", _rbf rb_Window_Disposed, 0);
+	rb_define_method(rb_cWindow, "update", _rbf rb_Window_update, 0);
 	rb_define_method(rb_cWindow, "windowskin=", _rbf rb_Window_setWindowSkin, 1);
 	rb_define_method(rb_cWindow, "windowskin", _rbf rb_Window_getWindowSkin, 0);
 	rb_define_method(rb_cWindow, "width=", _rbf rb_Window_setWidth, 1);
@@ -89,6 +92,28 @@ void Init_Window()
 	rb_define_method(rb_cWindow, "oy=", _rbf rb_Window_setOY, 1);
 	rb_define_method(rb_cWindow, "oy", _rbf rb_Window_getOY, 0);
 	rb_define_method(rb_cWindow, "set_origin", _rbf rb_Window_setOrigin, 2);
+	rb_define_method(rb_cWindow, "cursor_rect", _rbf rb_Window_getCursorRect, 0);
+	rb_define_method(rb_cWindow, "cursor_rect=", _rbf rb_Window_setCursorRect, 1);
+	rb_define_method(rb_cWindow, "cursorskin", _rbf rb_Window_getCursorSkin, 0);
+	rb_define_method(rb_cWindow, "cursorskin=", _rbf rb_Window_setCursorSkin, 1);
+	rb_define_method(rb_cWindow, "pauseskin", _rbf rb_Window_getPauseSkin, 0);
+	rb_define_method(rb_cWindow, "pauseskin=", _rbf rb_Window_setPauseSkin, 1);
+	rb_define_method(rb_cWindow, "pause", _rbf rb_Window_getPause, 0);
+	rb_define_method(rb_cWindow, "pause=", _rbf rb_Window_setPause, 1);
+	rb_define_method(rb_cWindow, "pause_x", _rbf rb_Window_getPauseX, 0);
+	rb_define_method(rb_cWindow, "pause_x=", _rbf rb_Window_setPauseX, 1);
+	rb_define_method(rb_cWindow, "pause_y", _rbf rb_Window_getPauseY, 0);
+	rb_define_method(rb_cWindow, "pause_y=", _rbf rb_Window_setPauseY, 1);
+	rb_define_method(rb_cWindow, "active", _rbf rb_Window_getActive, 0);
+	rb_define_method(rb_cWindow, "active=", _rbf rb_Window_setActive, 1);
+	rb_define_method(rb_cWindow, "stretch=", _rbf rb_Window_setStretch, 1);
+	rb_define_method(rb_cWindow, "opacity", _rbf rb_Window_getOpacity, 0);
+	rb_define_method(rb_cWindow, "opacity=", _rbf rb_Window_setOpacity, 1);
+	rb_define_method(rb_cWindow, "back_opacity", _rbf rb_Window_getBackOpacity, 0);
+	rb_define_method(rb_cWindow, "back_opacity=", _rbf rb_Window_setBackOpacity, 1);
+	rb_define_method(rb_cWindow, "contents_opacity", _rbf rb_Window_getContentsOpacity, 0);
+	rb_define_method(rb_cWindow, "contents_opacity=", _rbf rb_Window_setContentsOpacity, 1);
+	rb_define_method(rb_cWindow, "stretch", _rbf rb_Window_getStretch, 0);
 	rb_define_method(rb_cWindow, "__index__", _rbf rb_Window_getIndex, 0);
 
 	rb_define_method(rb_cWindow, "clone", _rbf rb_Window_Copy, 0);
@@ -230,6 +255,8 @@ VALUE rb_Window_setWindowBuilder(VALUE self, VALUE val)
 	// Freeze window builder
 	rb_obj_freeze(val);
 	window->rWindowBuilder = val;
+	window->rOX = rb_ary_entry(val, 4);
+	window->rOY = rb_ary_entry(val, 5);
 	window->updateVertices();
 	return self;
 }
@@ -336,6 +363,214 @@ VALUE rb_Window_setOrigin(VALUE self, VALUE x, VALUE y)
 	return self;
 }
 
+VALUE rb_Window_setStretch(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	window->rStretch = (RTEST(val) ? Qtrue : Qfalse);
+	window->updateVertices();
+	return self;
+}
+
+VALUE rb_Window_getStretch(VALUE self)
+{
+	GET_WINDOW;
+	return window->rStretch;
+}
+
+VALUE rb_Window_getCursorRect(VALUE self)
+{
+	GET_WINDOW;
+	VALUE rc = window->rCursorRect;
+	if (!NIL_P(rc))
+		return rc;
+	/* Creating rect */
+	VALUE argv[2];
+	argv[0] = argv[1] = LONG2FIX(0);
+	rc = rb_class_new_instance(2, argv, rb_cRect);
+	/* Fetching data */
+	CRect_Element* rect = rb_Rect_get_rect(rc);
+	/* Linking Rect */
+	rect->setElement(window);
+	window->setLinkedRect(rect);
+	window->rCursorRect = rc;
+	return rc;
+}
+
+VALUE rb_Window_setCursorRect(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	CRect_Element* rect1;
+	CRect_Element* rect2;
+	VALUE rc = rb_Window_getCursorRect(self);
+	if (RDATA(rc)->data == nullptr) { return Qnil; }
+	/* Getting data to update the rect */
+	rect1 = rb_Rect_get_rect(val);
+	rect2 = rb_Rect_get_rect(rc);
+	Data_Get_Struct(rc, CRect_Element, rect2);
+	/* Copying the rect */
+	sf::IntRect* rect_target = rect2->getRect();
+	rect_copy(rect_target, rect1->getRect());
+	/* Update cursor rect */
+	window->resetCursorPosition(rect_target);
+	return self;
+}
+
+VALUE rb_Window_getCursorSkin(VALUE self)
+{
+	GET_WINDOW;
+	return window->rCursorSkin;
+}
+
+VALUE rb_Window_setCursorSkin(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	if (NIL_P(val))
+	{
+		window->rCursorSkin = Qnil;
+	}
+	else
+	{
+		window->getCursorSprite()->setTexture(*rb_Bitmap_getTexture(val));
+		window->rCursorSkin = val;
+		window->updateCursorSprite();
+	}
+	return self;
+}
+
+VALUE rb_Window_getPauseSkin(VALUE self)
+{
+	GET_WINDOW;
+	return window->rPauseSkin;
+}
+
+VALUE rb_Window_setPauseSkin(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	if (NIL_P(val))
+	{
+		window->rPauseSkin = Qnil;
+	}
+	else
+	{
+		window->getPauseSprite()->setTexture(*rb_Bitmap_getTexture(val));
+		window->rPauseSkin = val;
+		window->resetPausePosition();
+		window->updatePauseSprite();
+	}
+	return self;
+}
+
+VALUE rb_Window_getPause(VALUE self)
+{
+	GET_WINDOW;
+	return window->rPause;
+}
+
+VALUE rb_Window_setPause(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	window->rPause = RTEST(val) ? Qtrue : Qfalse;
+	window->updatePauseSprite();
+	return self;
+}
+
+VALUE rb_Window_getPauseX(VALUE self)
+{
+	GET_WINDOW;
+	return window->rPauseX;
+}
+
+VALUE rb_Window_setPauseX(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+}
+
+VALUE rb_Window_getPauseY(VALUE self)
+{
+	GET_WINDOW;
+	return window->rPauseY;
+}
+
+VALUE rb_Window_setPauseY(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	if (NIL_P(val))
+	{
+		window->rPauseY = Qnil;
+	}
+	else
+	{
+		NUM2LONG(val);
+		window->rPauseY = val;
+		window->resetPausePosition();
+	}
+	return self;
+}
+
+VALUE rb_Window_getActive(VALUE self)
+{
+	GET_WINDOW;
+	return window->rActive;
+}
+
+VALUE rb_Window_setActive(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	window->rActive = RTEST(val) ? Qtrue : Qfalse;
+	window->resetCursorPosition(rb_Rect_get_rect(rb_Window_getCursorRect(self))->getRect());
+	window->updateCursorSprite();
+	return self;
+}
+
+VALUE rb_Window_update(VALUE self)
+{
+	GET_WINDOW;
+	window->update();
+	return self;
+}
+
+VALUE rb_Window_getOpacity(VALUE self)
+{
+	GET_WINDOW;
+	return window->rOpacity;
+}
+
+VALUE rb_Window_setOpacity(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	window->rOpacity = LONG2NUM(normalize_long(NUM2LONG(val), 0, 255));
+	window->updateBackOpacity();
+	window->updateContentsOpacity();
+	return self;
+}
+
+VALUE rb_Window_getBackOpacity(VALUE self)
+{
+	GET_WINDOW;
+	return window->rBackOpacity;
+}
+
+VALUE rb_Window_setBackOpacity(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	window->rBackOpacity = LONG2NUM(normalize_long(NUM2LONG(val), 0, 255));
+	window->updateBackOpacity();
+	return self;
+}
+
+VALUE rb_Window_getContentsOpacity(VALUE self)
+{
+	GET_WINDOW;
+	return window->rContentOpacity;
+}
+
+VALUE rb_Window_setContentsOpacity(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	window->rContentOpacity = LONG2NUM(normalize_long(NUM2LONG(val), 0, 255));
+	window->updateContentsOpacity();
+	return self;
+}
 
 
 VALUE rb_Window_getIndex(VALUE self)

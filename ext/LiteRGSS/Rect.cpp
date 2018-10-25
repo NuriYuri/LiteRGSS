@@ -326,6 +326,8 @@ void __Rect_Check_LinkedObject(CRect_Element* rect)
     /* Window Processing */
     else
     {
-
+		CWindow_Element* window = dynamic_cast<CWindow_Element*>(el);
+		if (window != nullptr)
+			window->resetCursorPosition(rect->getRect());
     }
 }

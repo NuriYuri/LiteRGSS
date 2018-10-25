@@ -26,10 +26,34 @@ VALUE rb_Window_getOX(VALUE self);
 VALUE rb_Window_setOY(VALUE self, VALUE val);
 VALUE rb_Window_getOY(VALUE self);
 VALUE rb_Window_setOrigin(VALUE self, VALUE x, VALUE y);
+VALUE rb_Window_setStretch(VALUE self, VALUE val);
+VALUE rb_Window_getStretch(VALUE self);
+VALUE rb_Window_getCursorRect(VALUE self);
+VALUE rb_Window_setCursorRect(VALUE self, VALUE val);
+VALUE rb_Window_getCursorSkin(VALUE self);
+VALUE rb_Window_setCursorSkin(VALUE self, VALUE val);
+VALUE rb_Window_getPauseSkin(VALUE self);
+VALUE rb_Window_setPauseSkin(VALUE self, VALUE val);
+VALUE rb_Window_getPause(VALUE self);
+VALUE rb_Window_setPause(VALUE self, VALUE val);
+VALUE rb_Window_getPauseX(VALUE self);
+VALUE rb_Window_setPauseX(VALUE self, VALUE val);
+VALUE rb_Window_getPauseY(VALUE self);
+VALUE rb_Window_setPauseY(VALUE self, VALUE val);
+VALUE rb_Window_getActive(VALUE self);
+VALUE rb_Window_setActive(VALUE self, VALUE val);
+VALUE rb_Window_update(VALUE self);
+VALUE rb_Window_getOpacity(VALUE self);
+VALUE rb_Window_setOpacity(VALUE self, VALUE val);
+VALUE rb_Window_getBackOpacity(VALUE self);
+VALUE rb_Window_setBackOpacity(VALUE self, VALUE val);
+VALUE rb_Window_getContentsOpacity(VALUE self);
+VALUE rb_Window_setContentsOpacity(VALUE self, VALUE val);
+
+
+
+
 VALUE rb_Window_getIndex(VALUE self);
-
-
-
 VALUE rb_Window_Dispose(VALUE self);
 VALUE rb_Window_Disposed(VALUE self);
 VALUE rb_Window_Copy(VALUE self);

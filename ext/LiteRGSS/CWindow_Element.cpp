@@ -1,7 +1,9 @@
 #include "CViewport_Element.h"
 #include "CWindow_Element.h"
+#include "CRect_Element.h"
 #include "Graphics.h"
 #include "Bitmap.h"
+#include "Rect.h"
 #include <iostream>
 
 CWindow_Element::CWindow_Element() : CDrawable_Element()
@@ -9,6 +11,7 @@ CWindow_Element::CWindow_Element() : CDrawable_Element()
 	vertices = nullptr;
 	visible = true;
 	texture = nullptr;
+	counter = 0;
 	rViewport = Qnil;
 	rBitmap = Qnil;
 	rX = rY = rZ = rOX = rOY = LONG2FIX(0);
@@ -16,8 +19,9 @@ CWindow_Element::CWindow_Element() : CDrawable_Element()
 	rCursorRect = Qnil;
 	rBackOpacity = rContentOpacity = rOpacity = LONG2FIX(255);
 	rWindowBuilder = rPauseSkin = rCursorSkin = Qnil;
-	rPause = Qfalse;
-	rPauseX = rPauseY = LONG2FIX(0);
+	rActive = rPause = Qfalse;
+	rPauseX = rPauseY = Qnil;
+	rStretch = Qfalse;
 }
 
 CWindow_Element::~CWindow_Element()
@@ -40,9 +44,10 @@ void CWindow_Element::drawFast(sf::RenderTarget& target) const
 			target.draw(vertices[i], texture);
 		/* draw internal */
 
-
-		/*target.draw(pause_sprite);
-		target.draw(cursor_sprite);*/
+		if(RTEST(rActive) && rCursorSkin != Qnil)
+			target.draw(cursor_sprite);
+		if(RTEST(rPause) && rPauseSkin != Qnil)
+			target.draw(pause_sprite);
     }
 }
 
@@ -79,7 +84,23 @@ void CWindow_Element::updateVertices()
 	long ht = NUM2LONG(rHeight);
 	if (wt <= 0 || ht <= 0)
 		return;
-	updateVerticesBlt(wt, ht);
+	if (RTEST(rStretch))
+		updateVerticesStretch(wt, ht);
+	else
+		updateVerticesBlt(wt, ht);
+	updateBackOpacity();
+	resetPausePosition();
+	if (!NIL_P(rCursorRect))
+		resetCursorPosition(rb_Rect_get_rect(rCursorRect)->getRect());
+}
+
+void CWindow_Element::update()
+{
+	updatePauseSprite();
+	updateCursorSprite();
+	counter += 1;
+	if (counter >= 128)
+		counter = 0;
 }
 
 void CWindow_Element::updateVerticesBlt(long wt, long ht)
@@ -251,6 +272,102 @@ void CWindow_Element::updateVerticesBlt(long wt, long ht)
 	}
 }
 
+void CWindow_Element::updateVerticesStretch(long wt, long ht)
+{
+	sf::Vector2i a(0, 0);
+	sf::Vector2i s(0, 0);
+	sf::IntRect rect;
+	long x = NUM2LONG(rX);
+	long y = NUM2LONG(rY);
+	long xm = NUM2LONG(rb_ary_entry(rWindowBuilder, 0));
+	long ym = NUM2LONG(rb_ary_entry(rWindowBuilder, 1));
+	long wm = NUM2LONG(rb_ary_entry(rWindowBuilder, 2));
+	long hm = NUM2LONG(rb_ary_entry(rWindowBuilder, 3));
+	long ws = texture->getSize().x;
+	long hs = texture->getSize().y;
+	// 1 2 3
+	// 4 5 6
+	// 7 8 9
+	long w3 = ws - xm - wm; // <=> w6 & w9
+	long w1 = xm; // <=> w4 & w7
+	long delta_w = wt - w1 - w3; // <=> w2 w5 & w8
+								 // If delta_w < 0, the middle of the window doesn't exist, we try to fix the overlap of 1 on 3
+	if (delta_w < 0)
+	{
+		delta_w /= 2;
+		w1 += delta_w;
+		w3 += delta_w;
+		delta_w = wt - w1 - w3;
+	}
+
+	long h1 = ym; // <=> h2 & h3
+	long h7 = hs - hm - ym; // <=> h8 & h9
+	long delta_h = ht - h1 - h7; // <=> h4, h5 & h6
+								 // If delta_h < 0, the middle of the window doesn't exist, we try to fix the overlap of 1 on 7
+	if (delta_h < 0)
+	{
+		delta_h /= 2;
+		h1 += delta_h;
+		h7 += delta_h;
+		delta_h = ht - h1 - h7;
+	}
+
+	// Allocate the vertices to perform the job
+	allocateVerticesStretch();
+
+	// 4 corner vertice calculation
+	// [ 1, ..., ...] / [ ..., ..., ...] / [ ..., ..., ...]
+	rectSet(rect, 0, 0, w1, h1);
+	calculateVertices(x, y, 0, 0, a, rect);
+	// [ ..., ..., 3] / [ ..., ..., ...] / [ ..., ..., ...]
+	a.x = wt - w3;
+	rectSet(rect, ws - w3, 0, w3, h1);
+	calculateVertices(x, y, 0, -1, a, rect);
+	// [ ..., ..., ...] / [ ..., ..., ...] / [ ..., ..., 9]
+	a.y = ht - h7;
+	rectSet(rect, ws - w3, hs - h7, w3, h7);
+	calculateVertices(x, y, num_vertices_line - 1, -1, a, rect);
+	// [ ..., ..., ...] / [ ..., ..., ...] / [ 7, ..., ...]
+	a.x = 0;
+	rectSet(rect, 0, hs - h7, w1, h7);
+	calculateVertices(x, y, num_vertices_line - 1, 0, a, rect);
+
+	// 4 Side vertice calculation
+	// [ ..., 2, ...] / [ ..., ..., ...] / [ ..., ..., ...]
+	s.x = delta_w;
+	s.y = h1;
+	a.x = w1;
+	a.y = 0;
+	rectSet(rect, xm, 0, wm, h1);
+	calculateVerticesStretch(x, y, 0, 1, s, a, rect);
+	// [ ..., ..., ...] / [ ..., ..., ...] / [ ..., 8, ...]
+	s.y = h7;
+	a.x = w1;
+	a.y = ht - h7;
+	rectSet(rect, xm, hs - h7, wm, h7);
+	calculateVerticesStretch(x, y, num_vertices_line - 1, 1, s, a, rect);
+	// [ ..., ..., ...] / [ 4, ..., ...] / [ ..., ..., ...]
+	s.x = w1;
+	s.y = delta_h;
+	a.x = 0;
+	a.y = h1;
+	rectSet(rect, 0, ym, w1, hm);
+	calculateVerticesStretch(x, y, 1, 0, s, a, rect);
+	// [ ..., ..., ...] / [ ..., ..., 6] / [ ..., ..., ...]
+	s.x = w3;
+	a.x = wt - w3;
+	a.y = h1;
+	rectSet(rect, ws - w3, ym, w3, hm);
+	calculateVerticesStretch(x, y, 1, 2, s, a, rect);
+
+	// Middle vertice calculation
+	s.x = delta_w;
+	a.x = w1;
+	a.y = h1;
+	rectSet(rect, xm, ym, wm, hm);
+	calculateVerticesStretch(x, y, 1, 1, s, a, rect);
+}
+
 void CWindow_Element::rectSet(sf::IntRect &rect, long x, long y, long width, long height)
 {
 	rect.left = x;
@@ -277,6 +394,62 @@ void CWindow_Element::calculateVertices(long x, long y, long line, long cell, sf
 	(*vertArr)[i + 1].position = (*vertArr)[i + 3].position = sf::Vector2f(x, y + rect.height);
 	(*vertArr)[i + 2].position = (*vertArr)[i + 4].position = sf::Vector2f(x + rect.width, y);
 	(*vertArr)[i + 5].position = sf::Vector2f(x + rect.width, y + rect.height);
+}
+
+void CWindow_Element::calculateVerticesStretch(long x, long y, long line, long cell, sf::Vector2i &s, sf::Vector2i &a, sf::IntRect &rect)
+{
+	sf::VertexArray* vertArr = &vertices[line];
+	int i = cell * 6;
+	if (cell < 0)
+		i += vertArr->getVertexCount();
+	x += a.x;
+	y += a.y;
+	// Texture coords
+	(*vertArr)[i].texCoords = sf::Vector2f(rect.left, rect.top);
+	(*vertArr)[i + 1].texCoords = (*vertArr)[i + 3].texCoords = sf::Vector2f(rect.left, rect.height + rect.top);
+	(*vertArr)[i + 2].texCoords = (*vertArr)[i + 4].texCoords = sf::Vector2f(rect.width + rect.left, rect.top);
+	(*vertArr)[i + 5].texCoords = sf::Vector2f(rect.width + rect.left, rect.height + rect.top);
+	// Coordinates
+	(*vertArr)[i].position = sf::Vector2f(x, y);
+	(*vertArr)[i + 1].position = (*vertArr)[i + 3].position = sf::Vector2f(x, y + s.y);
+	(*vertArr)[i + 2].position = (*vertArr)[i + 4].position = sf::Vector2f(x + s.x, y);
+	(*vertArr)[i + 5].position = sf::Vector2f(x + s.x, y + s.y);
+}
+
+void CWindow_Element::updatePauseSprite()
+{
+	if (NIL_P(rPauseSkin))
+		return;
+	long v = counter / 16;
+	sf::Vector2u size = pause_sprite.getTexture()->getSize();
+	size.x /= 2;
+	size.y /= 2;
+	pause_sprite.setTextureRect(sf::IntRect(
+		(v & 0x01) == 1 ? size.x : 0,
+		(v & 0x02) == 2 ? size.y : 0,
+		size.x,
+		size.y
+	));
+	sf::Color col = pause_sprite.getColor();
+	col.a = NUM2LONG(rOpacity);
+	pause_sprite.setColor(col);
+}
+
+void CWindow_Element::updateCursorSprite()
+{
+	if (NIL_P(rCursorSkin))
+		return;
+	long v = counter;
+	sf::Color col = cursor_sprite.getColor();
+	col.a = NUM2LONG(rOpacity);
+	if (v > 64)
+	{
+		v -= 64;
+		col.a = (RTEST(rActive) ? 128 + 2 * v : 128) * col.a / 255;
+	}
+	else
+		col.a = (RTEST(rActive) ? 255 - 2 * v : 128) * col.a / 255;
+	cursor_sprite.setColor(col);
 }
 
 void CWindow_Element::allocateVerticesBlt(long delta_w, long nb2, long delta_h, long nb4)
@@ -309,6 +482,72 @@ void CWindow_Element::allocateVerticesBlt(long delta_w, long nb2, long delta_h, 
 	}
 }
 
+void CWindow_Element::allocateVerticesStretch()
+{
+	allocateVerticesBlt(0, 1, 0, 1);
+}
+
 void CWindow_Element::updateContents()
 {
+	if (!NIL_P(rCursorRect))
+		resetCursorPosition(rb_Rect_get_rect(rCursorRect)->getRect());
+}
+
+void CWindow_Element::updateBackOpacity()
+{
+	sf::Color col = sf::Color::White;
+	col.a = NUM2LONG(rOpacity) * NUM2LONG(rBackOpacity) / 255;
+	if (vertices != nullptr)
+	{
+		long num_vertices = vertices[0].getVertexCount();
+		for (int i = 0; i < num_vertices_line; i++)
+		{
+			sf::VertexArray* vertArr = &vertices[i];
+			for (int j = 0; j < num_vertices; j++)
+			{
+				(*vertArr)[j].color = col;
+			}
+		}
+	}
+	updatePauseSprite();
+	updateCursorSprite();
+}
+
+void CWindow_Element::updateContentsOpacity()
+{
+}
+
+sf::Sprite * CWindow_Element::getPauseSprite()
+{
+	return &pause_sprite;
+}
+
+sf::Sprite * CWindow_Element::getCursorSprite()
+{
+	return &cursor_sprite;
+}
+
+void CWindow_Element::resetPausePosition()
+{
+	if (NIL_P(rPauseSkin))
+		return;
+	long pause_x, pause_y;
+	if (NIL_P(rPauseX))
+		pause_x = (NUM2LONG(rWidth) - rb_Bitmap_getTexture(rPauseSkin)->getSize().x) / 2;
+	else
+		pause_x = NUM2LONG(rPauseX);
+	if (NIL_P(rPauseY))
+		pause_y = NUM2LONG(rHeight) - rb_Bitmap_getTexture(rPauseSkin)->getSize().y / 2 - 2;
+	else
+		pause_y = NUM2LONG(rPauseY);
+	pause_x += NUM2LONG(rX);
+	pause_y += NUM2LONG(rY);
+	pause_sprite.setPosition(sf::Vector2f(pause_x, pause_y));
+}
+
+void CWindow_Element::resetCursorPosition(sf::IntRect * rect)
+{
+	sf::Vector2f size = static_cast<sf::Vector2f>(cursor_sprite.getTexture()->getSize());
+	cursor_sprite.setScale(sf::Vector2f(rect->width / size.x, rect->height / size.y));
+	cursor_sprite.setPosition(sf::Vector2f(rect->left + NUM2LONG(rOX) + NUM2LONG(rX), rect->top + NUM2LONG(rOY) + NUM2LONG(rY)));
 }
