@@ -56,4 +56,6 @@ VALUE rb_Shape_Copy(VALUE self);
 CShape_Element* rb_Shape_get_shape(VALUE self);
 void rb_Shape_test_shape(VALUE self);
 
+VALUE rb_Shape_DisposeFromViewport(VALUE self);
+
 #endif

@@ -66,6 +66,13 @@ module LiteRGSS
     # @return [self]
     def update_only_input
     end
+    # Resize the screen (inGameScreen)
+    # @param width [Integer] new width of the window (will affect LiteRGSS::Config::ScreenWidth)
+    # @param height [Integer] new height of the window (will affect LiteRGSS::Config::ScreenHeight)
+    # @note If you change LiteRGSS::Config::ScreenScale, the actual window size will be (width * ScreenScale) x (height * ScreenScale)
+    # @return self
+    def resize_screen(width, height)
+    end
     class << self
       # Return the number of frames shown on the screen
       # @return [Integer]
@@ -483,7 +490,7 @@ module LiteRGSS
   # @note Sprites cannot be saved, loaded from file nor cloned in the memory
   class Sprite
     # Create a new Sprite
-    # @param viewport [Viewport, nil] the viewport in which the sprite is shown
+    # @param viewport [Viewport, Window, nil] the viewport in which the sprite is shown, can be a Window
     def initialize(viewport = nil)
     end
     # Dispose the sprite
@@ -551,7 +558,7 @@ module LiteRGSS
     # @return [Numeric]
     attr_accessor :opacity
     # The sprite viewport
-    # @return [LiteRGSS::Viewport, nil]
+    # @return [LiteRGSS::Viewport, LiteRGSS::Window, nil]
     attr_reader :viewport
     # If the sprite texture is mirrored
     # @return [Boolean]
@@ -568,7 +575,7 @@ module LiteRGSS
   class Text
     # Create a new Text
     # @param font_id [Integer] the id of the font to use to draw the text (loads the size and default colors from that)
-    # @param viewport [Viewport, nil] the viewport in which the text is shown
+    # @param viewport [Viewport, Window, nil] the viewport in which the text is shown, can be a Window
     # @param x [Integer] the x coordinate of the text surface
     # @param y [Integer] the y coordinate of the text surface
     # @param width [Integer] the width of the text surface
@@ -660,7 +667,7 @@ module LiteRGSS
     def __index__
     end
     # Return the Text viewport
-    # @return [LiteRGSS::Viewport, nil]
+    # @return [LiteRGSS::Viewport, LiteRGSS::Window, nil]
     attr_reader :viewport
     # If the text should be shown in italic
     # @return [Boolean]
@@ -668,6 +675,202 @@ module LiteRGSS
     # If the text should be shown in bold
     # @return [Boolean]
     attr_accessor :bold
+  end
+  # Class used to show a Window object on screen.
+  #
+  # A Window is an object that has a frame (built from #window_builder and #windowskin) and some contents that can be Sprites or Texts.
+  class Window
+    # Create a new Window
+    # @param viewport [Viewport, nil]
+    def initialize(viewport)
+    end
+    # Dispose the window and all the sprites/texts inside the window
+    def dispose
+    end
+    # Tells if the window is disposed or not
+    # @return [Boolean]
+    def disposed?
+    end
+    # Update the iner Window Animation (pause sprite & cursor sprite)
+    # @return [self]
+    def update
+    end
+    # @return [Viewport, nil] viewport in which the Window is shown
+    attr_reader :viewport
+    # @return [Bitmap] Windowskin used to draw the Window frame
+    attr_accessor :windowskin
+    # @return [Integer] Width of the Window
+    attr_accessor :width
+    # @return [Integer] Height of the Window
+    attr_accessor :height
+    # Change the size of the window
+    # @param width [Integer] new width
+    # @param height [Integer] new height
+    # @return [self]
+    def set_size(width, height)
+    end
+    # @return [Array(Integer, Integer, Integer, Integer, Interger, Integer)] the window builder of the Window
+    # @note Array contain the 6 following values : [middle_tile_x, middle_tile_y, middle_tile_width, middle_tile_height, contents_border_x, contents_border_y]
+    #       The frame is calculated from the 4 first value, the 2 last values gives the offset in x/y between the border of the frame and the border of the contents.
+    attr_accessor :window_builder
+    # @return [Integer] X position of the Window
+    attr_accessor :x
+    # @return [Integer] Y position of the Window
+    attr_accessor :y
+    # Change the position of the window on screen
+    # @param x [Integer] new x position
+    # @param y [Integer] new y position
+    # @return [self]
+    def set_position(x, y)
+    end
+    # @return [Integer] z order position of the Window in the Viewport/Graphics
+    attr_accessor :z
+    # @return [Integer] origin x of the contents of the Window in the Window View
+    attr_accessor :ox
+    # @return [Integer] origin y of the contents of the Window in the Window View
+    attr_accessor :oy
+    # Change the contents origin x/y in the Window View
+    # @param ox [Integer]
+    # @param oy [Integer]
+    # @return [self]
+    def set_origin(ox, oy)
+    end
+    # @return [Rect] cursor rect giving the coordinate of the cursor and the size of the cursor (to perform zoom operations)
+    attr_accessor :cursor_rect
+    # @return [Bitmap, nil] cursor bitmap used to show the cursor when the Window is active
+    attr_accessor :cursorskin
+    # @return [Bitmap, nil] Bitmap used to show the pause animation (there's 4 cells organized in a 2x2 matrix to show the pause animation)
+    attr_accessor :pauseskin
+    # @return [Boolean] if the pause animation is shown (message)
+    attr_accessor :pause
+    # @return [Integer, nil] x coordinate of the pause sprite in the Window (if nil, middle of the window)
+    attr_accessor :pause_x
+    # @return [Integer, nil] y coordinate of the pause sprite in the Window (if nil, bottom of the window)
+    attr_accessor :pause_y
+    # @return [Boolean] if the Window show the cursor
+    attr_accessor :active
+    # @return [Boolean] if the Window draw the frame by stretching the border (true) or by repeating the middle border tiles (false)
+    attr_accessor :stretch
+    # @return [Integer] opacity of the whole Window
+    attr_accessor :opacity
+    # @return [Integer] opacity of the Window frame
+    attr_accessor :back_opacity
+    # @return [Integer] opacity of the Window contents (sprites/texts)
+    # @note It erase the opacity attribute of the texts/sprites
+    attr_accessor :contents_opacity
+    # @return [Rect] rect corresponding to the view of the Window (Viewport compatibility)
+    attr_reader :rect
+    # @return [Boolean] if the window is visible or not
+    attr_accessor :visible
+    # @return [Integer] internal index of the Window in the Viewport stack when it was created
+    attr_reader :__index__
+  end
+  # Class allowing to draw Shapes in a viewport
+  class Shape
+    # Constant telling the shape to draw a circle
+    CIRCLE = :circle
+    # Constant telling the shape to draw a convex shape
+    CONVEX = :convex
+    # Constant telling the shape to draw a rectangle
+    RECTANGLE = :rectangle
+    # @overload initialize(viewport, type, radius, num_pts)
+    #   Create a new Circle shape
+    #   @param viewport [Viewport] viewport in which the shape is shown
+    #   @param type [Symbol] must be :circle
+    #   @param radius [Numeric] radius of the circle (note : the circle is show from it's top left box corner and not its center)
+    #   @param num_pts [Integer] number of points to use in order to draw the circle shape
+    # @overload initialize(viewport, type, num_pts = 4)
+    #   Create a new Convex shape
+    #   @param viewport [Viewport] viewport in which the shape is shown
+    #   @param type [Symbol] must be :convex
+    #   @param num_pts [Integer] number of points to use in order to draw the convex shape
+    # @overload initialize(viewport, type, width, height)
+    #   Create a new Rectangle shape
+    #   @param viewport [Viewport] viewport in which the shape is shown
+    #   @param type [Symbol] must be :rectangle
+    #   @param width [Integer] width of the rectangle
+    #   @param height [Integer] height of the rectangle
+    def initialize(*args)
+    end
+    # @return [Bitmap, nil] Bitmap used to make a specific drawing inside the shape (bitmap is show inside the border of the shape)
+    attr_accessor :bitmap
+    # @return [Rect] source rect used to tell which part of the bitmap is shown in the shape
+    attr_accessor :src_rect
+    # @return [Integer] x coordinate of the shape in the viewport
+    attr_accessor :x
+    # @return [Integer] y coordinate of the shape in the viewport
+    attr_accessor :y
+    # Set the new coordinate of the shape in the viewport
+    # @param x [Integer]
+    # @param y [Integer]
+    # @return [self]
+    def set_position(x, y)
+    end
+    # @return [Integer] z order of the Shape in the viewport
+    attr_accessor :z
+    # @return [Integer] origin x of the Shape
+    attr_accessor :ox
+    # @return [Integer] origin y of the Shape
+    attr_accessor :oy
+    # Change the origin of the Shape
+    # @param ox [Integer]
+    # @param oy [Integer]
+    # @return [self]
+    def set_origin(ox, oy)
+    end
+    # @return [Numeric] angle of the shape
+    attr_accessor :angle
+    # @return [Numeric] zoom_x of the shape
+    attr_accessor :zoom_x
+    # @return [Numeric] zoom_y of the shape
+    attr_accessor :zoom_x
+    # @return [Numeric] zoom of the shape (x&y at the same time)
+    attr_writer :zoom
+    # @return [Viewport] viewport in which the Shape is shown
+    attr_reader :viewport
+    # @return [Boolean] if the shape is visible
+    attr_accessor :visible
+    # @return [Numeric] number of point to build the shape (can be modified only with circle and convex)
+    attr_accessor :point_count
+    # Retreive the coordinate of a point
+    # @param index [Integer] index of the point in the point list
+    # @return [Array(Integer, Integer)]
+    def get_point(index)
+    end
+    # Update the coordinate of a point of a Convex shape (does nothing for rectangle Shape and Circle Shape)
+    # @param index [Integer] index of the point in the point list
+    # @param x [Numeric] x coordinate of the point
+    # @param y [Numeric] y coordinate of the point
+    # @return [self]
+    def set_point(index, x, y)
+    end
+    # @return [Color] color of the shape (or multiplied to the bitmap)
+    attr_accessor :color
+    # @return [Color] outline color of the shape
+    attr_accessor :outline_color
+    # @return [Numeric] size of the outline of the shape
+    attr_accessor :outline_thickness
+    # @return [Integer] internal index of the shape in the viewport when it was created
+    attr_reader :__index__
+    # If the shape is disposed
+    # @return [Boolean]
+    def disposed?
+    end
+    # Dispose the shape
+    def dispose
+    end
+    # @return [Numeric] radius of a circle shape (-1 if not a circle shape)
+    attr_accessor :radius
+    # @return [Symbol] type of the shape (:circle, :convex or :rectangle)
+    attr_reader :type
+    # @return [Numeric] width of the shape (updatable only of :rectangle)
+    attr_accessor :width
+    # @return [Numeric] height of the shape (updatable only for :rectangle)
+    attr_accessor :height
+    # @return [Shader, nil] shader used to draw the shape
+    attr_accessor :shader
+    # @return [BlendMode, nil] blend mode used to draw the shape
+    attr_accessor :blendmode
   end
   # Module that holds information about text fonts.
   #

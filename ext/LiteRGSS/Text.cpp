@@ -106,6 +106,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
 {
     GET_TEXT
     VALUE fontid, viewport, x, y, width, height, str, align, outlinesize, table;
+	VALUE opacity = LONG2NUM(255);
     rb_scan_args(argc, argv,"72", &fontid, &viewport, &x, &y, &width, &height, &str, &align, &outlinesize);
     /* Viewport */
     if(rb_obj_is_kind_of(viewport, rb_cViewport) == Qtrue)
@@ -117,6 +118,15 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
         viewporte->bind(text);
         table = rb_ivar_get(viewport, rb_iElementTable);
     }
+	/* If a window is specified */
+	else if (rb_obj_is_kind_of(viewport, rb_cWindow) == Qtrue)
+	{
+		CWindow_Element* window = rb_Window_get_window(argv[0]);
+		window->bind(text);
+		table = rb_ivar_get(viewport, rb_iElementTable);
+		text->rViewport = viewport;
+		opacity = LONG2NUM(NUM2LONG(window->rOpacity) * NUM2LONG(window->rContentOpacity) / 255);
+	}
     else
     {
         global_Graphics_Bind(text);
@@ -163,6 +173,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
         text->getText()->setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(size), 1, 0xFFFF)));
     /* Text */
     rb_Text_set_Text(self, str); /* Invokes rb_Text_UpdateI */
+	rb_Text_setOpacity(self, opacity);
     return self;
 }
 

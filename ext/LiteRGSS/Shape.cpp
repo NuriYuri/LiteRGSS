@@ -702,3 +702,13 @@ void rb_Shape_test_shape(VALUE self)
 		rb_raise(rb_eTypeError, "Expected Shape got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
 	}
 }
+
+VALUE rb_Shape_DisposeFromViewport(VALUE self)
+{
+	if (RDATA(self)->data == nullptr)
+		return self;
+	GET_SHAPE;
+	RDATA(self)->data = nullptr;
+	rb_Shape_Free(reinterpret_cast<void*>(shape));
+	return self;
+}

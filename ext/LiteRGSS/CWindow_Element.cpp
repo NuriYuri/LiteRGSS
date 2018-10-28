@@ -1,9 +1,7 @@
+#include "LiteRGSS.h"
 #include "CViewport_Element.h"
 #include "CWindow_Element.h"
 #include "CRect_Element.h"
-#include "Graphics.h"
-#include "Bitmap.h"
-#include "Rect.h"
 #include <iostream>
 
 CWindow_Element::CWindow_Element() : CDrawable_Element()
@@ -40,15 +38,67 @@ void CWindow_Element::drawFast(sf::RenderTarget& target) const
 {
     if(vertices != nullptr && visible)
     {
+		/* Draw window */
 		for(unsigned long i = 0; i < num_vertices_line; i++)
 			target.draw(vertices[i], texture);
 		/* draw internal */
+		sf::View targetView = view;
+		sf::View originalView = sf::View(target.getView());
+		if (!NIL_P(rViewport))
+			drawCalculateView(target, targetView);
+		target.setView(targetView);
+		for (auto sp = stack.begin(); sp != stack.end(); sp++)
+		{
+			(*sp)->drawFast(target);
+		}
 
+		/* Draw cursor & reset view */
 		if(RTEST(rActive) && rCursorSkin != Qnil)
 			target.draw(cursor_sprite);
+		target.setView(originalView);
+		/* Draw pause */
 		if(RTEST(rPause) && rPauseSkin != Qnil)
 			target.draw(pause_sprite);
     }
+}
+
+void CWindow_Element::drawCalculateView(sf::RenderTarget & target, sf::View & targetView) const
+{
+	const sf::FloatRect originViewport = target.getView().getViewport();
+	sf::FloatRect targetViewport = sf::FloatRect(targetView.getViewport());
+	sf::Vector2f targetCenter = sf::Vector2f(targetView.getCenter());
+	sf::Vector2f targetSize = sf::Vector2f(targetView.getSize());
+	targetViewport.left += originViewport.left;
+	targetViewport.top += originViewport.top;
+	float dx = targetViewport.left + targetViewport.width - (originViewport.left + originViewport.width);
+	if (dx > 0)
+	{
+		targetCenter.x -= targetSize.x / 2;
+		targetSize.x *= ((targetViewport.width - dx) / targetViewport.width);
+		targetViewport.width -= dx;
+		targetCenter.x += targetSize.x / 2;
+	}
+	dx = originViewport.left - targetViewport.left;
+	if (dx > 0)
+	{
+		targetViewport.left += dx;
+	}
+	float dy = targetViewport.top + targetViewport.height - (originViewport.top + originViewport.height);
+	if (dy > 0)
+	{
+		targetCenter.y -= targetSize.y / 2;
+		targetSize.y *= ((targetViewport.height - dy) / targetViewport.height);
+		targetViewport.height -= dy;
+		targetCenter.y += targetSize.y / 2;
+	}
+	dy = originViewport.top - targetViewport.top;
+	if (dy > 0)
+	{
+		targetViewport.top += dy;
+	}
+	targetView.setSize(targetSize);
+	targetView.setCenter(targetCenter);
+	targetView.setViewport(targetViewport);
 }
 
 sf::VertexArray * CWindow_Element::getVertices()
@@ -515,6 +565,65 @@ void CWindow_Element::updateBackOpacity()
 
 void CWindow_Element::updateContentsOpacity()
 {
+	CText_Element* text;
+	CSprite_Element* sprite;
+	sf::Text2* text2;
+	sf::Color col;
+	long opacity = NUM2LONG(rOpacity) * NUM2LONG(rContentOpacity) / 255;
+	for (auto sp = stack.begin(); sp != stack.end(); sp++)
+	{
+		text = dynamic_cast<CText_Element*>((*sp));
+		if (text != nullptr)
+		{
+			text2 = text->getText();
+			col = sf::Color(text2->getFillColor());
+			col.a = opacity;
+			text2->setFillColor(col);
+			col = sf::Color(text2->getOutlineColor());
+			col.a = opacity;
+			text2->setOutlineColor(col);
+		}
+		else
+		{
+			sprite = dynamic_cast<CSprite_Element*>((*sp));
+			if (sprite != nullptr)
+			{
+				col = sf::Color(sprite->getSprite()->getColor());
+				col.a = opacity;
+				sprite->getSprite()->setColor(col);
+			}
+		}
+	}
+}
+
+void CWindow_Element::updateView()
+{
+	if (NIL_P(rWindowBuilder))
+		return;
+	long offset_x = NUM2LONG(rb_ary_entry(rWindowBuilder, 4));
+	long offset_y = NUM2LONG(rb_ary_entry(rWindowBuilder, 5));
+	long x = NUM2LONG(rX) + offset_x;
+	long y = NUM2LONG(rY) + offset_y;
+	long width = NUM2LONG(rWidth) - 2 * offset_x;
+	long height = NUM2LONG(rHeight) - 2 * offset_y;
+	// Update rect
+	sf::IntRect* rect = rb_Rect_get_rect(rRect)->getRect();
+	rect->left = x;
+	rect->top = y;
+	rect->width = width;
+	rect->height = height;
+	// Update Window view
+	if (width & 1)
+		width++;
+	if (height & 1)
+		height++;
+	view.setCenter(static_cast<float>(NUM2LONG(rOX) + width / 2),
+		static_cast<float>(NUM2LONG(rOY) + height / 2));
+	view.setSize(static_cast<float>(width), static_cast<float>(height));
+	float sw = static_cast<float>(ScreenWidth);
+	float sh = static_cast<float>(ScreenHeight);
+	sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
+	view.setViewport(frect);
 }
 
 sf::Sprite * CWindow_Element::getPauseSprite()
@@ -549,5 +658,16 @@ void CWindow_Element::resetCursorPosition(sf::IntRect * rect)
 {
 	sf::Vector2f size = static_cast<sf::Vector2f>(cursor_sprite.getTexture()->getSize());
 	cursor_sprite.setScale(sf::Vector2f(rect->width / size.x, rect->height / size.y));
-	cursor_sprite.setPosition(sf::Vector2f(rect->left + NUM2LONG(rOX) + NUM2LONG(rX), rect->top + NUM2LONG(rOY) + NUM2LONG(rY)));
+	cursor_sprite.setPosition(sf::Vector2f(rect->left, rect->top));
+}
+
+
+void CWindow_Element::bind(CDrawable_Element* sprite)
+{
+	sprite->setOriginStack(&stack);
+}
+
+void CWindow_Element::clearStack()
+{
+	stack.clear();
 }

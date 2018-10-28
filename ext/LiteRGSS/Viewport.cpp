@@ -153,8 +153,12 @@ void __Viewport_Dispose_AllSprite(VALUE table)
     {
         if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
             rb_Sprite_DisposeFromViewport(ori[i]);
-        else
-            rb_Text_DisposeFromViewport(ori[i]);
+		else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
+			rb_Text_DisposeFromViewport(ori[i]);
+		else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue)
+			rb_Shape_DisposeFromViewport(ori[i]);
+		else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
+			rb_Window_DisposeFromViewport(ori[i]);
     }
     rb_ary_clear(table);
 }

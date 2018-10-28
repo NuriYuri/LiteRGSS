@@ -110,6 +110,16 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
         table = rb_ivar_get(argv[0], rb_iElementTable);
         sprite->rViewport = argv[0];
     }
+	/* If a window is specified */
+	else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cWindow) == Qtrue)
+	{
+		CWindow_Element* window = rb_Window_get_window(argv[0]);
+		window->bind(sprite);
+		table = rb_ivar_get(argv[0], rb_iElementTable);
+		sprite->rViewport = argv[0];
+		VALUE opacity = LONG2NUM(NUM2LONG(window->rOpacity) * NUM2LONG(window->rBackOpacity) / 255);
+		rb_Sprite_setOpacity(self, opacity);
+	}
     /* Otherwise */
     else
     {

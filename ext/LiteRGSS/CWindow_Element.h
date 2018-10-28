@@ -7,6 +7,8 @@ class CWindow_Element : public CDrawable_Element {
     protected:
 		sf::VertexArray* vertices;
 		sf::Texture* texture;
+		sf::View view;
+		std::vector<CDrawable_Element*> stack;
         bool visible;
 		unsigned long num_vertices_line;
 		long counter;
@@ -24,6 +26,7 @@ class CWindow_Element : public CDrawable_Element {
 		~CWindow_Element();
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
+		void drawCalculateView(sf::RenderTarget& target, sf::View& targetView) const;
         bool isViewport() const override { return false; };
         bool isPureSprite() const override { return false; };
 		bool isShape() const override { return false; };
@@ -40,10 +43,13 @@ class CWindow_Element : public CDrawable_Element {
 		void updateContents();
 		void updateBackOpacity();
 		void updateContentsOpacity();
+		void updateView();
 		sf::Sprite* getPauseSprite();
 		sf::Sprite* getCursorSprite();
 		void resetPausePosition();
 		void resetCursorPosition(sf::IntRect* rect);
+		void bind(CDrawable_Element* sprite);
+		void clearStack();
         /* Instance variable for Ruby */
         VALUE rViewport;
         VALUE rBitmap;
@@ -52,6 +58,7 @@ class CWindow_Element : public CDrawable_Element {
         VALUE rZ;
         VALUE rOX;
         VALUE rOY;
+		VALUE rRect;
 		VALUE rWidth;
 		VALUE rHeight;
 		VALUE rCursorRect;

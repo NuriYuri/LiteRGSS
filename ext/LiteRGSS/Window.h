@@ -5,6 +5,7 @@
 
 
 VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self);
+VALUE rb_Window_getViewport(VALUE self);
 VALUE rb_Window_setWindowSkin(VALUE self, VALUE val);
 VALUE rb_Window_getWindowSkin(VALUE self);
 VALUE rb_Window_setWidth(VALUE self, VALUE val);
@@ -49,6 +50,9 @@ VALUE rb_Window_getBackOpacity(VALUE self);
 VALUE rb_Window_setBackOpacity(VALUE self, VALUE val);
 VALUE rb_Window_getContentsOpacity(VALUE self);
 VALUE rb_Window_setContentsOpacity(VALUE self, VALUE val);
+VALUE rb_Window_getRect(VALUE self);
+VALUE rb_Window_getVisible(VALUE self);
+VALUE rb_Window_setVisible(VALUE self, VALUE val);
 
 
 
@@ -59,5 +63,8 @@ VALUE rb_Window_Disposed(VALUE self);
 VALUE rb_Window_Copy(VALUE self);
 CWindow_Element* rb_Window_get_window(VALUE self);
 void rb_Window_test_window(VALUE self);
+
+void __Window_Dispose_AllSprite(VALUE table);
+VALUE rb_Window_DisposeFromViewport(VALUE self);
 
 #endif // !L_WINDOW_HEADER

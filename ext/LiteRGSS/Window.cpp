@@ -39,6 +39,7 @@ void rb_Window_Mark(CWindow_Element* window)
 	rb_gc_mark(window->rZ);
 	rb_gc_mark(window->rOX);
 	rb_gc_mark(window->rOY);
+	rb_gc_mark(window->rRect);
 	rb_gc_mark(window->rWidth);
 	rb_gc_mark(window->rHeight);
 	rb_gc_mark(window->rCursorRect);
@@ -106,6 +107,7 @@ void Init_Window()
 	rb_define_method(rb_cWindow, "pause_y=", _rbf rb_Window_setPauseY, 1);
 	rb_define_method(rb_cWindow, "active", _rbf rb_Window_getActive, 0);
 	rb_define_method(rb_cWindow, "active=", _rbf rb_Window_setActive, 1);
+	rb_define_method(rb_cWindow, "stretch", _rbf rb_Window_getStretch, 0);
 	rb_define_method(rb_cWindow, "stretch=", _rbf rb_Window_setStretch, 1);
 	rb_define_method(rb_cWindow, "opacity", _rbf rb_Window_getOpacity, 0);
 	rb_define_method(rb_cWindow, "opacity=", _rbf rb_Window_setOpacity, 1);
@@ -113,7 +115,10 @@ void Init_Window()
 	rb_define_method(rb_cWindow, "back_opacity=", _rbf rb_Window_setBackOpacity, 1);
 	rb_define_method(rb_cWindow, "contents_opacity", _rbf rb_Window_getContentsOpacity, 0);
 	rb_define_method(rb_cWindow, "contents_opacity=", _rbf rb_Window_setContentsOpacity, 1);
-	rb_define_method(rb_cWindow, "stretch", _rbf rb_Window_getStretch, 0);
+	rb_define_method(rb_cWindow, "rect", _rbf rb_Window_getRect, 0);
+	rb_define_method(rb_cWindow, "viewport", _rbf rb_Window_getViewport, 0);
+	rb_define_method(rb_cWindow, "visible", _rbf rb_Window_getVisible, 0);
+	rb_define_method(rb_cWindow, "visible=", _rbf rb_Window_setVisible, 1);
 	rb_define_method(rb_cWindow, "__index__", _rbf rb_Window_getIndex, 0);
 
 	rb_define_method(rb_cWindow, "clone", _rbf rb_Window_Copy, 0);
@@ -145,9 +150,52 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 		window->rViewport = Qnil;
 	}
 
+	/* Sprite table creation */
+	rb_ivar_set(self, rb_iElementTable, rb_ary_new());
+	window->clearStack();
+
+	/* Rect definition */
+	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };
+	window->rRect = rb_class_new_instance(4, args, rb_cRect);
+	rb_obj_freeze(window->rRect);
+
 	return self;
 }
 
+VALUE rb_Window_getViewport(VALUE self)
+{
+	GET_WINDOW;
+	return window->rViewport;
+}
+
+void __Window_Dispose_AllSprite(VALUE table)
+{
+	rb_check_type(table, T_ARRAY);
+	long sz = RARRAY_LEN(table);
+	VALUE* ori = RARRAY_PTR(table);
+	for (long i = 0; i < sz; i++)
+	{
+		if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
+			rb_Sprite_DisposeFromViewport(ori[i]);
+		else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
+			rb_Text_DisposeFromViewport(ori[i]);
+		else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue)
+			rb_Shape_DisposeFromViewport(ori[i]);
+		else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
+			rb_Window_DisposeFromViewport(ori[i]);
+	}
+	rb_ary_clear(table);
+}
+
+VALUE rb_Window_DisposeFromViewport(VALUE self)
+{
+	if (RDATA(self)->data == nullptr)
+		return self;
+	GET_WINDOW;
+		RDATA(self)->data = nullptr;
+	rb_Window_Free(reinterpret_cast<void*>(window));
+	return self;
+}
 
 VALUE rb_Window_Dispose(VALUE self)
 {
@@ -162,6 +210,8 @@ VALUE rb_Window_Dispose(VALUE self)
 		table = rb_ivar_get(viewport, rb_iElementTable);
 	rb_ary_delete(table, self);
 	window->setOriginStack(nullptr);
+	window->clearStack();
+	__Window_Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
 	rb_Window_Free(window);
 	return self;
 }
@@ -203,6 +253,7 @@ VALUE rb_Window_setWidth(VALUE self, VALUE val)
 	NUM2ULONG(val);
 	window->rWidth = val;
 	window->updateVertices();
+	window->updateView();
 	return self;
 }
 
@@ -218,6 +269,7 @@ VALUE rb_Window_setHeight(VALUE self, VALUE val)
 	NUM2ULONG(val);
 	window->rHeight = val;
 	window->updateVertices();
+	window->updateView();
 	return self;
 }
 
@@ -235,6 +287,7 @@ VALUE rb_Window_setSize(VALUE self, VALUE x, VALUE y)
 	window->rWidth = x;
 	window->rHeight = y;
 	window->updateVertices();
+	window->updateView();
 	return self;
 }
 
@@ -255,9 +308,8 @@ VALUE rb_Window_setWindowBuilder(VALUE self, VALUE val)
 	// Freeze window builder
 	rb_obj_freeze(val);
 	window->rWindowBuilder = val;
-	window->rOX = rb_ary_entry(val, 4);
-	window->rOY = rb_ary_entry(val, 5);
 	window->updateVertices();
+	window->updateView();
 	return self;
 }
 
@@ -273,6 +325,7 @@ VALUE rb_Window_setX(VALUE self, VALUE val)
 	NUM2LONG(val);
 	window->rX = val;
 	window->updateVertices();
+	window->updateView();
 	return self;
 }
 
@@ -288,6 +341,7 @@ VALUE rb_Window_setY(VALUE self, VALUE val)
 	NUM2LONG(val);
 	window->rY = val;
 	window->updateVertices();
+	window->updateView();
 	return self;
 }
 
@@ -305,6 +359,7 @@ VALUE rb_Window_setPosition(VALUE self, VALUE x, VALUE y)
 	window->rX = x;
 	window->rY = y;
 	window->updateVertices();
+	window->updateView();
 	return self;
 }
 
@@ -328,6 +383,7 @@ VALUE rb_Window_setOX(VALUE self, VALUE val)
 	NUM2LONG(val);
 	window->rOX = val;
 	window->updateContents();
+	window->updateView();
 	return self;
 }
 
@@ -343,6 +399,7 @@ VALUE rb_Window_setOY(VALUE self, VALUE val)
 	NUM2LONG(val);
 	window->rOY = val;
 	window->updateContents();
+	window->updateView();
 	return self;
 }
 
@@ -360,6 +417,7 @@ VALUE rb_Window_setOrigin(VALUE self, VALUE x, VALUE y)
 	window->rOX = x;
 	window->rOY = y;
 	window->updateContents();
+	window->updateView();
 	return self;
 }
 
@@ -572,6 +630,24 @@ VALUE rb_Window_setContentsOpacity(VALUE self, VALUE val)
 	return self;
 }
 
+VALUE rb_Window_getRect(VALUE self)
+{
+	GET_WINDOW;
+	return window->rRect;
+}
+
+VALUE rb_Window_getVisible(VALUE self)
+{
+	GET_WINDOW;
+	return window->getVisible() ? Qtrue : Qfalse;
+}
+
+VALUE rb_Window_setVisible(VALUE self, VALUE val)
+{
+	GET_WINDOW;
+	window->setVisible(RTEST(val) ? true : false);
+	return self;
+}
 
 VALUE rb_Window_getIndex(VALUE self)
 {
