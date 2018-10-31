@@ -121,7 +121,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
 	/* If a window is specified */
 	else if (rb_obj_is_kind_of(viewport, rb_cWindow) == Qtrue)
 	{
-		CWindow_Element* window = rb_Window_get_window(argv[0]);
+		CWindow_Element* window = rb_Window_get_window(viewport);
 		window->bind(text);
 		table = rb_ivar_get(viewport, rb_iElementTable);
 		text->rViewport = viewport;
