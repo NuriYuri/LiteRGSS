@@ -60,6 +60,10 @@ void local_Graphics_Update_Process_Event(GraphicUpdateMessage*& message)
                     event.joystickMove.axis,
                     event.joystickMove.position);
                 break;
+			case sf::Event::EventType::JoystickConnected:
+			case sf::Event::EventType::JoystickDisconnected:
+				L_Input_Reset_JoyPos(event.joystickConnect.joystickId);
+				break;
             case sf::Event::EventType::MouseMoved:
                 L_Input_Mouse_Pos_Update(event.mouseMove.x, event.mouseMove.y);
                 break;

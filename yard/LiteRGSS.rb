@@ -971,6 +971,34 @@ module LiteRGSS
     # @return [String, nil] nil means no text has been entered
     def get_text
     end
+    # Indicate if a joypad id is connected
+    # @param id [Integer] id of the joypad
+    # @return [Boolean]
+    def joy_connected?(id)
+    end
+    # Return the number of button of a joypad
+    # @param id [Integer] id of the joypad
+    # @return [Integer] number of button on the joypad
+    def joy_button_count(id)
+    end
+    # Indicate if the Joypad has a particular Axis
+    # @param id [Integer] id of the joypad
+    # @param axis [Integer] one of the JoyAxis constant
+    # @return [Boolean]
+    def joy_has_axis?(id, axis)
+    end
+    # Indicate if a button is pressed on a Joypad
+    # @param id [Integer] id of the joypad
+    # @param button [Integer] id of the button
+    # @return [Boolean]
+    def joy_button_press?(id, button)
+    end
+    # Return the value of a specific axis on the joypad
+    # @param id [Integer] id of the joypad
+    # @param axis [Integer] one of the JoyAxis constant
+    # @return [Integer] a value between -100 and 100.
+    def joy_axis_position(id, axis)
+    end
     class << self
       # ID of the main joypad (for dir4 and dir8)
       # @return [Integer] id of the joypad in SFML

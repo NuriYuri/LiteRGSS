@@ -31,6 +31,7 @@ LiteRGSS depends on SFML 2.5.0, for debian distributions you can grab the SFML 2
 - Install [Ruby](https://rubyinstaller.org/ "Ruby Installer")
 - Install the dev kit using `ridk install` (chose 3 and when everything is done press enter)
 - Enable the dev kit using `ridk enable`
+- Install rake-compiler : `gem install rake-compiler`
 - Move the SFML file to msys64/mingw64 under win x64 or to msys32/mingw32 under win x86 (download the MinGW version of SFML that match with your ruby architecture x64/x86 and move the lib, include and bin directories)
 - Go to the LiteRGSS directory
 - run `rake clean`

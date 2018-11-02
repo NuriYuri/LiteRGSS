@@ -74,6 +74,11 @@ void Init_Input()
     rb_define_module_function(rb_mInput, "y_axis", _rbf rb_Input_getMainYAxis, 0);
     rb_define_module_function(rb_mInput, "y_axis=", _rbf rb_Input_setMainYAxis, 1);
 	rb_define_module_function(rb_mInput, "get_text", _rbf rb_Input_getText, 0);
+	rb_define_module_function(rb_mInput, "joy_connected?", _rbf rb_Input_JoyConnected, 1);
+	rb_define_module_function(rb_mInput, "joy_button_count", _rbf rb_Input_JoyGetButtonCount, 1);
+	rb_define_module_function(rb_mInput, "joy_has_axis?", _rbf rb_Input_JoyHasAxis, 2);
+	rb_define_module_function(rb_mInput, "joy_button_press?", _rbf rb_Input_JoyIsButtonPressed, 2);
+	rb_define_module_function(rb_mInput, "joy_axis_position", _rbf rb_Input_JoyGetAxisPosition, 2);
 
     rb_define_module_function(rb_mMouse, "press?", _rbf rb_Mouse_Press, 1);
     rb_define_module_function(rb_mMouse, "trigger?", _rbf rb_Mouse_Trigger, 1);
@@ -405,6 +410,8 @@ void L_Input_Mouse_Button_Update(long button, bool state)
 
 void L_Input_Update_Joy(unsigned int joy_id, unsigned int key, bool state)
 {
+	if (!sf::Joystick::isConnected(joy_id))
+		return;
     rb_block_call(rb_mInputKey, rb_mInputEach, 0, NULL, 
         (rb_block_call_func_t)( state ? rb_Input_KeyStateDown_Block : rb_Input_KeyStateUp_Block),
         rb_int2inum(-(32 * joy_id) - key - 1));
@@ -415,6 +422,8 @@ void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
     VALUE joypad = LONG2FIX(joy_id);
     if(joypad != rb_mInputMainJoy)
         return;
+	if (!sf::Joystick::isConnected(joy_id))
+		return;
     VALUE raxis = LONG2FIX(axis);
     if(raxis == rb_mInputMainAxisX)
     {
@@ -472,6 +481,12 @@ void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
             }
         }
     }
+}
+
+void L_Input_Reset_JoyPos(unsigned int joy_id)
+{
+	L_Input_Update_JoyPos(joy_id, LONG2FIX(rb_mInputMainAxisX), 0.0f);
+	L_Input_Update_JoyPos(joy_id, LONG2FIX(rb_mInputMainAxisY), 0.0f);
 }
 
 void L_Input_Setusec_threshold(long usec)
@@ -607,6 +622,31 @@ VALUE rb_Input_getText(VALUE self)
 	if (L_EnteredText.size() > 0)
 		return rb_utf8_str_new_cstr(L_EnteredText.c_str());
 	return Qnil;
+}
+
+VALUE rb_Input_JoyConnected(VALUE self, VALUE id)
+{
+	return sf::Joystick::isConnected(NUM2UINT(id)) ? Qtrue : Qfalse;
+}
+
+VALUE rb_Input_JoyGetButtonCount(VALUE self, VALUE id)
+{
+	return UINT2NUM(sf::Joystick::getButtonCount(NUM2UINT(id)));
+}
+
+VALUE rb_Input_JoyHasAxis(VALUE self, VALUE id, VALUE axis)
+{
+	return sf::Joystick::hasAxis(NUM2UINT(id), static_cast<sf::Joystick::Axis>(NUM2LONG(axis))) ? Qtrue : Qfalse;
+}
+
+VALUE rb_Input_JoyIsButtonPressed(VALUE self, VALUE id, VALUE button)
+{
+	return sf::Joystick::isButtonPressed(NUM2UINT(id), NUM2UINT(button)) ? Qtrue : Qfalse;
+}
+
+VALUE rb_Input_JoyGetAxisPosition(VALUE self, VALUE id, VALUE axis)
+{
+	return LONG2NUM(static_cast<long>(sf::Joystick::getAxisPosition(NUM2UINT(id), static_cast<sf::Joystick::Axis>(NUM2LONG(axis)))));
 }
 
 VALUE rb_Mouse_Press(VALUE self, VALUE key_sym)
