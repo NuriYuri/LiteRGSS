@@ -33,6 +33,7 @@ VALUE rb_Input_JoyGetButtonCount(VALUE self, VALUE id);
 VALUE rb_Input_JoyHasAxis(VALUE self, VALUE id, VALUE axis);
 VALUE rb_Input_JoyIsButtonPressed(VALUE self, VALUE id, VALUE button);
 VALUE rb_Input_JoyGetAxisPosition(VALUE self, VALUE id, VALUE axis);
+VALUE rb_Input_JoyGetName(VALUE self, VALUE id);
 
 VALUE rb_Mouse_Press(VALUE self, VALUE key_sym);
 VALUE rb_Mouse_Trigger(VALUE self, VALUE key_sym);

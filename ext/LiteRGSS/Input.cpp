@@ -85,6 +85,7 @@ void Init_Input()
 	rb_define_module_function(rb_mInput, "joy_has_axis?", _rbf rb_Input_JoyHasAxis, 2);
 	rb_define_module_function(rb_mInput, "joy_button_press?", _rbf rb_Input_JoyIsButtonPressed, 2);
 	rb_define_module_function(rb_mInput, "joy_axis_position", _rbf rb_Input_JoyGetAxisPosition, 2);
+	rb_define_module_function(rb_mInput, "joy_name", _rbf rb_Input_JoyGetName, 1);
 
     rb_define_module_function(rb_mMouse, "press?", _rbf rb_Mouse_Press, 1);
     rb_define_module_function(rb_mMouse, "trigger?", _rbf rb_Mouse_Trigger, 1);
@@ -697,6 +698,12 @@ VALUE rb_Input_JoyIsButtonPressed(VALUE self, VALUE id, VALUE button)
 VALUE rb_Input_JoyGetAxisPosition(VALUE self, VALUE id, VALUE axis)
 {
 	return LONG2NUM(static_cast<long>(sf::Joystick::getAxisPosition(NUM2UINT(id), static_cast<sf::Joystick::Axis>(NUM2LONG(axis)))));
+}
+
+VALUE rb_Input_JoyGetName(VALUE self, VALUE id)
+{
+	sf::String name = sf::Joystick::getIdentification(NUM2LONG(id)).name;
+	return rb_utf8_str_new_cstr(reinterpret_cast<const char*>(name.toUtf8().c_str()));
 }
 
 VALUE rb_Mouse_Press(VALUE self, VALUE key_sym)
