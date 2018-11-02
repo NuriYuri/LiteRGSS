@@ -15,6 +15,8 @@ VALUE rb_mInputKeyID = Qnil;
 VALUE rb_mInputMainJoy = Qnil;
 VALUE rb_mInputMainAxisX = Qnil;
 VALUE rb_mInputMainAxisY = Qnil;
+VALUE rb_mInputInvertAxisX = Qfalse;
+VALUE rb_mInputInvertAxisY = Qfalse;
 ID rb_mInputEach = Qnil;
 /* Clocks used to detect trigger, and repeat */
 #if L_TRIGGER_METHOD == L_TRIGGER_TIME_METHOD
@@ -73,6 +75,10 @@ void Init_Input()
     rb_define_module_function(rb_mInput, "x_axis=", _rbf rb_Input_setMainXAxis, 1);
     rb_define_module_function(rb_mInput, "y_axis", _rbf rb_Input_getMainYAxis, 0);
     rb_define_module_function(rb_mInput, "y_axis=", _rbf rb_Input_setMainYAxis, 1);
+	rb_define_module_function(rb_mInput, "x_axis_inverted", _rbf rb_Input_getInvertAxisX, 0);
+	rb_define_module_function(rb_mInput, "x_axis_inverted=", _rbf rb_Input_setInvertAxisX, 1);
+	rb_define_module_function(rb_mInput, "y_axis_inverted", _rbf rb_Input_getInvertAxisY, 0);
+	rb_define_module_function(rb_mInput, "y_axis_inverted=", _rbf rb_Input_setInvertAxisY, 1);
 	rb_define_module_function(rb_mInput, "get_text", _rbf rb_Input_getText, 0);
 	rb_define_module_function(rb_mInput, "joy_connected?", _rbf rb_Input_JoyConnected, 1);
 	rb_define_module_function(rb_mInput, "joy_button_count", _rbf rb_Input_JoyGetButtonCount, 1);
@@ -431,19 +437,13 @@ void L_Input_Update_JoyPos_setKeyState(unsigned int key, bool state)
 	L_TRIGGER_RESET_Input(key);
 }
 
-// Return Z and PovY axis of XBox360 controler
-float L_Input_FixAxisPos(long axis, float position)
-{
-	if (axis == sf::Joystick::Axis::PovY || axis == sf::Joystick::Axis::Z)
-		return -position;
-	return position;
-}
-
 #define JOY_MIN_DEADZONE -25.0f
 #define JOY_MAX_DEADZONE 25.0f
 
 void L_Input_Update_JoyXPos(float position)
 {
+	if (rb_mInputInvertAxisX != Qfalse)
+		position = -position;
 	if (position < JOY_MIN_DEADZONE)
 	{
 		if (!L_Input_Press[15])
@@ -471,6 +471,8 @@ void L_Input_Update_JoyXPos(float position)
 
 void L_Input_Update_JoyYPos(float position)
 {
+	if (rb_mInputInvertAxisY != Qfalse)
+		position = -position;
 	if (position < JOY_MIN_DEADZONE)
 	{
 		if (!L_Input_Press[13])
@@ -501,7 +503,6 @@ void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
     VALUE joypad = LONG2FIX(joy_id);
     if(joypad != rb_mInputMainJoy)
         return;
-	position = L_Input_FixAxisPos(axis, position);
     VALUE raxis = LONG2FIX(axis);
 	//printf("\r%d %d %f %d %d      ", joy_id, raxis, position, raxis == rb_mInputMainAxisX, raxis == rb_mInputMainAxisY);
 	if (raxis == rb_mInputMainAxisX)
@@ -649,6 +650,28 @@ VALUE rb_Input_getText(VALUE self)
 	if (L_EnteredText.size() > 0)
 		return rb_utf8_str_new_cstr(L_EnteredText.c_str());
 	return Qnil;
+}
+
+VALUE rb_Input_getInvertAxisX(VALUE self)
+{
+	return rb_mInputInvertAxisX;
+}
+
+VALUE rb_Input_setInvertAxisX(VALUE self, VALUE val)
+{
+	rb_mInputInvertAxisX = RTEST(val) ? Qtrue : Qfalse;
+	return self;
+}
+
+VALUE rb_Input_getInvertAxisY(VALUE self)
+{
+	return rb_mInputInvertAxisY;
+}
+
+VALUE rb_Input_setInvertAxisY(VALUE self, VALUE val)
+{
+	rb_mInputInvertAxisY = RTEST(val) ? Qtrue : Qfalse;
+	return self;
 }
 
 VALUE rb_Input_JoyConnected(VALUE self, VALUE id)
