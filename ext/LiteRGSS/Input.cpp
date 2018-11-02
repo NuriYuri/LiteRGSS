@@ -97,25 +97,25 @@ void Init_Input()
     rb_define_const(rb_mMouse, "Keys", rb_mMouseKey);
     rb_gc_register_address(&rb_mMouseKey); // Protect the Hash from being GC'd
     rb_gc_register_address(&rb_mMouseKeyID);
-    RHASH_SET_IFNONE(rb_mMouseKey, tmp = rb_int2inum(sf::Mouse::Button::Left));
+    RHASH_SET_IFNONE(rb_mMouseKey, tmp = LONG2NUM(sf::Mouse::Button::Left));
     RHASH_SET_IFNONE(rb_mMouseKeyID, LONG2FIX(0));
     rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("LEFT")), tmp);
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(0));
     rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("left")), tmp);
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(0));
-    rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("RIGHT")), tmp = rb_int2inum(sf::Mouse::Button::Right));
+    rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("RIGHT")), tmp = LONG2NUM(sf::Mouse::Button::Right));
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(1));
     rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("right")), tmp);
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(1));
-    rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("MIDDLE")), tmp = rb_int2inum(sf::Mouse::Button::Middle));
+    rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("MIDDLE")), tmp = LONG2NUM(sf::Mouse::Button::Middle));
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(2));
     rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("middle")), tmp);
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(2));
-    rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("X1")), tmp = rb_int2inum(sf::Mouse::Button::XButton1));
+    rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("X1")), tmp = LONG2NUM(sf::Mouse::Button::XButton1));
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(3));
     rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("x1")), tmp);
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(3));
-    rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("X2")), tmp = rb_int2inum(sf::Mouse::Button::XButton2));
+    rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("X2")), tmp = LONG2NUM(sf::Mouse::Button::XButton2));
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(4));
     rb_hash_aset(rb_mMouseKey, key = rb_id2sym(rb_intern("x2")), tmp);
     rb_hash_aset(rb_mMouseKeyID, key, LONG2FIX(4));
@@ -129,198 +129,206 @@ void Init_Input()
     RHASH_SET_IFNONE(rb_mInputKeyID, LONG2FIX(0));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("A")), tmp);
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(0));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::C));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Return));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Space));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::C));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Return));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Space));
+	rb_ary_push(tmp, LONG2NUM(-1)); // A on XBox360 (first joy)
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("B")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(1));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::X));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Escape));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::LShift));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::RShift));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::BackSpace));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::X));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Escape));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::LShift));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::RShift));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::BackSpace));
+	rb_ary_push(tmp, LONG2NUM(-2)); // B on XBox360 (first joy)
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("X")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(2));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::V));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::LAlt));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::V));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::LAlt));
+	rb_ary_push(tmp, LONG2NUM(-3)); // X on XBox360 (first joy)
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("Y")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(3));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::W));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::RAlt));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::W));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::RAlt));
+	rb_ary_push(tmp, LONG2NUM(-4)); // Y on XBox360 (first joy)
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("L")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(4));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::A));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::A));
+	rb_ary_push(tmp, LONG2NUM(-5)); // L on XBox360 (first joy)
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("R")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(5));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::E));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::E));
+	rb_ary_push(tmp, LONG2NUM(-6)); // R on XBox360 (first joy)
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("L2")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(6));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Num1));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Num1));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("R2")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(7));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Num3));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Num3));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("L3")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(8));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("R3")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(9));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("START")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(10));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::B));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::B));
+	rb_ary_push(tmp, LONG2NUM(-8)); // Start on XBox360 (first joy)
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("start")), tmp);
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(10));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("SELECT")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(11));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::N));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::N));
+	rb_ary_push(tmp, LONG2NUM(-7)); // Back on XBox360 (first joy)
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("select")), tmp);
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(11));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("HOME")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(12));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::LControl));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::RControl));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::LControl));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::RControl));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("home")), tmp);
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(12));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("UP")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(13));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Up));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Z));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Numpad8));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Up));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Z));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Numpad8));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("up")), tmp);
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(13));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("DOWN")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(14));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Down));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::S));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Numpad2));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Down));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::S));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Numpad2));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("down")), tmp);
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(14));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("LEFT")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(15));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Left));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Q));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Numpad4));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Left));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Q));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Numpad4));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("left")), tmp);
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(15));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("RIGHT")), tmp = rb_ary_new());
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(16));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Right));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::D));
-    rb_ary_push(tmp, rb_int2inum(sf::Keyboard::Numpad6));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Right));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::D));
+    rb_ary_push(tmp, LONG2NUM(sf::Keyboard::Numpad6));
     rb_hash_aset(rb_mInputKey, key = rb_id2sym(rb_intern("right")), tmp);
     rb_hash_aset(rb_mInputKeyID, key, LONG2FIX(16));
 
     rb_mInputMainJoy = LONG2FIX(0);
-    rb_define_const(rb_mInput, "JoyAxisX", tmp = rb_int2inum(sf::Joystick::Axis::X));
+    rb_define_const(rb_mInput, "JoyAxisX", tmp = LONG2NUM(sf::Joystick::Axis::X));
     rb_mInputMainAxisX = tmp;
-    rb_define_const(rb_mInput, "JoyAxisY", rb_int2inum(sf::Joystick::Axis::Y));
+    rb_define_const(rb_mInput, "JoyAxisY", tmp = LONG2NUM(sf::Joystick::Axis::Y));
     rb_mInputMainAxisY = tmp;
-    rb_define_const(rb_mInput, "JoyAxisZ", rb_int2inum(sf::Joystick::Axis::Z));
-    rb_define_const(rb_mInput, "JoyAxisR", rb_int2inum(sf::Joystick::Axis::R));
-    rb_define_const(rb_mInput, "JoyAxisU", rb_int2inum(sf::Joystick::Axis::U));
-    rb_define_const(rb_mInput, "JoyAxisV", rb_int2inum(sf::Joystick::Axis::V));
-    rb_define_const(rb_mInput, "JoyAxisPovX", rb_int2inum(sf::Joystick::Axis::PovX));
-    rb_define_const(rb_mInput, "JoyAxisPovY", rb_int2inum(sf::Joystick::Axis::PovY));
+    rb_define_const(rb_mInput, "JoyAxisZ", LONG2NUM(sf::Joystick::Axis::Z));
+    rb_define_const(rb_mInput, "JoyAxisR", LONG2NUM(sf::Joystick::Axis::R));
+    rb_define_const(rb_mInput, "JoyAxisU", LONG2NUM(sf::Joystick::Axis::U));
+    rb_define_const(rb_mInput, "JoyAxisV", LONG2NUM(sf::Joystick::Axis::V));
+    rb_define_const(rb_mInput, "JoyAxisPovX", LONG2NUM(sf::Joystick::Axis::PovX));
+    rb_define_const(rb_mInput, "JoyAxisPovY", LONG2NUM(sf::Joystick::Axis::PovY));
 
-    rb_define_const(rb_mKeyboard, "A", rb_int2inum(sf::Keyboard::A));
-    rb_define_const(rb_mKeyboard, "B", rb_int2inum(sf::Keyboard::B));
-    rb_define_const(rb_mKeyboard, "C", rb_int2inum(sf::Keyboard::C));
-    rb_define_const(rb_mKeyboard, "D", rb_int2inum(sf::Keyboard::D));
-    rb_define_const(rb_mKeyboard, "E", rb_int2inum(sf::Keyboard::E));
-    rb_define_const(rb_mKeyboard, "F", rb_int2inum(sf::Keyboard::F));
-    rb_define_const(rb_mKeyboard, "G", rb_int2inum(sf::Keyboard::G));
-    rb_define_const(rb_mKeyboard, "H", rb_int2inum(sf::Keyboard::H));
-    rb_define_const(rb_mKeyboard, "I", rb_int2inum(sf::Keyboard::I));
-    rb_define_const(rb_mKeyboard, "J", rb_int2inum(sf::Keyboard::J));
-    rb_define_const(rb_mKeyboard, "K", rb_int2inum(sf::Keyboard::K));
-    rb_define_const(rb_mKeyboard, "L", rb_int2inum(sf::Keyboard::L));
-    rb_define_const(rb_mKeyboard, "M", rb_int2inum(sf::Keyboard::M));
-    rb_define_const(rb_mKeyboard, "N", rb_int2inum(sf::Keyboard::N));
-    rb_define_const(rb_mKeyboard, "O", rb_int2inum(sf::Keyboard::O));
-    rb_define_const(rb_mKeyboard, "P", rb_int2inum(sf::Keyboard::P));
-    rb_define_const(rb_mKeyboard, "Q", rb_int2inum(sf::Keyboard::Q));
-    rb_define_const(rb_mKeyboard, "R", rb_int2inum(sf::Keyboard::R));
-    rb_define_const(rb_mKeyboard, "S", rb_int2inum(sf::Keyboard::S));
-    rb_define_const(rb_mKeyboard, "T", rb_int2inum(sf::Keyboard::T));
-    rb_define_const(rb_mKeyboard, "U", rb_int2inum(sf::Keyboard::U));
-    rb_define_const(rb_mKeyboard, "V", rb_int2inum(sf::Keyboard::V));
-    rb_define_const(rb_mKeyboard, "W", rb_int2inum(sf::Keyboard::W));
-    rb_define_const(rb_mKeyboard, "X", rb_int2inum(sf::Keyboard::X));
-    rb_define_const(rb_mKeyboard, "Y", rb_int2inum(sf::Keyboard::Y));
-    rb_define_const(rb_mKeyboard, "Z", rb_int2inum(sf::Keyboard::Z));
-    rb_define_const(rb_mKeyboard, "Num0", rb_int2inum(sf::Keyboard::Num0));
-    rb_define_const(rb_mKeyboard, "Num1", rb_int2inum(sf::Keyboard::Num1));
-    rb_define_const(rb_mKeyboard, "Num2", rb_int2inum(sf::Keyboard::Num2));
-    rb_define_const(rb_mKeyboard, "Num3", rb_int2inum(sf::Keyboard::Num3));
-    rb_define_const(rb_mKeyboard, "Num4", rb_int2inum(sf::Keyboard::Num4));
-    rb_define_const(rb_mKeyboard, "Num5", rb_int2inum(sf::Keyboard::Num5));
-    rb_define_const(rb_mKeyboard, "Num6", rb_int2inum(sf::Keyboard::Num6));
-    rb_define_const(rb_mKeyboard, "Num7", rb_int2inum(sf::Keyboard::Num7));
-    rb_define_const(rb_mKeyboard, "Num8", rb_int2inum(sf::Keyboard::Num8));
-    rb_define_const(rb_mKeyboard, "Num9", rb_int2inum(sf::Keyboard::Num9));
-    rb_define_const(rb_mKeyboard, "Escape", rb_int2inum(sf::Keyboard::Escape));
-    rb_define_const(rb_mKeyboard, "LControl", rb_int2inum(sf::Keyboard::LControl));
-    rb_define_const(rb_mKeyboard, "LShift", rb_int2inum(sf::Keyboard::LShift));
-    rb_define_const(rb_mKeyboard, "LAlt", rb_int2inum(sf::Keyboard::LAlt));
-    rb_define_const(rb_mKeyboard, "LSystem", rb_int2inum(sf::Keyboard::LSystem));
-    rb_define_const(rb_mKeyboard, "RControl", rb_int2inum(sf::Keyboard::RControl));
-    rb_define_const(rb_mKeyboard, "RShift", rb_int2inum(sf::Keyboard::RShift));
-    rb_define_const(rb_mKeyboard, "RAlt", rb_int2inum(sf::Keyboard::RAlt));
-    rb_define_const(rb_mKeyboard, "RSystem", rb_int2inum(sf::Keyboard::RSystem));
-    rb_define_const(rb_mKeyboard, "Menu", rb_int2inum(sf::Keyboard::Menu));
-    rb_define_const(rb_mKeyboard, "LBracket", rb_int2inum(sf::Keyboard::LBracket));
-    rb_define_const(rb_mKeyboard, "RBracket", rb_int2inum(sf::Keyboard::RBracket));
-    rb_define_const(rb_mKeyboard, "Semicolon", rb_int2inum(sf::Keyboard::Semicolon));
-    rb_define_const(rb_mKeyboard, "Comma", rb_int2inum(sf::Keyboard::Comma));
-    rb_define_const(rb_mKeyboard, "Period", rb_int2inum(sf::Keyboard::Period));
-    rb_define_const(rb_mKeyboard, "Quote", rb_int2inum(sf::Keyboard::Quote));
-    rb_define_const(rb_mKeyboard, "Slash", rb_int2inum(sf::Keyboard::Slash));
-    rb_define_const(rb_mKeyboard, "Backslash", rb_int2inum(sf::Keyboard::Backslash));
-    rb_define_const(rb_mKeyboard, "Tilde", rb_int2inum(sf::Keyboard::Tilde));
-    rb_define_const(rb_mKeyboard, "Equal", rb_int2inum(sf::Keyboard::Equal));
-    rb_define_const(rb_mKeyboard, "Hyphen", rb_int2inum(sf::Keyboard::Hyphen));
-    rb_define_const(rb_mKeyboard, "Space", rb_int2inum(sf::Keyboard::Space));
-    rb_define_const(rb_mKeyboard, "Enter", rb_int2inum(sf::Keyboard::Enter));
-    rb_define_const(rb_mKeyboard, "Backspace", rb_int2inum(sf::Keyboard::Backspace));
-    rb_define_const(rb_mKeyboard, "Tab", rb_int2inum(sf::Keyboard::Tab));
-    rb_define_const(rb_mKeyboard, "PageUp", rb_int2inum(sf::Keyboard::PageUp));
-    rb_define_const(rb_mKeyboard, "PageDown", rb_int2inum(sf::Keyboard::PageDown));
-    rb_define_const(rb_mKeyboard, "End", rb_int2inum(sf::Keyboard::End));
-    rb_define_const(rb_mKeyboard, "Home", rb_int2inum(sf::Keyboard::Home));
-    rb_define_const(rb_mKeyboard, "Insert", rb_int2inum(sf::Keyboard::Insert));
-    rb_define_const(rb_mKeyboard, "Delete", rb_int2inum(sf::Keyboard::Delete));
-    rb_define_const(rb_mKeyboard, "Add", rb_int2inum(sf::Keyboard::Add));
-    rb_define_const(rb_mKeyboard, "Subtract", rb_int2inum(sf::Keyboard::Subtract));
-    rb_define_const(rb_mKeyboard, "Multiply", rb_int2inum(sf::Keyboard::Multiply));
-    rb_define_const(rb_mKeyboard, "Divide", rb_int2inum(sf::Keyboard::Divide));
-    rb_define_const(rb_mKeyboard, "Left", rb_int2inum(sf::Keyboard::Left));
-    rb_define_const(rb_mKeyboard, "Right", rb_int2inum(sf::Keyboard::Right));
-    rb_define_const(rb_mKeyboard, "Up", rb_int2inum(sf::Keyboard::Up));
-    rb_define_const(rb_mKeyboard, "Down", rb_int2inum(sf::Keyboard::Down));
-    rb_define_const(rb_mKeyboard, "Numpad0", rb_int2inum(sf::Keyboard::Numpad0));
-    rb_define_const(rb_mKeyboard, "Numpad1", rb_int2inum(sf::Keyboard::Numpad1));
-    rb_define_const(rb_mKeyboard, "Numpad2", rb_int2inum(sf::Keyboard::Numpad2));
-    rb_define_const(rb_mKeyboard, "Numpad3", rb_int2inum(sf::Keyboard::Numpad3));
-    rb_define_const(rb_mKeyboard, "Numpad4", rb_int2inum(sf::Keyboard::Numpad4));
-    rb_define_const(rb_mKeyboard, "Numpad5", rb_int2inum(sf::Keyboard::Numpad5));
-    rb_define_const(rb_mKeyboard, "Numpad6", rb_int2inum(sf::Keyboard::Numpad6));
-    rb_define_const(rb_mKeyboard, "Numpad7", rb_int2inum(sf::Keyboard::Numpad7));
-    rb_define_const(rb_mKeyboard, "Numpad8", rb_int2inum(sf::Keyboard::Numpad8));
-    rb_define_const(rb_mKeyboard, "Numpad9", rb_int2inum(sf::Keyboard::Numpad9));
-    rb_define_const(rb_mKeyboard, "F1", rb_int2inum(sf::Keyboard::F1));
-    rb_define_const(rb_mKeyboard, "F2", rb_int2inum(sf::Keyboard::F2));
-    rb_define_const(rb_mKeyboard, "F3", rb_int2inum(sf::Keyboard::F3));
-    rb_define_const(rb_mKeyboard, "F4", rb_int2inum(sf::Keyboard::F4));
-    rb_define_const(rb_mKeyboard, "F5", rb_int2inum(sf::Keyboard::F5));
-    rb_define_const(rb_mKeyboard, "F6", rb_int2inum(sf::Keyboard::F6));
-    rb_define_const(rb_mKeyboard, "F7", rb_int2inum(sf::Keyboard::F7));
-    rb_define_const(rb_mKeyboard, "F8", rb_int2inum(sf::Keyboard::F8));
-    rb_define_const(rb_mKeyboard, "F9", rb_int2inum(sf::Keyboard::F9));
-    rb_define_const(rb_mKeyboard, "F10", rb_int2inum(sf::Keyboard::F10));
-    rb_define_const(rb_mKeyboard, "F11", rb_int2inum(sf::Keyboard::F11));
-    rb_define_const(rb_mKeyboard, "F12", rb_int2inum(sf::Keyboard::F12));
-    rb_define_const(rb_mKeyboard, "F13", rb_int2inum(sf::Keyboard::F13));
-    rb_define_const(rb_mKeyboard, "F14", rb_int2inum(sf::Keyboard::F14));
-    rb_define_const(rb_mKeyboard, "F15", rb_int2inum(sf::Keyboard::F15));
-    rb_define_const(rb_mKeyboard, "Pause", rb_int2inum(sf::Keyboard::Pause));
+    rb_define_const(rb_mKeyboard, "A", LONG2NUM(sf::Keyboard::A));
+    rb_define_const(rb_mKeyboard, "B", LONG2NUM(sf::Keyboard::B));
+    rb_define_const(rb_mKeyboard, "C", LONG2NUM(sf::Keyboard::C));
+    rb_define_const(rb_mKeyboard, "D", LONG2NUM(sf::Keyboard::D));
+    rb_define_const(rb_mKeyboard, "E", LONG2NUM(sf::Keyboard::E));
+    rb_define_const(rb_mKeyboard, "F", LONG2NUM(sf::Keyboard::F));
+    rb_define_const(rb_mKeyboard, "G", LONG2NUM(sf::Keyboard::G));
+    rb_define_const(rb_mKeyboard, "H", LONG2NUM(sf::Keyboard::H));
+    rb_define_const(rb_mKeyboard, "I", LONG2NUM(sf::Keyboard::I));
+    rb_define_const(rb_mKeyboard, "J", LONG2NUM(sf::Keyboard::J));
+    rb_define_const(rb_mKeyboard, "K", LONG2NUM(sf::Keyboard::K));
+    rb_define_const(rb_mKeyboard, "L", LONG2NUM(sf::Keyboard::L));
+    rb_define_const(rb_mKeyboard, "M", LONG2NUM(sf::Keyboard::M));
+    rb_define_const(rb_mKeyboard, "N", LONG2NUM(sf::Keyboard::N));
+    rb_define_const(rb_mKeyboard, "O", LONG2NUM(sf::Keyboard::O));
+    rb_define_const(rb_mKeyboard, "P", LONG2NUM(sf::Keyboard::P));
+    rb_define_const(rb_mKeyboard, "Q", LONG2NUM(sf::Keyboard::Q));
+    rb_define_const(rb_mKeyboard, "R", LONG2NUM(sf::Keyboard::R));
+    rb_define_const(rb_mKeyboard, "S", LONG2NUM(sf::Keyboard::S));
+    rb_define_const(rb_mKeyboard, "T", LONG2NUM(sf::Keyboard::T));
+    rb_define_const(rb_mKeyboard, "U", LONG2NUM(sf::Keyboard::U));
+    rb_define_const(rb_mKeyboard, "V", LONG2NUM(sf::Keyboard::V));
+    rb_define_const(rb_mKeyboard, "W", LONG2NUM(sf::Keyboard::W));
+    rb_define_const(rb_mKeyboard, "X", LONG2NUM(sf::Keyboard::X));
+    rb_define_const(rb_mKeyboard, "Y", LONG2NUM(sf::Keyboard::Y));
+    rb_define_const(rb_mKeyboard, "Z", LONG2NUM(sf::Keyboard::Z));
+    rb_define_const(rb_mKeyboard, "Num0", LONG2NUM(sf::Keyboard::Num0));
+    rb_define_const(rb_mKeyboard, "Num1", LONG2NUM(sf::Keyboard::Num1));
+    rb_define_const(rb_mKeyboard, "Num2", LONG2NUM(sf::Keyboard::Num2));
+    rb_define_const(rb_mKeyboard, "Num3", LONG2NUM(sf::Keyboard::Num3));
+    rb_define_const(rb_mKeyboard, "Num4", LONG2NUM(sf::Keyboard::Num4));
+    rb_define_const(rb_mKeyboard, "Num5", LONG2NUM(sf::Keyboard::Num5));
+    rb_define_const(rb_mKeyboard, "Num6", LONG2NUM(sf::Keyboard::Num6));
+    rb_define_const(rb_mKeyboard, "Num7", LONG2NUM(sf::Keyboard::Num7));
+    rb_define_const(rb_mKeyboard, "Num8", LONG2NUM(sf::Keyboard::Num8));
+    rb_define_const(rb_mKeyboard, "Num9", LONG2NUM(sf::Keyboard::Num9));
+    rb_define_const(rb_mKeyboard, "Escape", LONG2NUM(sf::Keyboard::Escape));
+    rb_define_const(rb_mKeyboard, "LControl", LONG2NUM(sf::Keyboard::LControl));
+    rb_define_const(rb_mKeyboard, "LShift", LONG2NUM(sf::Keyboard::LShift));
+    rb_define_const(rb_mKeyboard, "LAlt", LONG2NUM(sf::Keyboard::LAlt));
+    rb_define_const(rb_mKeyboard, "LSystem", LONG2NUM(sf::Keyboard::LSystem));
+    rb_define_const(rb_mKeyboard, "RControl", LONG2NUM(sf::Keyboard::RControl));
+    rb_define_const(rb_mKeyboard, "RShift", LONG2NUM(sf::Keyboard::RShift));
+    rb_define_const(rb_mKeyboard, "RAlt", LONG2NUM(sf::Keyboard::RAlt));
+    rb_define_const(rb_mKeyboard, "RSystem", LONG2NUM(sf::Keyboard::RSystem));
+    rb_define_const(rb_mKeyboard, "Menu", LONG2NUM(sf::Keyboard::Menu));
+    rb_define_const(rb_mKeyboard, "LBracket", LONG2NUM(sf::Keyboard::LBracket));
+    rb_define_const(rb_mKeyboard, "RBracket", LONG2NUM(sf::Keyboard::RBracket));
+    rb_define_const(rb_mKeyboard, "Semicolon", LONG2NUM(sf::Keyboard::Semicolon));
+    rb_define_const(rb_mKeyboard, "Comma", LONG2NUM(sf::Keyboard::Comma));
+    rb_define_const(rb_mKeyboard, "Period", LONG2NUM(sf::Keyboard::Period));
+    rb_define_const(rb_mKeyboard, "Quote", LONG2NUM(sf::Keyboard::Quote));
+    rb_define_const(rb_mKeyboard, "Slash", LONG2NUM(sf::Keyboard::Slash));
+    rb_define_const(rb_mKeyboard, "Backslash", LONG2NUM(sf::Keyboard::Backslash));
+    rb_define_const(rb_mKeyboard, "Tilde", LONG2NUM(sf::Keyboard::Tilde));
+    rb_define_const(rb_mKeyboard, "Equal", LONG2NUM(sf::Keyboard::Equal));
+    rb_define_const(rb_mKeyboard, "Hyphen", LONG2NUM(sf::Keyboard::Hyphen));
+    rb_define_const(rb_mKeyboard, "Space", LONG2NUM(sf::Keyboard::Space));
+    rb_define_const(rb_mKeyboard, "Enter", LONG2NUM(sf::Keyboard::Enter));
+    rb_define_const(rb_mKeyboard, "Backspace", LONG2NUM(sf::Keyboard::Backspace));
+    rb_define_const(rb_mKeyboard, "Tab", LONG2NUM(sf::Keyboard::Tab));
+    rb_define_const(rb_mKeyboard, "PageUp", LONG2NUM(sf::Keyboard::PageUp));
+    rb_define_const(rb_mKeyboard, "PageDown", LONG2NUM(sf::Keyboard::PageDown));
+    rb_define_const(rb_mKeyboard, "End", LONG2NUM(sf::Keyboard::End));
+    rb_define_const(rb_mKeyboard, "Home", LONG2NUM(sf::Keyboard::Home));
+    rb_define_const(rb_mKeyboard, "Insert", LONG2NUM(sf::Keyboard::Insert));
+    rb_define_const(rb_mKeyboard, "Delete", LONG2NUM(sf::Keyboard::Delete));
+    rb_define_const(rb_mKeyboard, "Add", LONG2NUM(sf::Keyboard::Add));
+    rb_define_const(rb_mKeyboard, "Subtract", LONG2NUM(sf::Keyboard::Subtract));
+    rb_define_const(rb_mKeyboard, "Multiply", LONG2NUM(sf::Keyboard::Multiply));
+    rb_define_const(rb_mKeyboard, "Divide", LONG2NUM(sf::Keyboard::Divide));
+    rb_define_const(rb_mKeyboard, "Left", LONG2NUM(sf::Keyboard::Left));
+    rb_define_const(rb_mKeyboard, "Right", LONG2NUM(sf::Keyboard::Right));
+    rb_define_const(rb_mKeyboard, "Up", LONG2NUM(sf::Keyboard::Up));
+    rb_define_const(rb_mKeyboard, "Down", LONG2NUM(sf::Keyboard::Down));
+    rb_define_const(rb_mKeyboard, "Numpad0", LONG2NUM(sf::Keyboard::Numpad0));
+    rb_define_const(rb_mKeyboard, "Numpad1", LONG2NUM(sf::Keyboard::Numpad1));
+    rb_define_const(rb_mKeyboard, "Numpad2", LONG2NUM(sf::Keyboard::Numpad2));
+    rb_define_const(rb_mKeyboard, "Numpad3", LONG2NUM(sf::Keyboard::Numpad3));
+    rb_define_const(rb_mKeyboard, "Numpad4", LONG2NUM(sf::Keyboard::Numpad4));
+    rb_define_const(rb_mKeyboard, "Numpad5", LONG2NUM(sf::Keyboard::Numpad5));
+    rb_define_const(rb_mKeyboard, "Numpad6", LONG2NUM(sf::Keyboard::Numpad6));
+    rb_define_const(rb_mKeyboard, "Numpad7", LONG2NUM(sf::Keyboard::Numpad7));
+    rb_define_const(rb_mKeyboard, "Numpad8", LONG2NUM(sf::Keyboard::Numpad8));
+    rb_define_const(rb_mKeyboard, "Numpad9", LONG2NUM(sf::Keyboard::Numpad9));
+    rb_define_const(rb_mKeyboard, "F1", LONG2NUM(sf::Keyboard::F1));
+    rb_define_const(rb_mKeyboard, "F2", LONG2NUM(sf::Keyboard::F2));
+    rb_define_const(rb_mKeyboard, "F3", LONG2NUM(sf::Keyboard::F3));
+    rb_define_const(rb_mKeyboard, "F4", LONG2NUM(sf::Keyboard::F4));
+    rb_define_const(rb_mKeyboard, "F5", LONG2NUM(sf::Keyboard::F5));
+    rb_define_const(rb_mKeyboard, "F6", LONG2NUM(sf::Keyboard::F6));
+    rb_define_const(rb_mKeyboard, "F7", LONG2NUM(sf::Keyboard::F7));
+    rb_define_const(rb_mKeyboard, "F8", LONG2NUM(sf::Keyboard::F8));
+    rb_define_const(rb_mKeyboard, "F9", LONG2NUM(sf::Keyboard::F9));
+    rb_define_const(rb_mKeyboard, "F10", LONG2NUM(sf::Keyboard::F10));
+    rb_define_const(rb_mKeyboard, "F11", LONG2NUM(sf::Keyboard::F11));
+    rb_define_const(rb_mKeyboard, "F12", LONG2NUM(sf::Keyboard::F12));
+    rb_define_const(rb_mKeyboard, "F13", LONG2NUM(sf::Keyboard::F13));
+    rb_define_const(rb_mKeyboard, "F14", LONG2NUM(sf::Keyboard::F14));
+    rb_define_const(rb_mKeyboard, "F15", LONG2NUM(sf::Keyboard::F15));
+    rb_define_const(rb_mKeyboard, "Pause", LONG2NUM(sf::Keyboard::Pause));
 }
 
 /* Reset the clock of the Input System */
@@ -380,7 +388,7 @@ void L_Input_Update_Key(sf::Keyboard::Key code, bool state)
 {
     rb_block_call(rb_mInputKey, rb_mInputEach, 0, NULL, 
         (rb_block_call_func_t)( state ? rb_Input_KeyStateDown_Block : rb_Input_KeyStateUp_Block),
-        rb_int2inum(code));
+        LONG2NUM(code));
 }
 
 void L_Input_Mouse_Pos_Update(int x, int y)
@@ -414,7 +422,78 @@ void L_Input_Update_Joy(unsigned int joy_id, unsigned int key, bool state)
 		return;
     rb_block_call(rb_mInputKey, rb_mInputEach, 0, NULL, 
         (rb_block_call_func_t)( state ? rb_Input_KeyStateDown_Block : rb_Input_KeyStateUp_Block),
-        rb_int2inum(-(32 * joy_id) - key - 1));
+        LONG2NUM(-(32 * joy_id) - key - 1));
+}
+
+void L_Input_Update_JoyPos_setKeyState(unsigned int key, bool state)
+{
+	L_Input_Press[key] = state;
+	L_TRIGGER_RESET_Input(key);
+}
+
+// Return Z and PovY axis of XBox360 controler
+float L_Input_FixAxisPos(long axis, float position)
+{
+	if (axis == sf::Joystick::Axis::PovY || axis == sf::Joystick::Axis::Z)
+		return -position;
+	return position;
+}
+
+#define JOY_MIN_DEADZONE -25.0f
+#define JOY_MAX_DEADZONE 25.0f
+
+void L_Input_Update_JoyXPos(float position)
+{
+	if (position < JOY_MIN_DEADZONE)
+	{
+		if (!L_Input_Press[15])
+		{
+			L_Input_Update_JoyPos_setKeyState(15, true);
+			L_Input_Update_JoyPos_setKeyState(16, false);
+		}
+	}
+	else if (position > JOY_MAX_DEADZONE)
+	{
+		if (!L_Input_Press[16])
+		{
+			L_Input_Update_JoyPos_setKeyState(15, false);
+			L_Input_Update_JoyPos_setKeyState(16, true);
+		}
+	}
+	else
+	{
+		if (L_Input_Press[16])
+			L_Input_Update_JoyPos_setKeyState(16, false);
+		if (L_Input_Press[15])
+			L_Input_Update_JoyPos_setKeyState(15, false);
+	}
+}
+
+void L_Input_Update_JoyYPos(float position)
+{
+	if (position < JOY_MIN_DEADZONE)
+	{
+		if (!L_Input_Press[13])
+		{
+			L_Input_Update_JoyPos_setKeyState(13, true);
+			L_Input_Update_JoyPos_setKeyState(14, false);
+		}
+	}
+	else if (position > JOY_MAX_DEADZONE)
+	{
+		if (!L_Input_Press[14])
+		{
+			L_Input_Update_JoyPos_setKeyState(13, false);
+			L_Input_Update_JoyPos_setKeyState(14, true);
+		}
+	}
+	else
+	{
+		if (L_Input_Press[13])
+			L_Input_Update_JoyPos_setKeyState(13, false);
+		if (L_Input_Press[14])
+			L_Input_Update_JoyPos_setKeyState(14, false);
+	}
 }
 
 void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
@@ -422,65 +501,13 @@ void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
     VALUE joypad = LONG2FIX(joy_id);
     if(joypad != rb_mInputMainJoy)
         return;
-	if (!sf::Joystick::isConnected(joy_id))
-		return;
+	position = L_Input_FixAxisPos(axis, position);
     VALUE raxis = LONG2FIX(axis);
-    if(raxis == rb_mInputMainAxisX)
-    {
-        if(position < -25.0f)
-            if(!L_Input_Press[15])
-            {
-                L_Input_Press[15] = true;
-				L_TRIGGER_RESET_Input(15);
-            }
-        else if(position > 25.0f)
-            if(!L_Input_Press[16])
-            {
-                L_Input_Press[16] = true;
-				L_TRIGGER_RESET_Input(16);
-            }
-        else
-        {
-            if(L_Input_Press[16])
-            {
-                L_Input_Press[16] = false;
-				L_TRIGGER_RESET_Input(16);
-            }
-            if(L_Input_Press[15])
-            {
-                L_Input_Press[15] = false;
-				L_TRIGGER_RESET_Input(15);
-            }
-        }
-    }
-    else if(raxis == rb_mInputMainAxisY)
-    {
-        if(position < -25.0f)
-            if(!L_Input_Press[13])
-            {
-                L_Input_Press[13] = true;
-				L_TRIGGER_RESET_Input(13);
-            }
-        else if(position > 25.0f)
-            if(!L_Input_Press[14])
-            {
-                L_Input_Press[14] = true;
-				L_TRIGGER_RESET_Input(14);
-            }
-        else
-        {
-            if(L_Input_Press[14])
-            {
-                L_Input_Press[14] = false;
-				L_TRIGGER_RESET_Input(14);
-            }
-            if(L_Input_Press[13])
-            {
-                L_Input_Press[13] = false;
-				L_TRIGGER_RESET_Input(13);
-            }
-        }
-    }
+	//printf("\r%d %d %f %d %d      ", joy_id, raxis, position, raxis == rb_mInputMainAxisX, raxis == rb_mInputMainAxisY);
+	if (raxis == rb_mInputMainAxisX)
+		L_Input_Update_JoyXPos(position);
+	else if (raxis == rb_mInputMainAxisY)
+		L_Input_Update_JoyYPos(position);
 }
 
 void L_Input_Reset_JoyPos(unsigned int joy_id)
