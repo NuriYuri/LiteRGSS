@@ -541,6 +541,17 @@ VALUE rb_Window_getPauseX(VALUE self)
 VALUE rb_Window_setPauseX(VALUE self, VALUE val)
 {
 	GET_WINDOW;
+	if (NIL_P(val))
+	{
+		window->rPauseX = Qnil;
+	}
+	else
+	{
+		NUM2LONG(val);
+		window->rPauseX = val;
+		window->resetPausePosition();
+	}
+	return self;
 }
 
 VALUE rb_Window_getPauseY(VALUE self)

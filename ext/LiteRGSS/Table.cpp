@@ -218,11 +218,9 @@ VALUE rb_Table_Fill(VALUE self, VALUE val)
 {
     GET_TABLE
     short v = RB_NUM2SHORT(val);
-    unsigned long sz = table->header.data_size;
+	short* max_data = table->heap + table->header.data_size;
     short* data = table->heap;
-    for(unsigned long i = 0;i < sz;i++)
-    {
-        data[i] = v;
-    }
+    for(;data < max_data;data++)
+		*data = v;
     return self;
 }

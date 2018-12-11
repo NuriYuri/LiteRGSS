@@ -656,6 +656,8 @@ void CWindow_Element::resetPausePosition()
 
 void CWindow_Element::resetCursorPosition(sf::IntRect * rect)
 {
+	if (NIL_P(rCursorSkin))
+		return;
 	sf::Vector2f size = static_cast<sf::Vector2f>(cursor_sprite.getTexture()->getSize());
 	cursor_sprite.setScale(sf::Vector2f(rect->width / size.x, rect->height / size.y));
 	cursor_sprite.setPosition(sf::Vector2f(rect->left, rect->top));
