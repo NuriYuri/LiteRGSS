@@ -42,6 +42,7 @@ void Init_Table()
     rb_define_method(rb_cTable, "dim", _rbf rb_Table_dim, 0);
     rb_define_method(rb_cTable, "resize", _rbf rb_Table_resize, -1);
     rb_define_method(rb_cTable, "fill", _rbf rb_Table_Fill, 1);
+	rb_define_method(rb_cTable, "copy", _rbf rb_Table_Copy, 3);
 
     rb_define_method(rb_cTable, "_dump", _rbf rb_Table_Save, 1);
     rb_define_singleton_method(rb_cTable, "_load", _rbf rb_Table_Load, 1);
@@ -223,4 +224,85 @@ VALUE rb_Table_Fill(VALUE self, VALUE val)
     for(;data < max_data;data++)
 		*data = v;
     return self;
+}
+
+VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_offset_y)
+{
+	GET_TABLE;
+	rb_Table_Struct* source_table = rb_Table_get_table(source);
+	long offsetx = NUM2LONG(dest_offset_x);
+	long offsety = NUM2LONG(dest_offset_y);
+	if (offsetx < 0 || offsetx >= table->header.xsize)
+		return Qfalse;
+	if (offsety < 0 || offsety >= table->header.ysize)
+		return Qfalse;
+
+	// Usefull variables
+	long target_z = table->header.zsize;
+	if (source_table->header.zsize < target_z)
+		target_z = source_table->header.zsize;
+
+	long target_x = offsetx + source_table->header.xsize;
+	if (table->header.xsize < target_x)
+		target_x = table->header.xsize;
+
+	long target_y = offsety + source_table->header.ysize;
+	if (table->header.ysize < target_y)
+		target_y = table->header.ysize;
+
+	long deltay = table->header.xsize;
+	long deltaz = deltay * table->header.ysize;
+
+	long deltay2 = source_table->header.xsize;
+	long deltaz2 = deltay2 * source_table->header.ysize;
+
+	short *zheap1, *zheap2, *yheap1, *yheap2, *xheap1, *xheap2;
+
+	zheap1 = table->heap + (offsety * deltay + offsetx);
+	zheap2 = source_table->heap;
+
+	// Copy loops
+	long x, y, z;
+	for (z = 0; z < target_z; z++)
+	{
+		yheap1 = zheap1;
+		yheap2 = zheap2;
+
+		for (y = offsety; y < target_y; y++)
+		{
+			xheap1 = yheap1;
+			xheap2 = yheap2;
+
+			for (x = offsetx; x < target_x; x++)
+			{
+				*xheap1 = *xheap2;
+				xheap1++;
+				xheap2++;
+			}
+
+			yheap1 += deltay;
+			yheap2 += deltay2;
+		}
+
+		zheap1 += deltaz;
+		zheap2 += deltaz2;
+	}
+
+	return Qtrue;
+}
+
+rb_Table_Struct* rb_Table_get_table(VALUE self)
+{
+	rb_Table_test_table(self);
+	rb_Table_Struct* table;
+	Data_Get_Struct(self, rb_Table_Struct, table);
+	return table;
+}
+
+void rb_Table_test_table(VALUE self)
+{
+	if (rb_obj_is_kind_of(self, rb_cTable) != Qtrue)
+	{
+		rb_raise(rb_eTypeError, "Expected Table got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
+	}
 }

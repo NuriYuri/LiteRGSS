@@ -25,5 +25,9 @@ VALUE rb_Table_resize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Table_Load(VALUE self, VALUE str);
 VALUE rb_Table_Save(VALUE self, VALUE limit);
 VALUE rb_Table_Fill(VALUE self, VALUE val);
+VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_offset_y);
+
+rb_Table_Struct* rb_Table_get_table(VALUE self);
+void rb_Table_test_table(VALUE self);
 
 #endif
