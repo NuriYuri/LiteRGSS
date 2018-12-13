@@ -43,6 +43,7 @@ void Init_Table()
     rb_define_method(rb_cTable, "resize", _rbf rb_Table_resize, -1);
     rb_define_method(rb_cTable, "fill", _rbf rb_Table_Fill, 1);
 	rb_define_method(rb_cTable, "copy", _rbf rb_Table_Copy, 3);
+	rb_define_method(rb_cTable, "copy_modulo", _rbf rb_Table_CopyModulo, 7);
 
     rb_define_method(rb_cTable, "_dump", _rbf rb_Table_Save, 1);
     rb_define_singleton_method(rb_cTable, "_load", _rbf rb_Table_Load, 1);
@@ -55,19 +56,19 @@ VALUE rb_Table_initialize(int argc, VALUE* argv, VALUE self)
     switch(argc)
     {
         case 1:
-            table->header.xsize = rb_num2ulong(argv[0]);
+            table->header.xsize = NUM2ULONG(argv[0]);
             table->header.ysize = 1;
             table->header.zsize = 1;
             break;
         case 2:
-            table->header.xsize = rb_num2ulong(argv[0]);
-            table->header.ysize = rb_num2ulong(argv[1]);
+            table->header.xsize = NUM2ULONG(argv[0]);
+            table->header.ysize = NUM2ULONG(argv[1]);
             table->header.zsize = 1;
             break;
         case 3:
-            table->header.xsize = rb_num2ulong(argv[0]);
-            table->header.ysize = rb_num2ulong(argv[1]);
-            table->header.zsize = rb_num2ulong(argv[2]);
+            table->header.xsize = NUM2ULONG(argv[0]);
+            table->header.ysize = NUM2ULONG(argv[1]);
+            table->header.zsize = NUM2ULONG(argv[2]);
             break;
         default:
             rb_raise(rb_eRGSSError, "Table can be 1D, 2D or 3D but nothing else, requested dimension : %dD", argc);
@@ -91,9 +92,9 @@ VALUE rb_Table_get(int argc, VALUE* argv, VALUE self)
     VALUE rx, ry, rz;
     unsigned long x, y, z;
     rb_scan_args(argc, argv, "12", &rx, &ry, &rz);
-    x = rb_num2ulong(rx);
-    y = NIL_P(ry) ? 0 : rb_num2ulong(ry);
-    z = NIL_P(rz) ? 0 : rb_num2ulong(rz);
+    x = NUM2ULONG(rx);
+    y = NIL_P(ry) ? 0 : NUM2ULONG(ry);
+    z = NIL_P(rz) ? 0 : NUM2ULONG(rz);
     if(x >= table->header.xsize || y >= table->header.ysize || z >= table->header.zsize)
         return Qnil;
     return rb_int2inum(table->heap[x + (y * table->header.xsize) + (z * table->header.xsize * table->header.ysize)]);
@@ -106,23 +107,23 @@ VALUE rb_Table_set(int argc, VALUE* argv, VALUE self)
     unsigned long x, y, z;
     short v;
     rb_scan_args(argc, argv, "22", &rx, &ry, &rz, &rv);
-    x = rb_num2ulong(rx);
+    x = NUM2ULONG(rx);
     if(NIL_P(rz))
     {
-        v = RB_NUM2SHORT(ry);
+        v = NUM2SHORT(ry);
         z = y = 0;
     }
     else if(NIL_P(rv))
     {
-        v = RB_NUM2SHORT(rz);
-        y = rb_num2ulong(ry);
+        v = NUM2SHORT(rz);
+        y = NUM2ULONG(ry);
         z = 0;
     }
     else
     {
-        y = rb_num2ulong(ry);
-        z = rb_num2ulong(rz);
-        v = RB_NUM2SHORT(rv);
+        y = NUM2ULONG(ry);
+        z = NUM2ULONG(rz);
+        v = NUM2SHORT(rv);
     }
     if(x >= table->header.xsize || y >= table->header.ysize || z >= table->header.zsize)
         return Qnil;
@@ -197,9 +198,9 @@ VALUE rb_Table_Load(VALUE self, VALUE str)
     rb_check_type(str, T_STRING);
     rb_Table_Struct* table = reinterpret_cast<rb_Table_Struct*>(RSTRING_PTR(str));
     VALUE arr[3];
-    arr[0] = RB_UINT2NUM(table->header.xsize);
-    arr[1] = RB_UINT2NUM(table->header.ysize);
-    arr[2] = RB_UINT2NUM(table->header.zsize);
+    arr[0] = UINT2NUM(table->header.xsize);
+    arr[1] = UINT2NUM(table->header.ysize);
+    arr[2] = UINT2NUM(table->header.zsize);
     table->header.dim = normalize_long(table->header.dim, 1, 3);
     VALUE rtable = rb_class_new_instance(table->header.dim, arr, self);
     Data_Get_Struct(rtable, rb_Table_Struct, table);
@@ -218,7 +219,7 @@ VALUE rb_Table_Save(VALUE self, VALUE limit)
 VALUE rb_Table_Fill(VALUE self, VALUE val)
 {
     GET_TABLE
-    short v = RB_NUM2SHORT(val);
+    short v = NUM2SHORT(val);
 	short* max_data = table->heap + table->header.data_size;
     short* data = table->heap;
     for(;data < max_data;data++)
@@ -262,7 +263,7 @@ VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_of
 	zheap2 = source_table->heap;
 
 	// Copy loops
-	long x, y, z;
+	long y, z;
 	for (z = 0; z < target_z; z++)
 	{
 		yheap1 = zheap1;
@@ -273,12 +274,7 @@ VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_of
 			xheap1 = yheap1;
 			xheap2 = yheap2;
 
-			for (x = offsetx; x < target_x; x++)
-			{
-				*xheap1 = *xheap2;
-				xheap1++;
-				xheap2++;
-			}
+			rb_Table_internal_copyLine(xheap1, xheap2, offsetx, target_x);
 
 			yheap1 += deltay;
 			yheap2 += deltay2;
@@ -289,6 +285,113 @@ VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_of
 	}
 
 	return Qtrue;
+}
+
+VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE source_origin_y, VALUE dest_offset_x, VALUE dest_offset_y, VALUE dest_width, VALUE dest_height)
+{
+
+	GET_TABLE;
+	rb_Table_Struct* source_table = rb_Table_get_table(source);
+	long offsetx = NUM2LONG(dest_offset_x);
+	long offsety = NUM2LONG(dest_offset_y);
+	long ox2 = NUM2LONG(source_origin_x);
+	long oy2 = NUM2LONG(source_origin_y);
+	if (offsetx < 0 || offsetx >= table->header.xsize)
+		return Qfalse;
+	if (offsety < 0 || offsety >= table->header.ysize)
+		return Qfalse;
+	if (ox2 < 0 || ox2 >= source_table->header.xsize)
+		return Qfalse;
+	if (oy2 < 0 || oy2 >= source_table->header.ysize)
+		return Qfalse;
+
+	long src_xsize = (long)source_table->header.xsize;
+	long src_ysize = (long)source_table->header.ysize;
+
+	// Usefull variables
+	long n = (NUM2LONG(dest_height) - src_ysize + oy2) / src_ysize;
+	long m = (NUM2LONG(dest_width) - src_xsize + ox2) / src_xsize;
+	if (n < 0)
+		n = 0;
+	if (m < 0)
+		m = 0;
+
+
+	long target_z = table->header.zsize;
+	if (source_table->header.zsize < target_z)
+		target_z = source_table->header.zsize;
+
+	long target_x = offsetx + NUM2LONG(dest_width);
+	if (table->header.xsize < target_x)
+		target_x = table->header.xsize;
+
+	long target_y = offsety + NUM2LONG(dest_height);
+	if (table->header.ysize < target_y)
+		target_y = table->header.ysize;
+
+	long deltay = table->header.xsize;
+	long deltaz = deltay * table->header.ysize;
+
+	long deltay2 = source_table->header.xsize;
+	long deltaz2 = deltay2 * source_table->header.ysize;
+
+	short *zheap1, *zheap2, *yheap1, *yheap2, *xheap1, *xheap2;
+	long target_x2, target_y2;
+
+	zheap1 = table->heap + (offsety * deltay + offsetx);
+	zheap2 = source_table->heap;
+
+	// Copy loops
+	long j, y, z;
+
+	for (z = 0; z < target_z; z++)
+	{
+		yheap1 = zheap1;
+		// Y Init Loop (top copied from oy2 to what it can copy in height)
+		yheap2 = zheap2 + oy2 * deltay2;
+		target_y2 = target_y - offsety;
+		if (target_y2 > (src_ysize - oy2))
+			target_y2 = (src_ysize - oy2);
+
+		//printf("target_y2 = %d; %d %d\n", target_y2, src_ysize, target_y - offsety);
+
+		for (y = 0; y < target_y2; y++)
+		{
+			rb_Table_internal_copyModuloYpart(yheap1, yheap2, ox2, target_x, offsetx, src_xsize, m);
+			yheap1 += deltay;
+			yheap2 += deltay2;
+		}
+		// End of Y init loop
+
+		// Y middle loops
+		for (j = 0; j < n; j++)
+		{
+			yheap2 = zheap2;
+			for (y = 0; y < src_ysize; y++)
+			{
+				rb_Table_internal_copyModuloYpart(yheap1, yheap2, ox2, target_x, offsetx, src_xsize, m);
+				yheap1 += deltay;
+				yheap2 += deltay2;
+			}
+		}
+
+		// Y end loop
+		yheap2 = zheap2;
+		target_y2 = target_y - offsety + oy2 - (n + 1) * src_ysize;
+		if (target_y2 > src_ysize)
+			target_y2 = src_ysize;
+
+		for (y = 0; y < target_y2; y++)
+		{
+			rb_Table_internal_copyModuloYpart(yheap1, yheap2, ox2, target_x, offsetx, src_xsize, m);
+			yheap1 += deltay;
+			yheap2 += deltay2;
+		}
+
+		// End of Z loop
+		zheap1 += deltaz;
+		zheap2 += deltaz2;
+	}
 }
 
 rb_Table_Struct* rb_Table_get_table(VALUE self)
@@ -305,4 +408,50 @@ void rb_Table_test_table(VALUE self)
 	{
 		rb_raise(rb_eTypeError, "Expected Table got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
 	}
+}
+
+void rb_Table_internal_copyLine(short* &xheap1, short* &xheap2, long ini_x, long max_x)
+{
+	short* max_xheap2 = xheap2 + (max_x - ini_x);
+	for (; xheap2 < max_xheap2; xheap2++)//(int x = ini_x; x < max_x; x++)
+	{
+		*xheap1 = *xheap2;
+		xheap1++;
+		//xheap2++;
+	}
+}
+
+void rb_Table_internal_copyModuloYpart(short* xheap1, short* yheap2, long ox2, long target_x, long offsetx, long src_xsize, long m)
+{
+	long i;
+	// X Init Loop (line copied from ox2 to what it can copy in width)
+	short* xheap2 = yheap2 + ox2;
+	long target_x2 = target_x - offsetx;
+	if (target_x2 > (src_xsize - ox2))
+		target_x2 = (src_xsize - ox2);
+
+	//printf("target_x2 = %d; %d %d %d\n", target_x2, src_xsize, target_x - offsetx, m);
+
+	rb_Table_internal_copyLine(xheap1, xheap2, 0, target_x2);
+
+	// X Middle loops
+	for (i = 0; i < m; i++)
+	{
+		// here xheap1 should have been altered by rb_Table_internal_copyLine
+		xheap2 = yheap2;
+		rb_Table_internal_copyLine(xheap1, xheap2, 0, src_xsize);
+	}
+
+	// X End loop
+	xheap2 = yheap2;
+	target_x2 = target_x - offsetx + ox2 - (m + 1) * src_xsize;
+	if (target_x2 > src_xsize) // If this condition validates, our computation is incorrect
+	{
+		//printf("Failure ! %d %d\n", target_x2, src_xsize);
+		target_x2 = src_xsize;
+	}
+
+	//printf("target_x2 = %d; %d %d %d\n", target_x2, src_xsize, target_x - offsetx, m);
+
+	rb_Table_internal_copyLine(xheap1, xheap2, 0, target_x2);
 }
