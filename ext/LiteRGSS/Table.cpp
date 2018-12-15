@@ -289,7 +289,6 @@ VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_of
 
 VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE source_origin_y, VALUE dest_offset_x, VALUE dest_offset_y, VALUE dest_width, VALUE dest_height)
 {
-
 	GET_TABLE;
 	rb_Table_Struct* source_table = rb_Table_get_table(source);
 	long offsetx = NUM2LONG(dest_offset_x);
@@ -309,12 +308,6 @@ VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE
 	long src_ysize = (long)source_table->header.ysize;
 
 	// Usefull variables
-	long n = (NUM2LONG(dest_height) - src_ysize + oy2) / src_ysize;
-	long m = (NUM2LONG(dest_width) - src_xsize + ox2) / src_xsize;
-	if (n < 0)
-		n = 0;
-	if (m < 0)
-		m = 0;
 
 
 	long target_z = table->header.zsize;
@@ -328,6 +321,13 @@ VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE
 	long target_y = offsety + NUM2LONG(dest_height);
 	if (table->header.ysize < target_y)
 		target_y = table->header.ysize;
+
+	long n = (target_x - offsetx - src_ysize + oy2) / src_ysize;
+	long m = (target_x - offsety - src_xsize + ox2) / src_xsize;
+	if (n < 0)
+		n = 0;
+	if (m < 0)
+		m = 0;
 
 	long deltay = table->header.xsize;
 	long deltaz = deltay * table->header.ysize;
@@ -392,6 +392,7 @@ VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE
 		zheap1 += deltaz;
 		zheap2 += deltaz2;
 	}
+	return Qtrue;
 }
 
 rb_Table_Struct* rb_Table_get_table(VALUE self)

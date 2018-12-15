@@ -120,6 +120,9 @@ void Init_Window()
 	rb_define_method(rb_cWindow, "visible", _rbf rb_Window_getVisible, 0);
 	rb_define_method(rb_cWindow, "visible=", _rbf rb_Window_setVisible, 1);
 	rb_define_method(rb_cWindow, "__index__", _rbf rb_Window_getIndex, 0);
+	rb_define_method(rb_cWindow, "lock", _rbf rb_Window_lock, 0);
+	rb_define_method(rb_cWindow, "unlock", _rbf rb_Window_unlock, 0);
+	rb_define_method(rb_cWindow, "locked?", _rbf rb_Window_locked, 0);
 
 	rb_define_method(rb_cWindow, "clone", _rbf rb_Window_Copy, 0);
 	rb_define_method(rb_cWindow, "dup", _rbf rb_Window_Copy, 0);
@@ -664,6 +667,26 @@ VALUE rb_Window_getIndex(VALUE self)
 {
 	GET_WINDOW;
 	return ULONG2NUM(window->getIndex());
+}
+
+VALUE rb_Window_lock(VALUE self)
+{
+	GET_WINDOW;
+	window->lock();
+	return self;
+}
+
+VALUE rb_Window_unlock(VALUE self)
+{
+	GET_WINDOW;
+	window->unlock();
+	return self;
+}
+
+VALUE rb_Window_locked(VALUE self)
+{
+	GET_WINDOW;
+	return window->is_locked() ? Qtrue : Qfalse;
 }
 
 VALUE rb_Window_Copy(VALUE self)

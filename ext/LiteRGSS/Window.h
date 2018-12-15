@@ -53,7 +53,9 @@ VALUE rb_Window_setContentsOpacity(VALUE self, VALUE val);
 VALUE rb_Window_getRect(VALUE self);
 VALUE rb_Window_getVisible(VALUE self);
 VALUE rb_Window_setVisible(VALUE self, VALUE val);
-
+VALUE rb_Window_lock(VALUE self);
+VALUE rb_Window_unlock(VALUE self);
+VALUE rb_Window_locked(VALUE self);
 
 
 

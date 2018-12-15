@@ -9,6 +9,7 @@ CWindow_Element::CWindow_Element() : CDrawable_Element()
 	vertices = nullptr;
 	visible = true;
 	texture = nullptr;
+	locked = false;
 	counter = 0;
 	rViewport = Qnil;
 	rBitmap = Qnil;
@@ -124,6 +125,8 @@ void CWindow_Element::setTexture(sf::Texture * text)
 void CWindow_Element::updateVertices()
 {
 	// Checkup part
+	if (locked)
+		return;
 	if (texture == nullptr)
 		return;
 	if (rb_Bitmap_Disposed(rBitmap) == Qtrue)
@@ -624,6 +627,22 @@ void CWindow_Element::updateView()
 	float sh = static_cast<float>(ScreenHeight);
 	sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
 	view.setViewport(frect);
+}
+
+void CWindow_Element::lock()
+{
+	locked = true;
+}
+
+void CWindow_Element::unlock()
+{
+	locked = false;
+	updateVertices();
+}
+
+bool CWindow_Element::is_locked()
+{
+	return locked;
 }
 
 sf::Sprite * CWindow_Element::getPauseSprite()

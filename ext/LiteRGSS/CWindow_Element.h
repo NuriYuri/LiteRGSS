@@ -14,6 +14,7 @@ class CWindow_Element : public CDrawable_Element {
 		long counter;
 		sf::Sprite pause_sprite;
 		sf::Sprite cursor_sprite;
+		bool locked;
 		void updateVerticesBlt(long wt, long ht);
 		void updateVerticesStretch(long wt, long ht);
 		void allocateVerticesBlt(long delta_w, long nb2, long delta_h, long nb4);
@@ -44,6 +45,9 @@ class CWindow_Element : public CDrawable_Element {
 		void updateBackOpacity();
 		void updateContentsOpacity();
 		void updateView();
+		void lock();
+		void unlock();
+		bool is_locked();
 		sf::Sprite* getPauseSprite();
 		sf::Sprite* getCursorSprite();
 		void resetPausePosition();

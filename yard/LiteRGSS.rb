@@ -695,6 +695,18 @@ module LiteRGSS
     # @return [self]
     def update
     end
+    # Lock the window vertice calculation (background)
+    # @return [self]
+    def lock
+    end
+    # Unlock the window vertice calculation and force the calculation at the same time (background)
+    # @return [self]
+    def unlock
+    end
+    # Tell if the window vertice caculation is locked or not
+    # @return [Boolean]
+    def locked?
+    end
     # @return [Viewport, nil] viewport in which the Window is shown
     attr_reader :viewport
     # @return [Bitmap] Windowskin used to draw the Window frame
@@ -1442,4 +1454,144 @@ module Yuki
     class Error < StandardError
     end
   end
+end
+# Class that store a 3D array of value coded with 16bits (signed)
+class Table
+  # Create a new table without pre-initialization of the contents
+  # @param xsize [Integer] number of row
+  # @param ysize [Integer] number of cols
+  # @param zsize [Integer] number of 2D table
+  # @note Never call initialize from the Ruby code other than using Table.new. It'll create memory if you call initialize from Ruby, use #resize instead.
+  def initialize(xsize, ysize = 1, zsize = 1)
+  end
+  # Access to a value of the table
+  # @param x [Integer] index of the row
+  # @param y [Integer] index of the col
+  # @param z [Integer] index of the 2D table
+  # @return [Integer, nil] nil if x, y or z are outside of the table.
+  def [](x, y = 0, z = 0)
+  end
+  # Change a value in the table
+  # @overload []=(x, value)
+  #   @param x [Integer] row to affect to the new value
+  #   @param value [Integer] new value
+  # @overload []=(x, y, value)
+  #   @param x [Integer] row index of the cell to affect to the new value
+  #   @param y [Integer] col index of the cell to affect to the new value
+  #   @param value [Integer] new value
+  # @overload []=(x, y, z, value)
+  #   @param x [Integer] row index of the cell to affect to the new value
+  #   @param y [Integer] col index of the cell to affect to the new value
+  #   @param z [Integer] index of the table containing the cell to affect to the new value
+  #   @param value [Integer] new value
+  def []=(x, y, z, value)
+  end
+  # @return [Integer] number of row in the table
+  attr_reader :xsize
+  # @return [Integer] number of cols in the table
+  attr_reader :ysize
+  # @return [Integer] number of 2D table in the table
+  attr_reader :zsize
+  # @return [Integer] Dimension of the table (1D, 2D, 3D)
+  attr_reader :dim
+  # Resize the table
+  # @param xsize [Integer] number of row
+  # @param ysize [Integer] number of cols
+  # @param zsize [Integer] number of 2D table
+  # @note Some value may be undeterminated if the new size is bigger than the old size
+  def resize(xsize, ysize = 1, zsize = 1)
+  end
+  # Fill the whole table with a specific value
+  # @param value [Integer] the value to affect to every cell of the table
+  def fill(value)
+  end
+  # Copy another table to this table
+  # @param table [Table] the other table
+  # @param dest_offset_x [Integer] index of the row that will receive the first row of the other table
+  # @param dest_offset_y [Integer] index of the col that will receive the first colum of the other table
+  # @return [Boolean] if the operation was done
+  # @note If any parameter is invalid (eg. dest_offset_coord < 0) the function does nothing.
+  def copy(table, dest_offset_x, dest_offset_y)
+  end
+  # Copy another table to a specified surface of the current table using a circular copy (dest_coord = offset + source_coord % source_size)
+  # @param table [Table] the other table
+  # @param source_origin_x [Integer] index of the first row to copy in the current table
+  # @param source_origin_y [Integer] index of the first col to copy in the current table
+  # @param dest_offset_x [Integer] index of the row that will receive the first row of the other table
+  # @param dest_offset_y [Integer] index of the col that will receive the first colum of the other table
+  # @param width [Integer] width of the destination surface that receive the other table values
+  # @param height [Integer] height of the destination surface that receive the other table values
+  def copy_modulo(table, source_origin_x, source_origin_y, dest_offset_x, dest_offset_y, width, height)
+  end
+end
+# Class that store a 3D array of value coded with 32bits (signed)
+class Table32
+  # Create a new table without pre-initialization of the contents
+  # @param xsize [Integer] number of row
+  # @param ysize [Integer] number of cols
+  # @param zsize [Integer] number of 2D table
+  # @note Never call initialize from the Ruby code other than using Table.new. It'll create memory if you call initialize from Ruby, use #resize instead.
+  def initialize(xsize, ysize = 1, zsize = 1)
+  end
+  # Access to a value of the table
+  # @param x [Integer] index of the row
+  # @param y [Integer] index of the col
+  # @param z [Integer] index of the 2D table
+  # @return [Integer, nil] nil if x, y or z are outside of the table.
+  def [](x, y = 0, z = 0)
+  end
+  # Change a value in the table
+  # @overload []=(x, value)
+  #   @param x [Integer] row to affect to the new value
+  #   @param value [Integer] new value
+  # @overload []=(x, y, value)
+  #   @param x [Integer] row index of the cell to affect to the new value
+  #   @param y [Integer] col index of the cell to affect to the new value
+  #   @param value [Integer] new value
+  # @overload []=(x, y, z, value)
+  #   @param x [Integer] row index of the cell to affect to the new value
+  #   @param y [Integer] col index of the cell to affect to the new value
+  #   @param z [Integer] index of the table containing the cell to affect to the new value
+  #   @param value [Integer] new value
+  def []=(x, y, z, value)
+  end
+  # @return [Integer] number of row in the table
+  attr_reader :xsize
+  # @return [Integer] number of cols in the table
+  attr_reader :ysize
+  # @return [Integer] number of 2D table in the table
+  attr_reader :zsize
+  # @return [Integer] Dimension of the table (1D, 2D, 3D)
+  attr_reader :dim
+  # Resize the table
+  # @param xsize [Integer] number of row
+  # @param ysize [Integer] number of cols
+  # @param zsize [Integer] number of 2D table
+  # @note Some value may be undeterminated if the new size is bigger than the old size
+  def resize(xsize, ysize = 1, zsize = 1)
+  end
+  # Fill the whole table with a specific value
+  # @param value [Integer] the value to affect to every cell of the table
+  def fill(value)
+  end
+=begin
+  # Copy another table to this table
+  # @param table [Table] the other table
+  # @param dest_offset_x [Integer] index of the row that will receive the first row of the other table
+  # @param dest_offset_y [Integer] index of the col that will receive the first colum of the other table
+  # @return [Boolean] if the operation was done
+  # @note If any parameter is invalid (eg. dest_offset_coord < 0) the function does nothing.
+  def copy(table, dest_offset_x, dest_offset_y)
+  end
+  # Copy another table to a specified surface of the current table using a circular copy (dest_coord = offset + source_coord % source_size)
+  # @param table [Table] the other table
+  # @param source_origin_x [Integer] index of the first row to copy in the current table
+  # @param source_origin_y [Integer] index of the first col to copy in the current table
+  # @param dest_offset_x [Integer] index of the row that will receive the first row of the other table
+  # @param dest_offset_y [Integer] index of the col that will receive the first colum of the other table
+  # @param width [Integer] width of the destination surface that receive the other table values
+  # @param height [Integer] height of the destination surface that receive the other table values
+  def copy_modulo(table, source_origin_x, source_origin_y, dest_offset_x, dest_offset_y, width, height)
+  end
+=end
 end
