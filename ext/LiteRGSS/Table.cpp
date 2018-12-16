@@ -322,8 +322,8 @@ VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE
 	if (table->header.ysize < target_y)
 		target_y = table->header.ysize;
 
-	long n = (target_x - offsetx - src_ysize + oy2) / src_ysize;
-	long m = (target_x - offsety - src_xsize + ox2) / src_xsize;
+	long n = (target_y - offsety - src_ysize + oy2) / src_ysize;
+	long m = (target_x - offsetx - src_xsize + ox2) / src_xsize;
 	if (n < 0)
 		n = 0;
 	if (m < 0)
