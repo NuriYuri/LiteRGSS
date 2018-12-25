@@ -1,6 +1,8 @@
 #ifndef L_TABLE32_HEADER
 #define L_TABLE32_HEADER
 
+#include <cstdint>
+
 struct rb_Table32_Struct_Header {
     unsigned int dim;
     unsigned int xsize;
@@ -11,7 +13,7 @@ struct rb_Table32_Struct_Header {
 
 struct rb_Table32_Struct {
     rb_Table32_Struct_Header header;
-    long* heap;
+	int32_t* heap;
 };
 
 VALUE rb_Table32_initialize(int argc, VALUE* argv, VALUE self);

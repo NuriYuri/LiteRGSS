@@ -80,7 +80,7 @@ VALUE rb_Table32_initialize(int argc, VALUE* argv, VALUE self)
         table->header.zsize = 1;
     table->header.dim = argc;
     table->header.data_size = table->header.xsize * table->header.ysize * table->header.zsize;
-    table->heap = new long[table->header.data_size];
+    table->heap = new int32_t[table->header.data_size];
     return self;
 }
 
@@ -153,7 +153,7 @@ VALUE rb_Table32_dim(VALUE self)
     return rb_uint2inum(table->header.dim);
 }
 
-void table_copy(long* dheap, long* sheap, unsigned long dxsize, unsigned long dysize, 
+void table_copy(int32_t* dheap, int32_t* sheap, unsigned long dxsize, unsigned long dysize,
     unsigned long dzsize, unsigned long sxsize, unsigned long sysize, unsigned long szsize)
 {
     unsigned long xsize, ysize, zsize, soy, soz, doy, doz, x, y, z;
@@ -219,7 +219,7 @@ VALUE rb_Table32_Fill(VALUE self, VALUE val)
     GET_TABLE
     long v = RB_NUM2LONG(val);
     unsigned long sz = table->header.data_size;
-    long* data = table->heap;
+	int32_t* data = table->heap;
     for(unsigned long i = 0;i < sz;i++)
     {
         data[i] = v;
