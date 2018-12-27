@@ -457,7 +457,8 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
     {
         if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue ||
             rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue ||
-            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
+            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue ||
+			rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
         {
             if(RDATA(ori[i])->data != nullptr)
             {

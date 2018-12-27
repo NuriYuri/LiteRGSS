@@ -152,6 +152,7 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
 		window->rViewport = Qnil;
 	}
+	rb_ary_push(table, self);
 
 	/* Sprite table creation */
 	rb_ivar_set(self, rb_iElementTable, rb_ary_new());
