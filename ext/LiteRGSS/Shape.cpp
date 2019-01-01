@@ -243,8 +243,8 @@ VALUE rb_Shape_setBitmap(VALUE self, VALUE bitmap)
 		}
 		return self;
 	}
-	sf::Texture* texture = rb_Bitmap_getTexture(bitmap);
-	shape->getShape()->setTexture(texture, true);
+	sf::Texture& texture = rb_Bitmap_getTexture(bitmap);
+	shape->getShape()->setTexture(&texture, true);
 	shape->rBitmap = bitmap;
 	/* update rect */
 	if (!NIL_P(shape->rRect))

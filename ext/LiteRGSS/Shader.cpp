@@ -205,11 +205,8 @@ VALUE rb_Shader_setTextureUniform(VALUE self, VALUE name, VALUE uniform)
 	rb_check_type(name, T_STRING);
 	if (rb_obj_is_kind_of(uniform, rb_cBitmap) == Qtrue)
 	{
-		sf::Texture* texture = rb_Bitmap_getTexture(uniform);
-		if (texture != nullptr)
-		{
-			shader->setUniform(rb_string_value_cstr(&name), *texture);
-		}
+		sf::Texture& texture = rb_Bitmap_getTexture(uniform);
+		shader->setUniform(rb_string_value_cstr(&name), texture);
 	}
 	else
 	{

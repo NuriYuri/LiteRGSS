@@ -207,7 +207,7 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
     CBitmap_Element* bmp;
     Data_Get_Struct(bitmap, CBitmap_Element, bmp);
     sf::Sprite* sp = sprite->getSprite();
-    sp->setTexture(*bmp->getTexture(), true);
+    sp->setTexture(bmp->getTexture(), true);
     sprite->setDrawable(true);
     sprite->rBitmap = bitmap;
 	if (!NIL_P(sprite->rRect))

@@ -271,7 +271,7 @@ void local_Graphics_TransitionRGSS(VALUE self, long time, VALUE bitmap)
 {
 	Graphics_freeze_sprite->setColor(sf::Color(255, 255, 255, 255));
 	RGSSTransition = true;
-	Graphics_freeze_shader->setUniform("transition", *rb_Bitmap_getTexture(bitmap));
+	Graphics_freeze_shader->setUniform("transition", rb_Bitmap_getTexture(bitmap));
 	for (long i = 1; i <= time; i++)
 	{
 		Graphics_freeze_shader->setUniform("param", static_cast<float>(i) / time);

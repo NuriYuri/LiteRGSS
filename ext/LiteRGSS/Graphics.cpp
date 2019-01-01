@@ -134,8 +134,8 @@ VALUE rb_Graphics_snap_to_bitmap(VALUE self)
     Data_Get_Struct(bmp, CBitmap_Element, bitmap);
     if(bitmap == nullptr)
         return Qnil;
-    sf::Texture* text = bitmap->getTexture();
-    local_Graphics_Take_Snapshot(text);
+    sf::Texture& text = bitmap->getTexture();
+    local_Graphics_Take_Snapshot(&text);
     return bmp;
 }
 

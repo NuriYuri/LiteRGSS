@@ -661,11 +661,11 @@ void CWindow_Element::resetPausePosition()
 		return;
 	long pause_x, pause_y;
 	if (NIL_P(rPauseX))
-		pause_x = (NUM2LONG(rWidth) - rb_Bitmap_getTexture(rPauseSkin)->getSize().x) / 2;
+		pause_x = (NUM2LONG(rWidth) - rb_Bitmap_getTexture(rPauseSkin).getSize().x) / 2;
 	else
 		pause_x = NUM2LONG(rPauseX);
 	if (NIL_P(rPauseY))
-		pause_y = NUM2LONG(rHeight) - rb_Bitmap_getTexture(rPauseSkin)->getSize().y / 2 - 2;
+		pause_y = NUM2LONG(rHeight) - rb_Bitmap_getTexture(rPauseSkin).getSize().y / 2 - 2;
 	else
 		pause_y = NUM2LONG(rPauseY);
 	pause_x += NUM2LONG(rX);

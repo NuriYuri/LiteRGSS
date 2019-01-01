@@ -146,7 +146,7 @@ VALUE rb_Image_Rect(VALUE self)
 VALUE rb_Image_Copy_to_Bitmap(VALUE self, VALUE bitmap)
 {
     GET_IMAGE
-    rb_Bitmap_getTexture(bitmap)->update(*img);
+    rb_Bitmap_getTexture(bitmap).update(*img);
     return self;
 }
 

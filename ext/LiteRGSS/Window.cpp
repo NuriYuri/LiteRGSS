@@ -205,7 +205,7 @@ VALUE rb_Window_Dispose(VALUE self)
 {
 	GET_WINDOW;
 	RDATA(self)->data = nullptr;
-	/* Suppression de la fenêtre de ses stacks */
+	/* Suppression de la fenï¿½tre de ses stacks */
 	VALUE viewport = window->rViewport;
 	VALUE table;
 	if (NIL_P(viewport))
@@ -232,7 +232,7 @@ VALUE rb_Window_setWindowSkin(VALUE self, VALUE val)
 	GET_WINDOW;
 	if (val != Qnil)
 	{
-		window->setTexture(rb_Bitmap_getTexture(val));
+		window->setTexture(&rb_Bitmap_getTexture(val));
 		window->rBitmap = val;
 		window->updateVertices();
 	}
@@ -492,7 +492,7 @@ VALUE rb_Window_setCursorSkin(VALUE self, VALUE val)
 	}
 	else
 	{
-		window->getCursorSprite()->setTexture(*rb_Bitmap_getTexture(val));
+		window->getCursorSprite()->setTexture(rb_Bitmap_getTexture(val));
 		window->rCursorSkin = val;
 		window->updateCursorSprite();
 	}
@@ -514,7 +514,7 @@ VALUE rb_Window_setPauseSkin(VALUE self, VALUE val)
 	}
 	else
 	{
-		window->getPauseSprite()->setTexture(*rb_Bitmap_getTexture(val));
+		window->getPauseSprite()->setTexture(rb_Bitmap_getTexture(val));
 		window->rPauseSkin = val;
 		window->resetPausePosition();
 		window->updatePauseSprite();
