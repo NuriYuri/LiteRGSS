@@ -422,7 +422,7 @@ VALUE rb_Viewport_setRenderState(VALUE self, VALUE val)
 		Data_Get_Struct(val, sf::RenderStates, render_state);
 		if (render_state)
 		{
-			viewport->setRenderStates(render_state);
+			viewport->setRenderStates(std::unique_ptr<sf::RenderStates>(render_state));
 			viewport->rRenderState = val;
 			viewport->create_render(); // Make sure the global render is initialized
 			viewport->updatetone();
