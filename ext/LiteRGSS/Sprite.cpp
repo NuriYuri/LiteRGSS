@@ -106,7 +106,7 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
     {
         CViewport_Element* viewport;
         Data_Get_Struct(argv[0], CViewport_Element, viewport);
-        viewport->bind(sprite);
+        viewport->bind(*sprite);
         table = rb_ivar_get(argv[0], rb_iElementTable);
         sprite->rViewport = argv[0];
     }
@@ -216,7 +216,7 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
 		Data_Get_Struct(sprite->rRect, CRect_Element, rect);
 		/* Setting rect parameter */
 		const sf::IntRect rectorigin = sp->getTextureRect();
-		rect_copy(rect->getRect(), &rectorigin);
+		rect_copy(&rect->getRect(), &rectorigin);
 	}
     return self;
 }
@@ -425,7 +425,7 @@ VALUE rb_Sprite_getRect(VALUE self)
     Data_Get_Struct(rc, CRect_Element, rect);
     /* Setting rect parameter */
     const sf::IntRect rectorigin = sprite->getSprite()->getTextureRect();
-    rect_copy(rect->getRect(), &rectorigin);
+    rect_copy(&rect->getRect(), &rectorigin);
     /* Linking Rect */
     rect->setElement(sprite);
     sprite->setLinkedRect(rect);
@@ -451,10 +451,10 @@ VALUE rb_Sprite_setRect(VALUE self, VALUE val)
     CRect_Element* rect2;
     Data_Get_Struct(rc, CRect_Element, rect2);
     /* Copying the rect */
-    sf::IntRect* rect_target = rect2->getRect();
-    rect_copy(rect_target, rect1->getRect());
+    sf::IntRect& rect_target = rect2->getRect();
+    rect_copy(&rect_target, &rect1->getRect());
 	/* Mirror management */
-	sf::IntRect rect_setter = *rect_target;
+	sf::IntRect rect_setter = rect_target;
 	if (RTEST(sprite->rMirror))
 	{
 		rect_setter.left += rect_setter.width;

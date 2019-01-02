@@ -84,11 +84,11 @@ VALUE rb_Rect_initialize(int argc, VALUE* argv, VALUE self)
         y = LONG2FIX(0);
     }
     /* Rect definition */
-    sf::IntRect* srect = rect->getRect();
-    srect->left = rb_num2long(x);
-    srect->top = rb_num2long(y);
-    srect->width = rb_num2long(width);
-    srect->height = rb_num2long(height);
+    sf::IntRect& srect = rect->getRect();
+    srect.left = rb_num2long(x);
+    srect.top = rb_num2long(y);
+    srect.width = rb_num2long(width);
+    srect.height = rb_num2long(height);
     /* Pointed element nullification */
     rect->setElement(nullptr);
     return self;
@@ -100,7 +100,7 @@ VALUE rb_Rect_initialize_copy(VALUE self, VALUE other)
     CRect_Element* rect2;
     Data_Get_Struct(other, CRect_Element, rect2);
     if(RDATA(other)->data == nullptr) { return Qnil; }
-    rect_copy(rect->getRect(), rect2->getRect());
+    rect_copy(&rect->getRect(), &rect2->getRect());
     rect->setElement(nullptr);
     return self;
 }
@@ -116,15 +116,15 @@ VALUE rb_Rect_set(int argc, VALUE* argv, VALUE self)
     VALUE x, y, width, height;
     rb_scan_args(argc, argv, "13", &x, &y, &width, &height);
     GET_RECT
-    sf::IntRect* srect = rect->getRect();
+    sf::IntRect& srect = rect->getRect();
     if(!NIL_P(x))
-        srect->left = rb_num2long(x);
+        srect.left = rb_num2long(x);
     if(!NIL_P(y))
-        srect->top = rb_num2long(y);
+        srect.top = rb_num2long(y);
     if(!NIL_P(width))
-        srect->width = rb_num2long(width);
+        srect.width = rb_num2long(width);
     if(!NIL_P(height))
-        srect->height = rb_num2long(height);
+        srect.height = rb_num2long(height);
     __Rect_Check_LinkedObject(rect);
     return self;
 }
@@ -132,13 +132,13 @@ VALUE rb_Rect_set(int argc, VALUE* argv, VALUE self)
 VALUE rb_Rect_getX(VALUE self)
 {
     GET_RECT
-    return rb_int2inum(rect->getRect()->left);
+    return rb_int2inum(rect->getRect().left);
 }
 
 VALUE rb_Rect_setX(VALUE self, VALUE val)
 {
     GET_RECT
-    rect->getRect()->left = rb_num2long(val);
+    rect->getRect().left = rb_num2long(val);
     __Rect_Check_LinkedObject(rect);
     return val;
 }
@@ -146,13 +146,13 @@ VALUE rb_Rect_setX(VALUE self, VALUE val)
 VALUE rb_Rect_getY(VALUE self)
 {
     GET_RECT
-    return rb_int2inum(rect->getRect()->top);
+    return rb_int2inum(rect->getRect().top);
 }
 
 VALUE rb_Rect_setY(VALUE self, VALUE val)
 {
     GET_RECT
-    rect->getRect()->top = rb_num2long(val);
+    rect->getRect().top = rb_num2long(val);
     __Rect_Check_LinkedObject(rect);
     return val;
 }
@@ -160,13 +160,13 @@ VALUE rb_Rect_setY(VALUE self, VALUE val)
 VALUE rb_Rect_getWidth(VALUE self)
 {
     GET_RECT
-    return rb_int2inum(rect->getRect()->width);
+    return rb_int2inum(rect->getRect().width);
 }
 
 VALUE rb_Rect_setWidth(VALUE self, VALUE val)
 {
     GET_RECT
-    rect->getRect()->width = rb_num2long(val);
+    rect->getRect().width = rb_num2long(val);
     __Rect_Check_LinkedObject(rect);
     return val;
 }
@@ -174,13 +174,13 @@ VALUE rb_Rect_setWidth(VALUE self, VALUE val)
 VALUE rb_Rect_getHeight(VALUE self)
 {
     GET_RECT
-    return rb_int2inum(rect->getRect()->height);
+    return rb_int2inum(rect->getRect().height);
 }
 
 VALUE rb_Rect_setHeight(VALUE self, VALUE val)
 {
     GET_RECT
-    rect->getRect()->height = rb_num2long(val);
+    rect->getRect().height = rb_num2long(val);
     __Rect_Check_LinkedObject(rect);
     return val;
 }
@@ -205,12 +205,12 @@ VALUE rb_Rect_load(VALUE self, VALUE str)
 VALUE rb_Rect_save(VALUE self, VALUE limit)
 {
     GET_RECT
-    sf::IntRect* srect = rect->getRect();
+    sf::IntRect& srect = rect->getRect();
     int rc[4];
-    rc[0] = srect->left;
-    rc[1] = srect->top;
-    rc[2] = srect->width;
-    rc[3] = srect->height;
+    rc[0] = srect.left;
+    rc[1] = srect.top;
+    rc[2] = srect.width;
+    rc[3] = srect.height;
     return rb_str_new(reinterpret_cast<const char*>(rc), sizeof(int) * 4);
 }
 
@@ -219,32 +219,32 @@ VALUE rb_Rect_eql_rect(CRect_Element* rect, VALUE self)
     CRect_Element* rect2;
     Data_Get_Struct(self, CRect_Element, rect2);
     RECT_PROTECT
-    sf::IntRect* or1 = rect->getRect();
-    sf::IntRect* or2 = rect2->getRect();
-    if(or1->left != or2->left)
+    sf::IntRect& or1 = rect->getRect();
+    sf::IntRect& or2 = rect2->getRect();
+    if(or1.left != or2.left)
         return Qfalse;
-    if(or1->top != or2->top)
+    if(or1.top != or2.top)
         return Qfalse;
-    if(or1->width != or2->width)
+    if(or1.width != or2.width)
         return Qfalse;
-    if(or1->height != or2->height)
+    if(or1.height != or2.height)
         return Qfalse;
     return Qtrue;
 }
 
 VALUE rb_Rect_eql_array(CRect_Element* rect, VALUE oth)
 {
-    sf::IntRect* or1 = rect->getRect();
+    sf::IntRect& or1 = rect->getRect();
     if(RARRAY_LEN(oth) != 4)
         return Qfalse;
     VALUE* arr = RARRAY_PTR(oth);
-    if(rb_num2long(arr[0]) != or1->left)
+    if(rb_num2long(arr[0]) != or1.left)
         return Qfalse;
-    if(rb_num2long(arr[1]) != or1->top)
+    if(rb_num2long(arr[1]) != or1.top)
         return Qfalse;
-    if(rb_num2long(arr[2]) != or1->width)
+    if(rb_num2long(arr[2]) != or1.width)
         return Qfalse;
-    if(rb_num2long(arr[3]) != or1->height)
+    if(rb_num2long(arr[3]) != or1.height)
         return Qfalse;
     return Qtrue;
 }
@@ -266,16 +266,16 @@ VALUE rb_Rect_eql(VALUE self, VALUE other)
 VALUE rb_Rect_empty(VALUE self)
 {
     GET_RECT
-    sf::IntRect* srect = rect->getRect();
-    srect->left = srect->top = srect->width = srect->height = 0;
+    sf::IntRect& srect = rect->getRect();
+    srect.left = srect.top = srect.width = srect.height = 0;
     return self;
 }
 
 VALUE rb_Rect_to_s(VALUE self)
 {
     GET_RECT
-    sf::IntRect* srect = rect->getRect();
-    return rb_sprintf("(%d, %d, %d, %d)", srect->left, srect->top, srect->width, srect->height);
+    sf::IntRect& srect = rect->getRect();
+    return rb_sprintf("(%d, %d, %d, %d)", srect.left, srect.top, srect.width, srect.height);
 }
 
 CRect_Element* rb_Rect_get_rect(VALUE self)
@@ -301,14 +301,14 @@ void __Rect_Check_LinkedObject(CRect_Element* rect)
     /* Viewport processing */
     if(el->isViewport())
     {
-		sf::IntRect* srect = rect->getRect();
+		sf::IntRect& srect = rect->getRect();
         Viewport_SetView(reinterpret_cast<CViewport_Element*>(el), 
-            srect->left, srect->top, srect->width, srect->height);
+            srect.left, srect.top, srect.width, srect.height);
     }
     /* Sprite Processing */
     else if(el->isPureSprite())
     {
-		sf::IntRect tmp_rect = *rect->getRect();
+		sf::IntRect tmp_rect = rect->getRect();
 		CSprite_Element* sprite = reinterpret_cast<CSprite_Element*>(el);
 		if (RTEST(sprite->rMirror))
 		{
@@ -321,13 +321,13 @@ void __Rect_Check_LinkedObject(CRect_Element* rect)
 	else if (el->isShape())
 	{
 		CShape_Element* shape = reinterpret_cast<CShape_Element*>(el);
-		shape->getShape()->setTextureRect(*rect->getRect());
+		shape->getShape()->setTextureRect(rect->getRect());
 	}
     /* Window Processing */
     else
     {
 		CWindow_Element* window = dynamic_cast<CWindow_Element*>(el);
 		if (window != nullptr)
-			window->resetCursorPosition(rect->getRect());
+			window->resetCursorPosition(&rect->getRect());
     }
 }

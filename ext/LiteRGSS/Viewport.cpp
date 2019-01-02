@@ -187,10 +187,10 @@ void Viewport_AdjustOXY(CViewport_Element* viewport, VALUE rect)
         return;
     CRect_Element* srect;
     Data_Get_Struct(rect, CRect_Element, srect);
-    sf::IntRect* rc = srect->getRect();
+    sf::IntRect& rc = srect->getRect();
     sf::View* view = viewport->getView();
-    view->setCenter(std::roundf(static_cast<float>(viewport->getOx()) + static_cast<float>(rc->width) / 2.0f),
-                    std::roundf(static_cast<float>(viewport->getOy()) + static_cast<float>(rc->height) / 2.0f));
+    view->setCenter(std::roundf(static_cast<float>(viewport->getOx()) + static_cast<float>(rc.width) / 2.0f),
+                    std::roundf(static_cast<float>(viewport->getOy()) + static_cast<float>(rc.height) / 2.0f));
 }
 
 VALUE rb_Viewport_getOX(VALUE self)
@@ -245,10 +245,10 @@ VALUE rb_Viewport_setRect(VALUE self, VALUE val)
     CRect_Element* rect2;
     Data_Get_Struct(rc, CRect_Element, rect2);
     /* Copying the rect */
-    sf::IntRect* rect_target = rect2->getRect();
-    rect_copy(rect_target, rect1->getRect());
+    sf::IntRect& rect_target = rect2->getRect();
+    rect_copy(&rect_target, &rect1->getRect());
     /* Updating the viewport view */
-    Viewport_SetView(viewport, rect_target->left, rect_target->top, rect_target->width, rect_target->height);
+    Viewport_SetView(viewport, rect_target.left, rect_target.top, rect_target.width, rect_target.height);
     return val;
 
 }
@@ -358,12 +358,12 @@ void Viewport_AdjustZoomAngle(CViewport_Element* viewport, VALUE rect)
 	long x, y, width, height;
 	CRect_Element* srect;
 	Data_Get_Struct(rect, CRect_Element, srect);
-	sf::IntRect* rc = srect->getRect();
+	sf::IntRect& rc = srect->getRect();
 	sf::View* view = viewport->getView();
-	x = rc->left;
-	y = rc->top;
-	width = rc->width;
-	height = rc->height;
+	x = rc.left;
+	y = rc.top;
+	width = rc.width;
+	height = rc.height;
 	if (width & 1)
 		width++;
 	if (height & 1)
@@ -446,9 +446,8 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
     GET_VIEWPORT
     VALUE table = rb_ivar_get(self, rb_iElementTable);
     rb_check_type(table, T_ARRAY);
-    for(auto it = viewport->getStack()->begin(); it != viewport->getStack()->end(); it++)
-    {
-        (*it)->overrideOrigineStack(nullptr);
+    for(auto& drawables : viewport->getStack()) {
+        drawables->overrideOrigineStack(nullptr);
     }
     viewport->clearStack();
     long sz = RARRAY_LEN(table);
@@ -462,7 +461,7 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
         {
             if(RDATA(ori[i])->data != nullptr)
             {
-                viewport->bind(reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
+                viewport->bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
             }
         }
     }

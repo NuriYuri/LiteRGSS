@@ -115,7 +115,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
 
         CViewport_Element* viewporte;
         Data_Get_Struct(viewport, CViewport_Element, viewporte);
-        viewporte->bind(text);
+        viewporte->bind(*text);
         table = rb_ivar_get(viewport, rb_iElementTable);
     }
 	/* If a window is specified */

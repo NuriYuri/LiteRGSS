@@ -180,7 +180,7 @@ VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE rect)
             s_bitmap->getImage(),
             NUM2ULONG(x),
 			NUM2ULONG(y),
-            *s_rect->getRect()
+            s_rect->getRect()
         );
     }
     return self;

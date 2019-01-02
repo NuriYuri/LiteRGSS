@@ -144,7 +144,7 @@ void CWindow_Element::updateVertices()
 	updateBackOpacity();
 	resetPausePosition();
 	if (!NIL_P(rCursorRect))
-		resetCursorPosition(rb_Rect_get_rect(rCursorRect)->getRect());
+		resetCursorPosition(&rb_Rect_get_rect(rCursorRect)->getRect());
 }
 
 void CWindow_Element::update()
@@ -543,7 +543,7 @@ void CWindow_Element::allocateVerticesStretch()
 void CWindow_Element::updateContents()
 {
 	if (!NIL_P(rCursorRect))
-		resetCursorPosition(rb_Rect_get_rect(rCursorRect)->getRect());
+		resetCursorPosition(&rb_Rect_get_rect(rCursorRect)->getRect());
 }
 
 void CWindow_Element::updateBackOpacity()
@@ -610,11 +610,11 @@ void CWindow_Element::updateView()
 	long width = NUM2LONG(rWidth) - 2 * offset_x;
 	long height = NUM2LONG(rHeight) - 2 * offset_y;
 	// Update rect
-	sf::IntRect* rect = rb_Rect_get_rect(rRect)->getRect();
-	rect->left = x;
-	rect->top = y;
-	rect->width = width;
-	rect->height = height;
+	sf::IntRect& rect = rb_Rect_get_rect(rRect)->getRect();
+	rect.left = x;
+	rect.top = y;
+	rect.width = width;
+	rect.height = height;
 	// Update Window view
 	if (width & 1)
 		width++;

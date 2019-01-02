@@ -152,7 +152,7 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 		rb_raise(rb_eRGSSError, "Shape require viewport to be initialized.");
 	CViewport_Element* viewport_el;
 	Data_Get_Struct(viewport, CViewport_Element, viewport_el);
-	viewport_el->bind(shape);
+	viewport_el->bind(*shape);
 	shape->rViewport = viewport;
 
 	// Shape initialization
@@ -252,7 +252,7 @@ VALUE rb_Shape_setBitmap(VALUE self, VALUE bitmap)
 		rect = rb_Rect_get_rect(shape->rRect);
 		/* Setting rect parameter */
 		const sf::IntRect rectorigin = shape->getShape()->getTextureRect();
-		rect_copy(rect->getRect(), &rectorigin);
+		rect_copy(&rect->getRect(), &rectorigin);
 	}
 	return self;
 }
@@ -271,7 +271,7 @@ VALUE rb_Shape_getRect(VALUE self)
 	CRect_Element* rect = rb_Rect_get_rect(rc);
 	/* Setting rect parameter */
 	const sf::IntRect rectorigin = shape->getShape()->getTextureRect();
-	rect_copy(rect->getRect(), &rectorigin);
+	rect_copy(&rect->getRect(), &rectorigin);
 	/* Linking Rect */
 	rect->setElement(shape);
 	shape->setLinkedRect(rect);
@@ -291,10 +291,10 @@ VALUE rb_Shape_setRect(VALUE self, VALUE rect)
 	rect2 = rb_Rect_get_rect(rc);
 	Data_Get_Struct(rc, CRect_Element, rect2);
 	/* Copying the rect */
-	sf::IntRect* rect_target = rect2->getRect();
-	rect_copy(rect_target, rect1->getRect());
+	sf::IntRect& rect_target = rect2->getRect();
+	rect_copy(&rect_target, &rect1->getRect());
 	/* Update texture rect */
-	shape->getShape()->setTextureRect(*rect_target);
+	shape->getShape()->setTextureRect(rect_target);
 	return self;
 }
 

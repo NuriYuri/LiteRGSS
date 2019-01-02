@@ -7,7 +7,7 @@ class CRect_Element {
     sf::IntRect rect;
     CDrawable_Element* target;
     public:
-    sf::IntRect* getRect() { return &rect; };
+    sf::IntRect& getRect() { return rect; };
     void setElement(CDrawable_Element* _target) {target = _target;};
     CDrawable_Element* getElement() { return target; };
 };

@@ -26,13 +26,12 @@ class CViewport_Element : public CDrawable_Element {
 		bool isPureSprite() const override;
 		bool isShape() const override;
         sf::View* getView() {return &view;};
-		sf::RenderStates* getRenderStates();
 		void setRenderStates(std::unique_ptr<sf::RenderStates> states);
         long getOx() {return ox;};
         long getOy() {return oy;};
         void setOx(long nox) {ox = nox;};
         void setOy(long noy) {oy = noy;};
-        void bind(CDrawable_Element* sprite);
+        void bind(CDrawable_Element& sprite);
         void clearStack();
         sf::Glsl::Vec4* getTone();
 		void updatetone();
@@ -42,7 +41,7 @@ class CViewport_Element : public CDrawable_Element {
         void create_render();
 		void setVisible(bool value);
         bool getVisible() { return visible; };
-		const std::vector<CDrawable_Element*>* getStack();
+		const std::vector<CDrawable_Element*>& getStack() const;
         /* Ruby Ivar */
         VALUE rRect;
         VALUE rTone;

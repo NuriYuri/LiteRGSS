@@ -141,7 +141,7 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 	{
 		CViewport_Element* viewport;
 		Data_Get_Struct(argv[0], CViewport_Element, viewport);
-		viewport->bind(window);
+		viewport->bind(*window);
 		table = rb_ivar_get(argv[0], rb_iElementTable);
 		window->rViewport = argv[0];
 	}
@@ -470,10 +470,10 @@ VALUE rb_Window_setCursorRect(VALUE self, VALUE val)
 	rect2 = rb_Rect_get_rect(rc);
 	Data_Get_Struct(rc, CRect_Element, rect2);
 	/* Copying the rect */
-	sf::IntRect* rect_target = rect2->getRect();
-	rect_copy(rect_target, rect1->getRect());
+	sf::IntRect& rect_target = rect2->getRect();
+	rect_copy(&rect_target, &rect1->getRect());
 	/* Update cursor rect */
-	window->resetCursorPosition(rect_target);
+	window->resetCursorPosition(&rect_target);
 	return self;
 }
 
@@ -590,7 +590,7 @@ VALUE rb_Window_setActive(VALUE self, VALUE val)
 {
 	GET_WINDOW;
 	window->rActive = RTEST(val) ? Qtrue : Qfalse;
-	window->resetCursorPosition(rb_Rect_get_rect(rb_Window_getCursorRect(self))->getRect());
+	window->resetCursorPosition(&rb_Rect_get_rect(rb_Window_getCursorRect(self))->getRect());
 	window->updateCursorSprite();
 	return self;
 }
