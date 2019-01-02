@@ -7,11 +7,12 @@
 class CShape_Element : public CDrawable_Element {
     protected:
         std::unique_ptr<sf::Shape> shape;
-        bool visible;
-		sf::RenderStates* render_states;
+        bool visible = true;
+		sf::RenderStates* render_states = nullptr;
     public:
-		CShape_Element();
-		~CShape_Element();
+		CShape_Element() = default;
+		virtual ~CShape_Element() = default;
+        
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return false; };

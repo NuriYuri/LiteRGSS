@@ -9,6 +9,7 @@ class CText_Element : public CDrawable_Element {
         bool visible;
     public:
         CText_Element() : CDrawable_Element(), visible(true) {};
+        virtual ~CText_Element() = default;
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return false; };

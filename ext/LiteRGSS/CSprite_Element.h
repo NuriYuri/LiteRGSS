@@ -10,6 +10,8 @@ class CSprite_Element : public CDrawable_Element {
         bool visible;
     public:
         CSprite_Element() : CDrawable_Element(), drawable(false), visible(true) {};
+        virtual ~CSprite_Element() = default;
+        
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return false; };

@@ -16,6 +16,7 @@ class CDrawable_Element {
         unsigned long index;
     public:
         CDrawable_Element();
+        virtual ~CDrawable_Element() = default;
         void setOriginStack(std::vector<CDrawable_Element*> *o);
         void overrideOrigineStack(std::vector<CDrawable_Element*> *o) {origin_stack = o;};
         void setIndex(unsigned long nindex);

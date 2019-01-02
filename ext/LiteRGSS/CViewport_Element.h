@@ -19,7 +19,7 @@ class CViewport_Element : public CDrawable_Element {
         std::unique_ptr<sf::Shader> render_states_shader;
     public:
 		CViewport_Element();
-        ~CViewport_Element();
+        virtual ~CViewport_Element();
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
 		bool isViewport() const override;

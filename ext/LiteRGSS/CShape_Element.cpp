@@ -2,16 +2,6 @@
 #include "CShape_Element.h"
 #include <iostream>
 
-CShape_Element::CShape_Element() : CDrawable_Element(), visible(true)
-{
-	render_states = nullptr;
-}
-
-CShape_Element::~CShape_Element()
-{
-	render_states = nullptr;
-}
-
 void CShape_Element::draw(sf::RenderTarget& target) const
 {
 	if (render_states != nullptr)
