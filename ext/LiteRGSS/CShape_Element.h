@@ -1,11 +1,12 @@
 #ifndef CShape_Element_H
 #define CShape_Element_H
+#include <memory>
 #include "ruby.h"
 #include "CDrawable_Element.h"
 
 class CShape_Element : public CDrawable_Element {
     protected:
-        sf::Shape* shape;
+        std::unique_ptr<sf::Shape> shape;
         bool visible;
 		sf::RenderStates* render_states;
     public:
@@ -16,8 +17,11 @@ class CShape_Element : public CDrawable_Element {
         bool isViewport() const override { return false; };
         bool isPureSprite() const override { return false; };
         bool isShape() const override { return true; };
-        sf::Shape* getShape() { return shape; }
-		void setShape(sf::Shape* input_shape);
+        sf::Shape* getShape() { return shape.get(); }
+        template <class ShapeC, class ... Args>
+		void setShape(Args&& ... args) {
+            shape = std::make_unique<ShapeC>(std::forward<Args>(args)...);
+        }
         void setVisible(bool value);
         bool getVisible();
 		void setRenderState(sf::RenderStates* states);

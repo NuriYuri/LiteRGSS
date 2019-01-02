@@ -170,7 +170,7 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 				radius = abs(NUM2DBL(rad_numPoint));
 			numpt = NUM2ULONG(numPoint);
 		}
-		shape->setShape(new sf::CircleShape(radius, numpt));
+		shape->setShape<sf::CircleShape>(radius, numpt);
 		shape->rShapeType = type;
 	}
 	/* Convex Shape */
@@ -179,16 +179,16 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 		unsigned long numpt = 4;
 		if (!NIL_P(rad_numPoint))
 			numpt = NUM2ULONG(rad_numPoint);
-		shape->setShape(new sf::ConvexShape(numpt));
+		shape->setShape<sf::ConvexShape>(numpt);
 		shape->rShapeType = type;
 	}
 	/* Rectangle Shape */
 	else
 	{
 		if (!NIL_P(rad_numPoint) && !NIL_P(numPoint))
-			shape->setShape(new sf::RectangleShape(sf::Vector2f(NUM2DBL(rad_numPoint), NUM2DBL(numPoint))));
+			shape->setShape<sf::RectangleShape>(sf::Vector2f(NUM2DBL(rad_numPoint), NUM2DBL(numPoint)));
 		else
-			shape->setShape(new sf::RectangleShape());
+			shape->setShape<sf::RectangleShape>();
 		shape->rShapeType = ID2SYM(rb_iShapeRectangle);
 	}
 	rb_Shape_InitObject(shape);
