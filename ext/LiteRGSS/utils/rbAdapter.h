@@ -11,7 +11,7 @@ namespace rb {
             auto disposedMessage = std::string {"Disposed "};
             disposedMessage += meta::Log<T>::classname;
             disposedMessage += ".";
-            rb_raise(rb_eRGSSError, disposedMessage.c_str());
+            rb_raise(rb_eRGSSError, "%s", disposedMessage.c_str());
         }
     }
 

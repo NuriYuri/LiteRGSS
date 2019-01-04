@@ -107,15 +107,17 @@ VALUE rb_Bitmap_Initialize_Copy(VALUE self, VALUE other)
     Data_Get_Struct(other, CBitmap_Element, bitmapo);
     if(bitmapo == nullptr)
         rb_raise(rb_eRGSSError, "Disposed Bitmap.");
-    *bitmap = *bitmapo;
+    *bitmap = bitmapo->clone();
     return self;
 }
 
 VALUE rb_Bitmap_Dispose(VALUE self)
 {
-    auto& bitmap = rb::Get<CBitmap_Element>(self);
-    delete &bitmap;
-    RDATA(self)->data = nullptr;
+	if(RDATA(self)->data != nullptr) {
+		auto& bitmap = rb::Get<CBitmap_Element>(self);
+		delete &bitmap;
+		RDATA(self)->data = nullptr;
+	}
     return self;
 }
 

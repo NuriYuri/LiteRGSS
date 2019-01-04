@@ -5,7 +5,7 @@
 
 class CWindow_Element : public CDrawable_Element {
     protected:
-		sf::VertexArray* vertices;
+		std::vector<sf::VertexArray> vertices;
 		sf::Texture* texture;
 		sf::View view;
 		std::vector<CDrawable_Element*> stack;
@@ -24,7 +24,7 @@ class CWindow_Element : public CDrawable_Element {
 		void calculateVerticesStretch(long x, long y, long line, long cell, sf::Vector2i &s, sf::Vector2i &a, sf::IntRect &rect);
     public:
 		CWindow_Element();
-		virtual ~CWindow_Element();
+		virtual ~CWindow_Element() = default;
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
 		void drawCalculateView(sf::RenderTarget& target, sf::View& targetView) const;

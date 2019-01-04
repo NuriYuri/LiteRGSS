@@ -6,7 +6,6 @@
 
 CWindow_Element::CWindow_Element() : CDrawable_Element()
 {
-	vertices = nullptr;
 	visible = true;
 	texture = nullptr;
 	locked = false;
@@ -23,13 +22,6 @@ CWindow_Element::CWindow_Element() : CDrawable_Element()
 	rStretch = Qfalse;
 }
 
-CWindow_Element::~CWindow_Element()
-{
-	if (vertices)
-		delete[] vertices;
-	vertices = nullptr;
-}
-
 void CWindow_Element::draw(sf::RenderTarget& target) const
 {
 	CWindow_Element::drawFast(target);
@@ -37,7 +29,7 @@ void CWindow_Element::draw(sf::RenderTarget& target) const
 
 void CWindow_Element::drawFast(sf::RenderTarget& target) const 
 {
-    if(vertices != nullptr && visible)
+    if(!vertices.empty() && visible)
     {
 		/* Draw window */
 		for(unsigned long i = 0; i < num_vertices_line; i++)
@@ -100,16 +92,6 @@ void CWindow_Element::drawCalculateView(sf::RenderTarget & target, sf::View & ta
 	targetView.setSize(targetSize);
 	targetView.setCenter(targetCenter);
 	targetView.setViewport(targetViewport);
-}
-
-sf::VertexArray * CWindow_Element::getVertices()
-{
-	return vertices;
-}
-
-void CWindow_Element::setVertices(sf::VertexArray * _vertices)
-{
-	vertices = _vertices;
 }
 
 sf::Texture * CWindow_Element::getTexture()
@@ -431,42 +413,42 @@ void CWindow_Element::rectSet(sf::IntRect &rect, long x, long y, long width, lon
 
 void CWindow_Element::calculateVertices(long x, long y, long line, long cell, sf::Vector2i &a, sf::IntRect &rect)
 {
-	sf::VertexArray* vertArr = &vertices[line];
+	auto& vertArr = vertices[line];
 	int i = cell * 6;
 	if (cell < 0)
-		i += vertArr->getVertexCount();
+		i += vertArr.getVertexCount();
 	x += a.x;
 	y += a.y;
 	// Texture coords
-	(*vertArr)[i].texCoords = sf::Vector2f(rect.left, rect.top);
-	(*vertArr)[i + 1].texCoords = (*vertArr)[i + 3].texCoords = sf::Vector2f(rect.left, rect.height + rect.top);
-	(*vertArr)[i + 2].texCoords = (*vertArr)[i + 4].texCoords = sf::Vector2f(rect.width + rect.left, rect.top);
-	(*vertArr)[i + 5].texCoords = sf::Vector2f(rect.width + rect.left, rect.height + rect.top);
+	vertArr[i].texCoords = sf::Vector2f(rect.left, rect.top);
+	vertArr[i + 1].texCoords = vertArr[i + 3].texCoords = sf::Vector2f(rect.left, rect.height + rect.top);
+	vertArr[i + 2].texCoords = vertArr[i + 4].texCoords = sf::Vector2f(rect.width + rect.left, rect.top);
+	vertArr[i + 5].texCoords = sf::Vector2f(rect.width + rect.left, rect.height + rect.top);
 	// Coordinates
-	(*vertArr)[i].position = sf::Vector2f(x, y);
-	(*vertArr)[i + 1].position = (*vertArr)[i + 3].position = sf::Vector2f(x, y + rect.height);
-	(*vertArr)[i + 2].position = (*vertArr)[i + 4].position = sf::Vector2f(x + rect.width, y);
-	(*vertArr)[i + 5].position = sf::Vector2f(x + rect.width, y + rect.height);
+	vertArr[i].position = sf::Vector2f(x, y);
+	vertArr[i + 1].position = vertArr[i + 3].position = sf::Vector2f(x, y + rect.height);
+	vertArr[i + 2].position = vertArr[i + 4].position = sf::Vector2f(x + rect.width, y);
+	vertArr[i + 5].position = sf::Vector2f(x + rect.width, y + rect.height);
 }
 
 void CWindow_Element::calculateVerticesStretch(long x, long y, long line, long cell, sf::Vector2i &s, sf::Vector2i &a, sf::IntRect &rect)
 {
-	sf::VertexArray* vertArr = &vertices[line];
+	auto& vertArr = vertices[line];
 	int i = cell * 6;
 	if (cell < 0)
-		i += vertArr->getVertexCount();
+		i += vertArr.getVertexCount();
 	x += a.x;
 	y += a.y;
 	// Texture coords
-	(*vertArr)[i].texCoords = sf::Vector2f(rect.left, rect.top);
-	(*vertArr)[i + 1].texCoords = (*vertArr)[i + 3].texCoords = sf::Vector2f(rect.left, rect.height + rect.top);
-	(*vertArr)[i + 2].texCoords = (*vertArr)[i + 4].texCoords = sf::Vector2f(rect.width + rect.left, rect.top);
-	(*vertArr)[i + 5].texCoords = sf::Vector2f(rect.width + rect.left, rect.height + rect.top);
+	vertArr[i].texCoords = sf::Vector2f(rect.left, rect.top);
+	vertArr[i + 1].texCoords = vertArr[i + 3].texCoords = sf::Vector2f(rect.left, rect.height + rect.top);
+	vertArr[i + 2].texCoords = vertArr[i + 4].texCoords = sf::Vector2f(rect.width + rect.left, rect.top);
+	vertArr[i + 5].texCoords = sf::Vector2f(rect.width + rect.left, rect.height + rect.top);
 	// Coordinates
-	(*vertArr)[i].position = sf::Vector2f(x, y);
-	(*vertArr)[i + 1].position = (*vertArr)[i + 3].position = sf::Vector2f(x, y + s.y);
-	(*vertArr)[i + 2].position = (*vertArr)[i + 4].position = sf::Vector2f(x + s.x, y);
-	(*vertArr)[i + 5].position = sf::Vector2f(x + s.x, y + s.y);
+	vertArr[i].position = sf::Vector2f(x, y);
+	vertArr[i + 1].position = vertArr[i + 3].position = sf::Vector2f(x, y + s.y);
+	vertArr[i + 2].position = vertArr[i + 4].position = sf::Vector2f(x + s.x, y);
+	vertArr[i + 5].position = sf::Vector2f(x + s.x, y + s.y);
 }
 
 void CWindow_Element::updatePauseSprite()
@@ -520,11 +502,9 @@ void CWindow_Element::allocateVerticesBlt(long delta_w, long nb2, long delta_h, 
 	else
 		nb4 += 2;
 	// Delete the vertices if the number of line is different
-	if(vertices != nullptr && nb4 != num_vertices_line)
-		delete[] vertices;
 	// Alloction of the vertex Arrays (if no vertices or different lines)
-	if(vertices == nullptr || nb4 != num_vertices_line)
-		vertices = new sf::VertexArray[nb4];
+	if(vertices.empty() || nb4 != num_vertices_line)
+		vertices = std::vector<sf::VertexArray>(nb4);
 	// Update the number of lines
 	num_vertices_line = nb4;
 	for (long i = 0; i < nb4; i++)
@@ -550,15 +530,15 @@ void CWindow_Element::updateBackOpacity()
 {
 	sf::Color col = sf::Color::White;
 	col.a = NUM2LONG(rOpacity) * NUM2LONG(rBackOpacity) / 255;
-	if (vertices != nullptr)
+	if (!vertices.empty())
 	{
 		long num_vertices = vertices[0].getVertexCount();
 		for (int i = 0; i < num_vertices_line; i++)
 		{
-			sf::VertexArray* vertArr = &vertices[i];
+			auto& vertArr = vertices[i];
 			for (int j = 0; j < num_vertices; j++)
 			{
-				(*vertArr)[j].color = col;
+				vertArr[j].color = col;
 			}
 		}
 	}

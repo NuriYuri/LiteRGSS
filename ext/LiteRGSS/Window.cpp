@@ -16,15 +16,16 @@ VALUE rb_cWindow = Qnil;
 
 void rb_Window_Free(void* data)
 {
-	CWindow_Element* window = reinterpret_cast<CWindow_Element*>(data);
-	if (window != nullptr)
+	if (data != nullptr)
 	{
+		CWindow_Element* window = reinterpret_cast<CWindow_Element*>(data);
 		if (NIL_P(window->rViewport)) // I can drop a sprite from the viewport it's stored in its table
 			window->setOriginStack(nullptr);
 		CRect_Element* rect = window->getLinkedRect();
 		if (rect != nullptr)
 			rect->setElement(nullptr);
 		delete window;
+		window = nullptr;
 	}
 }
 
@@ -58,9 +59,7 @@ void rb_Window_Mark(CWindow_Element* window)
 
 VALUE rb_Window_Alloc(VALUE klass)
 {
-	CWindow_Element* window = new CWindow_Element();
-	window->setLinkedRect(nullptr);
-	return Data_Wrap_Struct(klass, rb_Window_Mark, rb_Window_Free, window);
+	return Data_Wrap_Struct(klass, rb_Window_Mark, rb_Window_Free, new CWindow_Element());
 }
 
 void Init_Window()
@@ -205,7 +204,7 @@ VALUE rb_Window_Dispose(VALUE self)
 {
 	GET_WINDOW;
 	RDATA(self)->data = nullptr;
-	/* Suppression de la fen�tre de ses stacks */
+	/* Suppression de la fenêtre de ses stacks */
 	VALUE viewport = window->rViewport;
 	VALUE table;
 	if (NIL_P(viewport))

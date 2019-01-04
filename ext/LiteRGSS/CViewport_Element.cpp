@@ -14,7 +14,7 @@ CViewport_Element::CViewport_Element() : CDrawable_Element()
 
 CViewport_Element::~CViewport_Element() 
 {
-    if(!game_window || !game_window->isOpen())
+    if(game_window == nullptr || !game_window->isOpen())
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
 
 };

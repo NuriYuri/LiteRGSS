@@ -3,6 +3,7 @@
 #include "ruby.h" // Windows Build Patch
 #include <SFML/Graphics.hpp>
 #include "sf_Text2.hpp"
+#include <iostream>
 #include <vector>
 #include <algorithm>
 
@@ -12,7 +13,7 @@ class CTone_Element;
 class CDrawable_Element {
     protected:
         std::vector<CDrawable_Element*> *origin_stack;
-        CRect_Element* linkedRect;
+        CRect_Element* linkedRect = nullptr;
         unsigned long index;
     public:
         CDrawable_Element();
