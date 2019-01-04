@@ -35,7 +35,7 @@ void rb_ShaderSprite_Mark(CShaderSprite_Element* sprite)
 VALUE rb_ShaderSprite_Alloc(VALUE klass)
 {
 	CShaderSprite_Element* sprite = new CShaderSprite_Element();
-    sprite->getSprite()->setColor(sf::Color(255, 255, 255, 255));
+    sprite->getSprite().setColor(sf::Color(255, 255, 255, 255));
     sprite->setLinkedRect(nullptr);
 	sprite->rRenderStates = Qnil;
     return Data_Wrap_Struct(klass, rb_ShaderSprite_Mark, rb_Sprite_Free, sprite);

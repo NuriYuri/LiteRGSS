@@ -2,16 +2,16 @@
 #define L_TABLE_HEADER
 
 struct rb_Table_Struct_Header {
-    unsigned int dim;
-    unsigned int xsize;
-    unsigned int ysize;
-    unsigned int zsize;
-    unsigned int data_size;
+    unsigned int dim = 0u;
+    unsigned int xsize = 0u;
+    unsigned int ysize = 0u;
+    unsigned int zsize = 0u;
+    unsigned int data_size = 0u;
 };
 
 struct rb_Table_Struct {
-    rb_Table_Struct_Header header;
-    short* heap;
+    rb_Table_Struct_Header header {};
+    short* heap = nullptr;
 };
 
 VALUE rb_Table_initialize(int argc, VALUE* argv, VALUE self);

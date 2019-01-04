@@ -55,8 +55,8 @@ VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self) {
     auto& bitmap = rb::Get<CBitmap_Element>(self);
     auto& text = bitmap.getTexture();
     
-    VALUE string;
-    VALUE fromMemory;
+    VALUE string = Qnil;
+    VALUE fromMemory = Qnil;
     rb_scan_args(argc, argv, "11", &string, &fromMemory);
     /* Load From filename */
     if(NIL_P(fromMemory)) {

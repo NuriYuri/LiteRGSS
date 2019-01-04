@@ -121,9 +121,8 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     rb_ivar_set(self, rb_iElementTable, rb_ary_new());
     /* Viewport setting */
     GET_VIEWPORT
-    VALUE table;
     global_Graphics_Bind(viewport);
-    table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_push(table, self);
     viewport->setOx(0);
     viewport->setOy(0);

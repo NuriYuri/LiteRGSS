@@ -47,7 +47,7 @@ void rb_Sprite_Mark(CSprite_Element* sprite)
 VALUE rb_Sprite_Alloc(VALUE klass)
 {
     CSprite_Element* sprite = new CSprite_Element();
-    sprite->getSprite()->setColor(sf::Color(255, 255, 255, 255));
+    sprite->getSprite().setColor(sf::Color(255, 255, 255, 255));
     sprite->setLinkedRect(nullptr);
     return Data_Wrap_Struct(klass, rb_Sprite_Mark, rb_Sprite_Free, sprite);
 }
@@ -100,7 +100,7 @@ void Init_Sprite() {
 VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
 {
     GET_SPRITE
-    VALUE table;
+    VALUE table = Qnil;
     /* If a viewport was specified */
     if(argc == 1 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue)
     {
@@ -206,8 +206,8 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
     /* Retreiving Bitmap Objecy */
     CBitmap_Element* bmp;
     Data_Get_Struct(bitmap, CBitmap_Element, bmp);
-    sf::Sprite* sp = sprite->getSprite();
-    sp->setTexture(bmp->getTexture(), true);
+    sf::Sprite& sp = sprite->getSprite();
+    sp.setTexture(bmp->getTexture(), true);
     sprite->setDrawable(true);
     sprite->rBitmap = bitmap;
 	if (!NIL_P(sprite->rRect))
@@ -215,7 +215,7 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
 		CRect_Element* rect;
 		Data_Get_Struct(sprite->rRect, CRect_Element, rect);
 		/* Setting rect parameter */
-		const sf::IntRect rectorigin = sp->getTextureRect();
+		const sf::IntRect rectorigin = sp.getTextureRect();
 		rect_copy(&rect->getRect(), &rectorigin);
 	}
     return self;
@@ -230,9 +230,9 @@ VALUE rb_Sprite_getBitmap(VALUE self)
 VALUE rb_Sprite_setX(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sf::Sprite* sp = sprite->getSprite();
-    const sf::Vector2f vect = sp->getPosition();
-    sp->setPosition(static_cast<float>(rb_num2long(val)), vect.y);
+    sf::Sprite& sp = sprite->getSprite();
+    const sf::Vector2f& vect = sp.getPosition();
+    sp.setPosition(static_cast<float>(rb_num2long(val)), vect.y);
     sprite->rX = val;
     return val;
 }
@@ -246,9 +246,9 @@ VALUE rb_Sprite_getX(VALUE self)
 VALUE rb_Sprite_setY(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sf::Sprite* sp = sprite->getSprite();
-    const sf::Vector2f vect = sp->getPosition();
-    sp->setPosition(vect.x, static_cast<float>(rb_num2long(val)));
+    sf::Sprite& sp = sprite->getSprite();
+    const sf::Vector2f vect = sp.getPosition();
+    sp.setPosition(vect.x, static_cast<float>(rb_num2long(val)));
     sprite->rY = val;
     return val;
 }
@@ -276,9 +276,9 @@ VALUE rb_Sprite_getZ(VALUE self)
 VALUE rb_Sprite_setOX(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sf::Sprite* sp = sprite->getSprite();
-    const sf::Vector2f vect = sp->getOrigin();
-    sp->setOrigin(static_cast<float>(rb_num2long(val)), vect.y);
+    sf::Sprite& sp = sprite->getSprite();
+    const sf::Vector2f vect = sp.getOrigin();
+    sp.setOrigin(static_cast<float>(rb_num2long(val)), vect.y);
     sprite->rOX = val;
     return val;
 }
@@ -292,9 +292,9 @@ VALUE rb_Sprite_getOX(VALUE self)
 VALUE rb_Sprite_setOY(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sf::Sprite* sp = sprite->getSprite();
-    const sf::Vector2f vect = sp->getOrigin();
-    sp->setOrigin(vect.x, static_cast<float>(rb_num2long(val)));
+    sf::Sprite& sp = sprite->getSprite();
+    const sf::Vector2f vect = sp.getOrigin();
+    sp.setOrigin(vect.x, static_cast<float>(rb_num2long(val)));
     sprite->rOY = val;
     return val;
 }
@@ -321,7 +321,7 @@ VALUE rb_Sprite_getVisible(VALUE self)
 VALUE rb_Sprite_setAngle(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sprite->getSprite()->setRotation(static_cast<float>(-NUM2DBL(val))); // RGSS rotation is trigo, SFML looks like anti-trigo
+    sprite->getSprite().setRotation(static_cast<float>(-NUM2DBL(val))); // RGSS rotation is trigo, SFML looks like anti-trigo
     sprite->rAngle = val;
     return val;
 }
@@ -335,9 +335,9 @@ VALUE rb_Sprite_getAngle(VALUE self)
 VALUE rb_Sprite_setZoomX(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sf::Sprite* sp = sprite->getSprite();
-    const sf::Vector2f vect = sp->getScale();
-    sp->setScale(static_cast<float>(rb_num2dbl(val)), vect.y);
+    sf::Sprite& sp = sprite->getSprite();
+    const sf::Vector2f vect = sp.getScale();
+    sp.setScale(static_cast<float>(rb_num2dbl(val)), vect.y);
     sprite->rZoomX = val;
     return val;
 }
@@ -351,9 +351,9 @@ VALUE rb_Sprite_getZoomX(VALUE self)
 VALUE rb_Sprite_setZoomY(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sf::Sprite* sp = sprite->getSprite();
-    const sf::Vector2f vect = sp->getScale();
-    sp->setScale(vect.x, static_cast<float>(rb_num2dbl(val)));
+    sf::Sprite& sp = sprite->getSprite();
+    const sf::Vector2f vect = sp.getScale();
+    sp.setScale(vect.x, static_cast<float>(rb_num2dbl(val)));
     sprite->rZoomY = val;
     return val;
 }
@@ -368,7 +368,7 @@ VALUE rb_Sprite_getZoomY(VALUE self)
 VALUE rb_Sprite_setPosition(VALUE self, VALUE x, VALUE y)
 {
     GET_SPRITE
-    sprite->getSprite()->setPosition(static_cast<float>(rb_num2long(x)), static_cast<float>(rb_num2long(y)));
+    sprite->getSprite().setPosition(static_cast<float>(rb_num2long(x)), static_cast<float>(rb_num2long(y)));
     sprite->rX = x;
     sprite->rY = y;
     return self;
@@ -377,7 +377,7 @@ VALUE rb_Sprite_setPosition(VALUE self, VALUE x, VALUE y)
 VALUE rb_Sprite_setOrigin(VALUE self, VALUE x, VALUE y)
 {
     GET_SPRITE
-    sprite->getSprite()->setOrigin(static_cast<float>(rb_num2long(x)), static_cast<float>(rb_num2long(y)));
+    sprite->getSprite().setOrigin(static_cast<float>(rb_num2long(x)), static_cast<float>(rb_num2long(y)));
     sprite->rOX = x;
     sprite->rOY = y;
     return self;
@@ -387,7 +387,7 @@ VALUE rb_Sprite_setZoom(VALUE self, VALUE zoom)
 {
     GET_SPRITE
     float scale = static_cast<float>(rb_num2dbl(zoom));
-    sprite->getSprite()->setScale(scale, scale);
+    sprite->getSprite().setScale(scale, scale);
     sprite->rZoomX = zoom;
     sprite->rZoomY = zoom;
     return zoom;
@@ -396,17 +396,17 @@ VALUE rb_Sprite_setZoom(VALUE self, VALUE zoom)
 VALUE rb_Sprite_setOpacity(VALUE self, VALUE val)
 {
     GET_SPRITE
-    sf::Sprite* sp = sprite->getSprite();
-    const sf::Color col = sp->getColor();
-    sp->setColor(sf::Color(col.r, col.g, col.b, normalize_long(rb_num2long(val), 0, 255)));
+    sf::Sprite& sp = sprite->getSprite();
+    const sf::Color col = sp.getColor();
+    sp.setColor(sf::Color(col.r, col.g, col.b, normalize_long(rb_num2long(val), 0, 255)));
     return val;
 }
 
 VALUE rb_Sprite_getOpacity(VALUE self)
 {
     GET_SPRITE
-    sf::Sprite* sp = sprite->getSprite();
-    const sf::Color col = sp->getColor();
+    sf::Sprite& sp = sprite->getSprite();
+    const sf::Color col = sp.getColor();
     return rb_int2inum(col.a);
 }
 
@@ -424,7 +424,7 @@ VALUE rb_Sprite_getRect(VALUE self)
     CRect_Element* rect;
     Data_Get_Struct(rc, CRect_Element, rect);
     /* Setting rect parameter */
-    const sf::IntRect rectorigin = sprite->getSprite()->getTextureRect();
+    const sf::IntRect rectorigin = sprite->getSprite().getTextureRect();
     rect_copy(&rect->getRect(), &rectorigin);
     /* Linking Rect */
     rect->setElement(sprite);
@@ -461,7 +461,7 @@ VALUE rb_Sprite_setRect(VALUE self, VALUE val)
 		rect_setter.width = -rect_setter.width;
 	}
     /* Updating the texture rect */
-    sprite->getSprite()->setTextureRect(rect_setter);
+    sprite->getSprite().setTextureRect(rect_setter);
     return val;
 }
 

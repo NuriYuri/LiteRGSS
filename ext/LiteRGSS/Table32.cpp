@@ -23,9 +23,6 @@ void rb_Table32_Free(void* data)
 VALUE rb_Table32_Alloc(VALUE klass)
 {
     rb_Table32_Struct* table = new rb_Table32_Struct();
-    table->heap = nullptr;
-    table->header.dim = 0;
-    table->header.data_size = 0;
     return Data_Wrap_Struct(klass, NULL, rb_Table32_Free, table);
 }
 
@@ -80,7 +77,7 @@ VALUE rb_Table32_initialize(int argc, VALUE* argv, VALUE self)
         table->header.zsize = 1;
     table->header.dim = argc;
     table->header.data_size = table->header.xsize * table->header.ysize * table->header.zsize;
-    table->heap = new int32_t[table->header.data_size];
+    table->heap = new int32_t[table->header.data_size]();
     return self;
 }
 

@@ -19,13 +19,13 @@ class CText_Element : public CDrawable_Element {
         void setVisible(bool value) { visible = value;};
         bool getVisible() { return visible; };
         /* Instance variable for Ruby */
-        VALUE rViewport;
-        VALUE rX;
-        VALUE rY;
-        VALUE rZ;
-        VALUE rwidth;
-        VALUE rheight;
-        VALUE rtext;
-        VALUE rAlign;
+        VALUE rViewport = Qnil;
+        VALUE rX = Qnil;
+        VALUE rY = Qnil;
+        VALUE rZ = Qnil;
+        VALUE rwidth = Qnil;
+        VALUE rheight = Qnil;
+        VALUE rtext = Qnil;
+        VALUE rAlign = Qnil;
 };
 #endif

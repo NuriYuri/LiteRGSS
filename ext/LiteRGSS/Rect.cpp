@@ -315,7 +315,7 @@ void __Rect_Check_LinkedObject(CRect_Element* rect)
 			tmp_rect.left += tmp_rect.width;
 			tmp_rect.width = -tmp_rect.width;
 		}
-		sprite->getSprite()->setTextureRect(tmp_rect);
+		sprite->getSprite().setTextureRect(tmp_rect);
     }
 	/* Shape processing */
 	else if (el->isShape())

@@ -130,8 +130,8 @@ void Init_Window()
 VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 {
 	GET_WINDOW;
-	VALUE viewport;
-	VALUE table;
+	VALUE viewport = Qnil;
+	VALUE table = Qnil;
 	
 	rb_scan_args(argc, argv, "01", &viewport);
 

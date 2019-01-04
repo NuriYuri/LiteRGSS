@@ -4,9 +4,9 @@
 
 class CShaderSprite_Element : public CSprite_Element {
 protected:
-		sf::RenderStates* render_states;
+	sf::RenderStates* render_states = nullptr;
 public:
-	CShaderSprite_Element() : CSprite_Element(), render_states(nullptr) {};
+	CShaderSprite_Element() = default;
 	virtual ~CShaderSprite_Element() = default;
 	void draw(sf::RenderTarget& target) const override;
 	void drawFast(sf::RenderTarget& target) const override;
@@ -14,6 +14,6 @@ public:
 	bool isPureSprite() const override { return true; };
 	bool isShape() const override;
 	void setRenderState(sf::RenderStates* states);
-	VALUE rRenderStates;
+	VALUE rRenderStates = Qnil;
 };
 #endif

@@ -23,9 +23,6 @@ void rb_Table_Free(void* data)
 VALUE rb_Table_Alloc(VALUE klass)
 {
     rb_Table_Struct* table = new rb_Table_Struct();
-    table->heap = nullptr;
-    table->header.dim = 0;
-    table->header.data_size = 0;
     return Data_Wrap_Struct(klass, NULL, rb_Table_Free, table);
 }
 
@@ -42,8 +39,8 @@ void Init_Table()
     rb_define_method(rb_cTable, "dim", _rbf rb_Table_dim, 0);
     rb_define_method(rb_cTable, "resize", _rbf rb_Table_resize, -1);
     rb_define_method(rb_cTable, "fill", _rbf rb_Table_Fill, 1);
-	rb_define_method(rb_cTable, "copy", _rbf rb_Table_Copy, 3);
-	rb_define_method(rb_cTable, "copy_modulo", _rbf rb_Table_CopyModulo, 7);
+    rb_define_method(rb_cTable, "copy", _rbf rb_Table_Copy, 3);
+    rb_define_method(rb_cTable, "copy_modulo", _rbf rb_Table_CopyModulo, 7);
 
     rb_define_method(rb_cTable, "_dump", _rbf rb_Table_Save, 1);
     rb_define_singleton_method(rb_cTable, "_load", _rbf rb_Table_Load, 1);
@@ -82,7 +79,7 @@ VALUE rb_Table_initialize(int argc, VALUE* argv, VALUE self)
         table->header.zsize = 1;
     table->header.dim = argc;
     table->header.data_size = table->header.xsize * table->header.ysize * table->header.zsize;
-    table->heap = new short[table->header.data_size];
+    table->heap = new short[table->header.data_size]();
     return self;
 }
 

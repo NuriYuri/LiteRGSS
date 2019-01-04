@@ -10,30 +10,34 @@ class CSprite_Element : public CDrawable_Element {
         bool visible;
     public:
         CSprite_Element() : CDrawable_Element(), drawable(false), visible(true) {};
-        virtual ~CSprite_Element() = default;
+        CSprite_Element(CSprite_Element&&) = default;
+	CSprite_Element(const CSprite_Element&) = delete;
+	CSprite_Element& operator=(const CSprite_Element&) = delete;
+	CSprite_Element& operator=(CSprite_Element&&) = default;
+	virtual ~CSprite_Element() = default;
         
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return false; };
         bool isPureSprite() const override { return true; };
-		bool isShape() const override { return false; };
-        sf::Sprite* getSprite() { return &sprite;};
+	bool isShape() const override { return false; };
+        sf::Sprite& getSprite() { return sprite;};
         void setDrawable(bool value) { drawable = value;};
         bool getDrawable() { return drawable; };
         void setVisible(bool value) { visible = value;};
         bool getVisible() { return visible; };
         /* Instance variable for Ruby */
-        VALUE rViewport;
-        VALUE rBitmap;
-        VALUE rX;
-        VALUE rY;
-        VALUE rZ;
-        VALUE rOX;
-        VALUE rOY;
-        VALUE rAngle;
-        VALUE rZoomX;
-        VALUE rZoomY;
-        VALUE rRect;
-		VALUE rMirror;
+        VALUE rViewport = Qnil;
+        VALUE rBitmap = Qnil;
+        VALUE rX = Qnil;
+        VALUE rY = Qnil;
+        VALUE rZ = Qnil;
+        VALUE rOX = Qnil;
+        VALUE rOY = Qnil;
+        VALUE rAngle = Qnil;
+        VALUE rZoomX = Qnil;
+        VALUE rZoomY = Qnil;
+        VALUE rRect = Qnil;
+	VALUE rMirror = Qnil;
 };
 #endif

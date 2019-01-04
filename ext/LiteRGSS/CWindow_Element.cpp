@@ -571,9 +571,9 @@ void CWindow_Element::updateContentsOpacity()
 			sprite = dynamic_cast<CSprite_Element*>((*sp));
 			if (sprite != nullptr)
 			{
-				col = sf::Color(sprite->getSprite()->getColor());
+				col = sf::Color(sprite->getSprite().getColor());
 				col.a = opacity;
-				sprite->getSprite()->setColor(col);
+				sprite->getSprite().setColor(col);
 			}
 		}
 	}
