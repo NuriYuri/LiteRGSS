@@ -2,16 +2,6 @@
 
 VALUE rb_cBlendMode = Qnil;
 
-#define BLENDMODE_PROTECT if(RDATA(self)->data == nullptr) \
-{\
-    rb_raise(rb_eRGSSError, "Disposed BlendMode."); \
-    return self; \
-}
-
-#define GET_BLENDMODE sf::RenderStates* render_state; \
-    Data_Get_Struct(self, sf::RenderStates, render_state); \
-    BLENDMODE_PROTECT
-
 void rb_BlendMode_Free(void* data)
 {
 	sf::RenderStates* render_state = reinterpret_cast<sf::RenderStates*>(data);
@@ -27,8 +17,7 @@ void rb_BlendMode_Free(void* data)
 
 VALUE rb_BlendMode_Alloc(VALUE klass)
 {
-	sf::RenderStates* render_state = new sf::RenderStates();
-	return Data_Wrap_Struct(klass, NULL, rb_BlendMode_Free, render_state);
+	return Data_Wrap_Struct(klass, NULL, rb_BlendMode_Free, new sf::RenderStates());
 }
 
 void Init_BlendMode()
@@ -75,111 +64,111 @@ void Init_BlendMode()
 
 VALUE rb_BlendMode_setColorSrcFactor(VALUE self, VALUE val)
 {
-	GET_BLENDMODE;
-	render_state->blendMode.colorSrcFactor = static_cast<sf::BlendMode::Factor>(NUM2LONG(val));
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	render_state.blendMode.colorSrcFactor = static_cast<sf::BlendMode::Factor>(NUM2LONG(val));
 	return self;
 }
 
 VALUE rb_BlendMode_getColorSrcFactor(VALUE self)
 {
-	GET_BLENDMODE;
-	return LONG2NUM(render_state->blendMode.colorSrcFactor);
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	return LONG2NUM(render_state.blendMode.colorSrcFactor);
 }
 
 VALUE rb_BlendMode_setColorDestFactor(VALUE self, VALUE val)
 {
-	GET_BLENDMODE;
-	render_state->blendMode.colorDstFactor = static_cast<sf::BlendMode::Factor>(NUM2LONG(val));
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	render_state.blendMode.colorDstFactor = static_cast<sf::BlendMode::Factor>(NUM2LONG(val));
 	return self;
 }
 
 VALUE rb_BlendMode_getColorDestFactor(VALUE self)
 {
-	GET_BLENDMODE;
-	return LONG2NUM(render_state->blendMode.colorDstFactor);
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	return LONG2NUM(render_state.blendMode.colorDstFactor);
 }
 
 VALUE rb_BlendMode_setAlphaSrcFactor(VALUE self, VALUE val)
 {
-	GET_BLENDMODE;
-	render_state->blendMode.alphaSrcFactor = static_cast<sf::BlendMode::Factor>(NUM2LONG(val));
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	render_state.blendMode.alphaSrcFactor = static_cast<sf::BlendMode::Factor>(NUM2LONG(val));
 	return self;
 }
 
 VALUE rb_BlendMode_getAlphaSrcFactor(VALUE self)
 {
-	GET_BLENDMODE;
-	return LONG2NUM(render_state->blendMode.alphaSrcFactor);
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	return LONG2NUM(render_state.blendMode.alphaSrcFactor);
 }
 
 VALUE rb_BlendMode_setAlphaDestFactor(VALUE self, VALUE val)
 {
-	GET_BLENDMODE;
-	render_state->blendMode.alphaDstFactor = static_cast<sf::BlendMode::Factor>(NUM2LONG(val));
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	render_state.blendMode.alphaDstFactor = static_cast<sf::BlendMode::Factor>(NUM2LONG(val));
 	return self;
 }
 
 VALUE rb_BlendMode_getAlphaDestFactor(VALUE self)
 {
-	GET_BLENDMODE;
-	return LONG2NUM(render_state->blendMode.alphaDstFactor);
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	return LONG2NUM(render_state.blendMode.alphaDstFactor);
 }
 
 VALUE rb_BlendMode_setColorEquation(VALUE self, VALUE val)
 {
-	GET_BLENDMODE;
-	render_state->blendMode.colorEquation = static_cast<sf::BlendMode::Equation>(NUM2LONG(val));
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	render_state.blendMode.colorEquation = static_cast<sf::BlendMode::Equation>(NUM2LONG(val));
 	return self;
 }
 
 VALUE rb_BlendMode_getColorEquation(VALUE self)
 {
-	GET_BLENDMODE;
-	return LONG2NUM(render_state->blendMode.colorEquation);
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	return LONG2NUM(render_state.blendMode.colorEquation);
 }
 
 VALUE rb_BlendMode_setAlphaEquation(VALUE self, VALUE val)
 {
-	GET_BLENDMODE;
-	render_state->blendMode.alphaEquation = static_cast<sf::BlendMode::Equation>(NUM2LONG(val));
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	render_state.blendMode.alphaEquation = static_cast<sf::BlendMode::Equation>(NUM2LONG(val));
 	return self;
 }
 
 VALUE rb_BlendMode_getAlphaEquation(VALUE self)
 {
-	GET_BLENDMODE;
-	return LONG2NUM(render_state->blendMode.alphaEquation);
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	return LONG2NUM(render_state.blendMode.alphaEquation);
 }
 
 VALUE rb_BlendMode_setBlendType(VALUE self, VALUE val)
 {
-	GET_BLENDMODE;
+	auto& render_state = rb::Get<sf::RenderStates>(self);
 	long mode = NUM2LONG(val);
 	switch (mode)
 	{
 	case 1: // Add
-		render_state->blendMode.colorEquation = sf::BlendMode::Equation::Add;
-		render_state->blendMode.alphaEquation = sf::BlendMode::Equation::Add;
-		render_state->blendMode.colorSrcFactor = sf::BlendMode::Factor::SrcAlpha;
-		render_state->blendMode.colorDstFactor = sf::BlendMode::Factor::One;
-		render_state->blendMode.alphaSrcFactor = sf::BlendMode::Factor::One;
-		render_state->blendMode.alphaDstFactor = sf::BlendMode::Factor::One;
+		render_state.blendMode.colorEquation = sf::BlendMode::Equation::Add;
+		render_state.blendMode.alphaEquation = sf::BlendMode::Equation::Add;
+		render_state.blendMode.colorSrcFactor = sf::BlendMode::Factor::SrcAlpha;
+		render_state.blendMode.colorDstFactor = sf::BlendMode::Factor::One;
+		render_state.blendMode.alphaSrcFactor = sf::BlendMode::Factor::One;
+		render_state.blendMode.alphaDstFactor = sf::BlendMode::Factor::One;
 		break;
 	case 2: // Sub
-		render_state->blendMode.colorEquation = sf::BlendMode::Equation::ReverseSubtract;
-		render_state->blendMode.alphaEquation = sf::BlendMode::Equation::ReverseSubtract;
-		render_state->blendMode.colorSrcFactor = sf::BlendMode::Factor::SrcAlpha;
-		render_state->blendMode.colorDstFactor = sf::BlendMode::Factor::One;
-		render_state->blendMode.alphaSrcFactor = sf::BlendMode::Factor::Zero;
-		render_state->blendMode.alphaDstFactor = sf::BlendMode::Factor::One;
+		render_state.blendMode.colorEquation = sf::BlendMode::Equation::ReverseSubtract;
+		render_state.blendMode.alphaEquation = sf::BlendMode::Equation::ReverseSubtract;
+		render_state.blendMode.colorSrcFactor = sf::BlendMode::Factor::SrcAlpha;
+		render_state.blendMode.colorDstFactor = sf::BlendMode::Factor::One;
+		render_state.blendMode.alphaSrcFactor = sf::BlendMode::Factor::Zero;
+		render_state.blendMode.alphaDstFactor = sf::BlendMode::Factor::One;
 		break;
 	default: // Normal
-		render_state->blendMode.colorEquation = sf::BlendMode::Equation::Add;
-		render_state->blendMode.alphaEquation = sf::BlendMode::Equation::Add;
-		render_state->blendMode.colorSrcFactor = sf::BlendMode::Factor::SrcAlpha;
-		render_state->blendMode.colorDstFactor = sf::BlendMode::Factor::OneMinusSrcAlpha;
-		render_state->blendMode.alphaSrcFactor = sf::BlendMode::Factor::One;
-		render_state->blendMode.alphaDstFactor = sf::BlendMode::Factor::OneMinusSrcAlpha;
+		render_state.blendMode.colorEquation = sf::BlendMode::Equation::Add;
+		render_state.blendMode.alphaEquation = sf::BlendMode::Equation::Add;
+		render_state.blendMode.colorSrcFactor = sf::BlendMode::Factor::SrcAlpha;
+		render_state.blendMode.colorDstFactor = sf::BlendMode::Factor::OneMinusSrcAlpha;
+		render_state.blendMode.alphaSrcFactor = sf::BlendMode::Factor::One;
+		render_state.blendMode.alphaDstFactor = sf::BlendMode::Factor::OneMinusSrcAlpha;
 		break;
 	}
 	return self;
@@ -187,10 +176,10 @@ VALUE rb_BlendMode_setBlendType(VALUE self, VALUE val)
 
 VALUE rb_BlendMode_getBlendType(VALUE self)
 {
-	GET_BLENDMODE;
-	if (render_state->blendMode.colorEquation == sf::BlendMode::Equation::ReverseSubtract)
+	auto& render_state = rb::Get<sf::RenderStates>(self);
+	if (render_state.blendMode.colorEquation == sf::BlendMode::Equation::ReverseSubtract)
 		return LONG2FIX(2);
-	if (render_state->blendMode.alphaDstFactor == sf::BlendMode::Factor::One)
+	if (render_state.blendMode.alphaDstFactor == sf::BlendMode::Factor::One)
 		return LONG2FIX(1);
 	return LONG2FIX(0);
 }

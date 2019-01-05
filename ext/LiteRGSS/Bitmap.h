@@ -18,6 +18,5 @@ VALUE rb_Bitmap_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE heigh
 VALUE rb_Bitmap_toPNG(VALUE self);
 VALUE rb_Bitmap_toPNG_file(VALUE self, VALUE filename);
 sf::Texture& rb_Bitmap_getTexture(VALUE self);
-void rb_Bitmap_test_bitmap(VALUE self);
 
 #endif

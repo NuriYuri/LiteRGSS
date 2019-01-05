@@ -2,22 +2,20 @@
 #include "CViewport_Element.h"
 #include "CRect_Element.h"
 #include "Graphics.local.h"
+#include "CTone_Element.h"
 
 std::unique_ptr<sf::RenderTexture> CViewport_Element::render = nullptr;
 std::unique_ptr<sf::Sprite> CViewport_Element::render_sprite = nullptr;
-
-CViewport_Element::CViewport_Element() : CDrawable_Element() 
-{
-	linkedTone = nullptr;
-	rRenderState = Qnil;
-}
 
 CViewport_Element::~CViewport_Element() 
 {
     if(game_window == nullptr || !game_window->isOpen())
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
 
-};
+	CTone_Element* tone = getLinkedTone();
+    if(tone != nullptr)
+        tone->setElement(nullptr);
+}
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
 {

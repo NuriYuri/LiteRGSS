@@ -1,36 +1,12 @@
 #include "LiteRGSS.h"
+#include "Color.h"
 
 VALUE rb_cColor = Qnil;
-
-#define COLOR_PROTECT if(RDATA(self)->data == nullptr) \
-{\
-    rb_raise(rb_eRGSSError, "Freed Color."); \
-}
-
-#define GET_COLOR sf::Color* color; \
-    Data_Get_Struct(self, sf::Color, color); \
-    COLOR_PROTECT
-
-void rb_Color_Free(void* data)
-{
-    sf::Color* color = reinterpret_cast<sf::Color*>(data);
-    if(color)
-    {
-        delete color;
-    }
-}
-
-VALUE rb_Color_Alloc(VALUE klass)
-{
-    sf::Color* color = new sf::Color();
-    color->a = 255;
-    return Data_Wrap_Struct(klass, NULL, rb_Color_Free, color);
-}
 
 void Init_Color()
 {
     rb_cColor = rb_define_class_under(rb_mLiteRGSS, "Color", rb_cObject);
-    rb_define_alloc_func(rb_cColor, rb_Color_Alloc);
+    rb_define_alloc_func(rb_cColor, rb::Alloc<sf::Color>);
 
     rb_define_method(rb_cColor, "initialize", _rbf rb_Color_Initialize, -1);
     rb_define_method(rb_cColor, "set", _rbf rb_Color_Initialize, -1);
@@ -56,81 +32,81 @@ VALUE rb_Color_Initialize(int argc, VALUE* argv, VALUE self)
 {
     VALUE red, green, blue, alpha;
     rb_scan_args(argc, argv, "13", &red, &green, &blue, &alpha);
-    GET_COLOR
+    auto& color = rb::Get<sf::Color>(self);
     if(RTEST(red))
-        color->r = normalize_long(rb_num2long(red), 0, 255);
+        color.r = normalize_long(rb_num2long(red), 0, 255);
     if(RTEST(green))
-        color->g = normalize_long(rb_num2long(green), 0, 255);
+        color.g = normalize_long(rb_num2long(green), 0, 255);
     if(RTEST(blue))
-        color->b = normalize_long(rb_num2long(blue), 0, 255);
+        color.b = normalize_long(rb_num2long(blue), 0, 255);
     if(RTEST(alpha))
-        color->a = normalize_long(rb_num2long(alpha), 0, 255);
+        color.a = normalize_long(rb_num2long(alpha), 0, 255);
     return self;
 }
 
 VALUE rb_Color_InitializeCopy(VALUE self, VALUE original)
 {
-    GET_COLOR
+    auto& color = rb::Get<sf::Color>(self);
     sf::Color* coloro;
     Data_Get_Struct(original, sf::Color, coloro);
     if(RDATA(original)->data == nullptr)
         rb_raise(rb_eRGSSError, "Freed Color.");
-    color->r = coloro->r;
-    color->g = coloro->g;
-    color->b = coloro->b;
-    color->a = coloro->a;
+    color.r = coloro->r;
+    color.g = coloro->g;
+    color.b = coloro->b;
+    color.a = coloro->a;
     return self;
 }
 
 VALUE rb_Color_getRed(VALUE self)
 {
-    GET_COLOR
-    return rb_int2inum(color->r);
+    auto& color = rb::Get<sf::Color>(self);
+    return rb_int2inum(color.r);
 }
 
 VALUE rb_Color_setRed(VALUE self, VALUE red)
 {
-    GET_COLOR
-    color->r = normalize_long(rb_num2long(red), 0, 255);
+    auto& color = rb::Get<sf::Color>(self);
+    color.r = normalize_long(rb_num2long(red), 0, 255);
     return self;
 }
 
 VALUE rb_Color_getGreen(VALUE self)
 {
-    GET_COLOR
-    return rb_int2inum(color->g);
+    auto& color = rb::Get<sf::Color>(self);
+    return rb_int2inum(color.g);
 }
 
 VALUE rb_Color_setGreen(VALUE self, VALUE red)
 {
-    GET_COLOR
-    color->g = normalize_long(rb_num2long(red), 0, 255);
+    auto& color = rb::Get<sf::Color>(self);
+    color.g = normalize_long(rb_num2long(red), 0, 255);
     return self;
 }
 
 VALUE rb_Color_getBlue(VALUE self)
 {
-    GET_COLOR
-    return rb_int2inum(color->b);
+    auto& color = rb::Get<sf::Color>(self);
+    return rb_int2inum(color.b);
 }
 
 VALUE rb_Color_setBlue(VALUE self, VALUE red)
 {
-    GET_COLOR
-    color->b = normalize_long(rb_num2long(red), 0, 255);
+    auto& color = rb::Get<sf::Color>(self);
+    color.b = normalize_long(rb_num2long(red), 0, 255);
     return self;
 }
 
 VALUE rb_Color_getAlpha(VALUE self)
 {
-    GET_COLOR
-    return rb_int2inum(color->a);
+    auto& color = rb::Get<sf::Color>(self);
+    return rb_int2inum(color.a);
 }
 
 VALUE rb_Color_setAlpha(VALUE self, VALUE red)
 {
-    GET_COLOR
-    color->a = normalize_long(rb_num2long(red), 0, 255);
+    auto& color = rb::Get<sf::Color>(self);
+    color.a = normalize_long(rb_num2long(red), 0, 255);
     return self;
 }
 
@@ -139,12 +115,12 @@ VALUE rb_Color_eql(VALUE self, VALUE other)
 {
     if(rb_obj_is_kind_of(other, rb_cColor) != Qtrue)
         return Qfalse;
-    GET_COLOR
+    auto& color = rb::Get<sf::Color>(self);
     sf::Color* color2;
     Data_Get_Struct(other, sf::Color, color2);
     if(color2 == nullptr)
         return Qfalse;
-    if(*color != *color2)
+    if(color != *color2)
         return Qfalse;
     return Qtrue;
 }
@@ -168,33 +144,17 @@ VALUE rb_Color_Load(VALUE self, VALUE str)
 
 VALUE rb_Color_Save(VALUE self, VALUE limit)
 {
-    GET_COLOR
+    auto& color = rb::Get<sf::Color>(self);
     double color_data[4];
-    color_data[0] = static_cast<double>(color->r);
-    color_data[1] = static_cast<double>(color->g);
-    color_data[2] = static_cast<double>(color->b);
-    color_data[3] = static_cast<double>(color->a);
+    color_data[0] = static_cast<double>(color.r);
+    color_data[1] = static_cast<double>(color.g);
+    color_data[2] = static_cast<double>(color.b);
+    color_data[3] = static_cast<double>(color.a);
     return rb_str_new(reinterpret_cast<const char*>(color_data), sizeof(double) * 4);
 }
 
 VALUE rb_Color_to_s(VALUE self)
 {
-    GET_COLOR
-    return rb_sprintf("(%d, %d, %d, %d)", color->r, color->g, color->b, color->a);
-}
-
-sf::Color* rb_Color_get_color(VALUE self)
-{
-	rb_Color_test_color(self);
-	GET_COLOR;
-	return color;
-}
-
-void rb_Color_test_color(VALUE self)
-{
-
-	if (rb_obj_is_kind_of(self, rb_cColor) != Qtrue)
-	{
-		rb_raise(rb_eTypeError, "Expected Color got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
-	}
+    auto& color = rb::Get<sf::Color>(self);
+    return rb_sprintf("(%d, %d, %d, %d)", color.r, color.g, color.b, color.a);
 }

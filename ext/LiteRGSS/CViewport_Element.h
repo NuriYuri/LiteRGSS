@@ -3,29 +3,29 @@
 #include <memory>
 #include "CDrawable_Element.h"
 #include "CSprite_Element.h"
+#include "utils/rbAdapter.h"
 
 class CViewport_Element : public CDrawable_Element {
     protected:
-        long ox, oy;
+        long ox = 0;
+        long oy = 0;
         sf::View view;
         std::vector<CDrawable_Element*> stack;
         sf::Glsl::Vec4 tone;
-        CTone_Element* linkedTone;
-        /*sf::RenderTexture* render;
-	sf::Shader* shader;*/
+        CTone_Element* linkedTone = nullptr;
 	std::unique_ptr<sf::Color> color_copy;
-        bool visible;
+        bool visible = true;
 	std::unique_ptr<sf::RenderStates> render_states;
         std::unique_ptr<sf::Shader> render_states_shader;
     public:
-	CViewport_Element();
+	CViewport_Element() = default;
         virtual ~CViewport_Element();
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
 	bool isViewport() const override;
 	bool isPureSprite() const override;
 	bool isShape() const override;
-        sf::View* getView() {return &view;};
+        sf::View& getView() {return view;};
 	void setRenderStates(std::unique_ptr<sf::RenderStates> states);
         long getOx() {return ox;};
         long getOy() {return oy;};
@@ -56,4 +56,10 @@ class CViewport_Element : public CDrawable_Element {
 private:
 	sf::Color* check_up_color() const;
 };
+namespace meta {
+    template<>
+    struct Log<CViewport_Element> {
+        static constexpr auto classname = "Viewport";
+    };
+}
 #endif

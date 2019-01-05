@@ -4,21 +4,12 @@
 #include "CRect_Element.h"
 #include <iostream>
 
-CWindow_Element::CWindow_Element() : CDrawable_Element()
+CWindow_Element::CWindow_Element()
 {
-	visible = true;
-	texture = nullptr;
-	locked = false;
-	counter = 0;
-	rViewport = Qnil;
-	rBitmap = Qnil;
 	rX = rY = rZ = rOX = rOY = LONG2FIX(0);
 	rWidth = rHeight = LONG2FIX(-1);
-	rCursorRect = Qnil;
 	rBackOpacity = rContentOpacity = rOpacity = LONG2FIX(255);
-	rWindowBuilder = rPauseSkin = rCursorSkin = Qnil;
 	rActive = rPause = Qfalse;
-	rPauseX = rPauseY = Qnil;
 	rStretch = Qfalse;
 }
 
@@ -126,7 +117,7 @@ void CWindow_Element::updateVertices()
 	updateBackOpacity();
 	resetPausePosition();
 	if (!NIL_P(rCursorRect))
-		resetCursorPosition(&rb_Rect_get_rect(rCursorRect)->getRect());
+		resetCursorPosition(&rb::GetSafe<CRect_Element>(rCursorRect, rb_cRect).getRect());
 }
 
 void CWindow_Element::update()
@@ -523,7 +514,7 @@ void CWindow_Element::allocateVerticesStretch()
 void CWindow_Element::updateContents()
 {
 	if (!NIL_P(rCursorRect))
-		resetCursorPosition(&rb_Rect_get_rect(rCursorRect)->getRect());
+		resetCursorPosition(&rb::GetSafe<CRect_Element>(rCursorRect, rb_cRect).getRect());
 }
 
 void CWindow_Element::updateBackOpacity()
@@ -547,31 +538,27 @@ void CWindow_Element::updateBackOpacity()
 }
 
 void CWindow_Element::updateContentsOpacity()
-{
-	CText_Element* text;
-	CSprite_Element* sprite;
-	sf::Text2* text2;
-	sf::Color col;
+{	
 	long opacity = NUM2LONG(rOpacity) * NUM2LONG(rContentOpacity) / 255;
-	for (auto sp = stack.begin(); sp != stack.end(); sp++)
+	for (auto& sp : stack)
 	{
-		text = dynamic_cast<CText_Element*>((*sp));
+		CText_Element* text = dynamic_cast<CText_Element*>(sp);
 		if (text != nullptr)
 		{
-			text2 = text->getText();
-			col = sf::Color(text2->getFillColor());
+			auto& text2 = text->getText();
+			sf::Color col = sf::Color(text2.getFillColor());
 			col.a = opacity;
-			text2->setFillColor(col);
-			col = sf::Color(text2->getOutlineColor());
+			text2.setFillColor(col);
+			col = sf::Color(text2.getOutlineColor());
 			col.a = opacity;
-			text2->setOutlineColor(col);
+			text2.setOutlineColor(col);
 		}
 		else
 		{
-			sprite = dynamic_cast<CSprite_Element*>((*sp));
+			CSprite_Element* sprite = dynamic_cast<CSprite_Element*>(sp);
 			if (sprite != nullptr)
 			{
-				col = sf::Color(sprite->getSprite().getColor());
+				sf::Color col = sf::Color(sprite->getSprite().getColor());
 				col.a = opacity;
 				sprite->getSprite().setColor(col);
 			}
@@ -590,7 +577,7 @@ void CWindow_Element::updateView()
 	long width = NUM2LONG(rWidth) - 2 * offset_x;
 	long height = NUM2LONG(rHeight) - 2 * offset_y;
 	// Update rect
-	sf::IntRect& rect = rb_Rect_get_rect(rRect)->getRect();
+	sf::IntRect& rect = rb::GetSafe<CRect_Element>(rRect, rb_cRect).getRect();
 	rect.left = x;
 	rect.top = y;
 	rect.width = width;
@@ -625,14 +612,14 @@ bool CWindow_Element::is_locked()
 	return locked;
 }
 
-sf::Sprite * CWindow_Element::getPauseSprite()
+sf::Sprite& CWindow_Element::getPauseSprite()
 {
-	return &pause_sprite;
+	return pause_sprite;
 }
 
-sf::Sprite * CWindow_Element::getCursorSprite()
+sf::Sprite& CWindow_Element::getCursorSprite()
 {
-	return &cursor_sprite;
+	return cursor_sprite;
 }
 
 void CWindow_Element::resetPausePosition()

@@ -2,6 +2,7 @@
 #define L_TABLE32_HEADER
 
 #include <cstdint>
+#include "utils/rbAdapter.h"
 
 struct rb_Table32_Struct_Header {
     unsigned int dim = 0u;
@@ -27,5 +28,12 @@ VALUE rb_Table32_resize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Table32_Load(VALUE self, VALUE str);
 VALUE rb_Table32_Save(VALUE self, VALUE limit);
 VALUE rb_Table32_Fill(VALUE self, VALUE val);
+
+namespace meta {
+    template<>
+    struct Log<rb_Table32_Struct> {
+        static constexpr auto classname = "Table32";
+    };
+}
 
 #endif

@@ -2,22 +2,27 @@
 #define CText_Element_H
 #include "ruby.h"
 #include "CDrawable_Element.h"
+#include "utils/metadata.h"
 
 class CText_Element : public CDrawable_Element {
     private:
         sf::Text2 text;
-        bool visible;
+        bool visible = true;
     public:
-        CText_Element() : CDrawable_Element(), visible(true) {};
+        CText_Element() : 
+            rAlign(LONG2FIX(0)), 
+            rZ(LONG2FIX(0)) {
+        }
         virtual ~CText_Element() = default;
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
         bool isViewport() const override { return false; };
         bool isPureSprite() const override { return false; };
 		bool isShape() const override { return false; };
-        sf::Text2* getText() { return &text;};
+        sf::Text2& getText() { return text;};
         void setVisible(bool value) { visible = value;};
         bool getVisible() { return visible; };
+        
         /* Instance variable for Ruby */
         VALUE rViewport = Qnil;
         VALUE rX = Qnil;
@@ -28,4 +33,10 @@ class CText_Element : public CDrawable_Element {
         VALUE rtext = Qnil;
         VALUE rAlign = Qnil;
 };
+namespace meta {
+    template<>
+    struct Log<CText_Element> {
+        static constexpr auto classname = "Text";
+    };
+}
 #endif

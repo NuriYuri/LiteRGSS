@@ -1,5 +1,6 @@
 #ifndef L_TABLE_HEADER
 #define L_TABLE_HEADER
+#include "utils/rbAdapter.h"
 
 struct rb_Table_Struct_Header {
     unsigned int dim = 0u;
@@ -28,10 +29,15 @@ VALUE rb_Table_Fill(VALUE self, VALUE val);
 VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_offset_y);
 VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE source_origin_y, VALUE dest_offset_x, VALUE dest_offset_y, VALUE dest_width, VALUE dest_height);
 
-rb_Table_Struct* rb_Table_get_table(VALUE self);
-void rb_Table_test_table(VALUE self);
 
 void rb_Table_internal_copyLine(short* &xheap1, short* &xheap2, long ini_x, long max_x);
 void rb_Table_internal_copyModuloYpart(short* xheap1, short* yheap2, long ox2, long target_x, long offsetx, long src_xsize, long m);
+
+namespace meta {
+    template<>
+    struct Log<rb_Table_Struct> {
+        static constexpr auto classname = "Table";
+    };
+}
 
 #endif

@@ -15,18 +15,20 @@ long ScreenHeight = 480;
 unsigned long frame_count = 0;
 unsigned long frame_rate = 60;
 
-std::unique_ptr<sf::RenderWindow> game_window {};
+std::unique_ptr<sf::RenderWindow> game_window = nullptr;
 bool InsideGraphicsUpdate = false;
 std::vector<CDrawable_Element*> Graphics_stack;
 
-std::unique_ptr<sf::Texture> Graphics_freeze_texture {};
-std::unique_ptr<sf::Sprite> Graphics_freeze_sprite {};
-std::unique_ptr<sf::Shader> Graphics_freeze_shader {};
+std::unique_ptr<sf::Texture> Graphics_freeze_texture = nullptr;
+std::unique_ptr<sf::Sprite> Graphics_freeze_sprite = nullptr;
+std::unique_ptr<sf::Shader> Graphics_freeze_shader = nullptr;
 
-/* Macro Definition */
-#define GRAPHICS_PROTECT if(game_window == nullptr) { \
-    rb_raise(rb_eStoppedGraphics, "Graphics is not started, window closed thus no Graphics operation allowed. Please call Graphics.start before using other Graphics functions."); \
-    return self; \
+void GraphicProtect()  {
+    if(game_window == nullptr) {
+        constexpr auto rawErrorMessage = "Graphics is not started, window closed thus no Graphics operation allowed. Please call Graphics.start before using other Graphics functions.";
+        rb_raise(rb_eStoppedGraphics, rawErrorMessage);
+        throw std::runtime_error(rawErrorMessage);
+    }
 }
 
 void Init_Graphics()
@@ -100,7 +102,7 @@ VALUE rb_Graphics_start(VALUE self)
 
 VALUE rb_Graphics_stop(VALUE self)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
 
     // Prevent a Thread from calling stop during the Graphics.update process
     if(InsideGraphicsUpdate) 
@@ -109,7 +111,7 @@ VALUE rb_Graphics_stop(VALUE self)
     /* Clear the stack */
     local_Graphics_Clear_Stack();
 
-    GRAPHICS_PROTECT
+    GraphicProtect();
 
     /* Close the window */
     game_window->close();
@@ -119,11 +121,12 @@ VALUE rb_Graphics_stop(VALUE self)
     Graphics_freeze_sprite = nullptr;    
     Graphics_freeze_texture = nullptr;
     Graphics_freeze_shader = nullptr;
+    return self;
 }
 
 VALUE rb_Graphics_snap_to_bitmap(VALUE self)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
     if(InsideGraphicsUpdate)
         return Qnil;
     VALUE bmp = rb_obj_alloc(rb_cBitmap);
@@ -138,7 +141,7 @@ VALUE rb_Graphics_snap_to_bitmap(VALUE self)
 
 VALUE rb_Graphics_freeze(VALUE self)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
     if(Graphics_freeze_texture != nullptr)
         return self;
     rb_Graphics_update(self);
@@ -151,7 +154,7 @@ VALUE rb_Graphics_freeze(VALUE self)
 
 VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
     if(Graphics_freeze_sprite == nullptr)
         return self;
 	long time = 8; //< RGSS doc
@@ -183,7 +186,7 @@ VALUE rb_Graphics_list_res(VALUE self)
 
 VALUE rb_Graphics_update(VALUE self)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
     if(InsideGraphicsUpdate) // Prevent a Thread from calling Graphics.update during Graphics.update process
         return self;
     InsideGraphicsUpdate = true;
@@ -203,7 +206,7 @@ VALUE rb_Graphics_update(VALUE self)
 
 VALUE rb_Graphics_update_no_input_count(VALUE self)
 {
-	GRAPHICS_PROTECT
+	GraphicProtect();
 		if (InsideGraphicsUpdate) // Prevent a Thread from calling Graphics.update during Graphics.update process
 			return self;
 	InsideGraphicsUpdate = true;
@@ -219,7 +222,7 @@ VALUE rb_Graphics_update_no_input_count(VALUE self)
 
 VALUE rb_Graphics_update_only_input(VALUE self)
 {
-	GRAPHICS_PROTECT
+	GraphicProtect();
 	InsideGraphicsUpdate = true;
 	GraphicUpdateMessage* message = nullptr;
 	local_Graphics_Update_Process_Event(message);
@@ -294,7 +297,7 @@ VALUE rb_Graphics_getShader(VALUE self)
 
 VALUE rb_Graphics_setShader(VALUE self, VALUE shader)
 {
-	GRAPHICS_PROTECT;
+	GraphicProtect();
 	sf::RenderStates* render_state;
 	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue)
 	{
@@ -303,11 +306,12 @@ VALUE rb_Graphics_setShader(VALUE self, VALUE shader)
 		Graphics_States = render_state;
 		local_Graphics_initRender();
 	}
+    return self;
 }
 
 VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
 	ID swidth = rb_intern("ScreenWidth");
 	ID sheight = rb_intern("ScreenHeight");
 	/* Adjust screen resolution */

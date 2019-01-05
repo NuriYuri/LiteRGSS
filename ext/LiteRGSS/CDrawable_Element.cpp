@@ -1,12 +1,6 @@
 #include "CDrawable_Element.h"
+#include "CRect_Element.h"
 #include <iostream>
-
-CDrawable_Element::CDrawable_Element()
-{
-    origin_stack = nullptr;
-    linkedRect = nullptr;
-    index = 0;
-}
 
 void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o) 
 {
@@ -26,6 +20,14 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)
     }
 }
 
+CDrawable_Element::~CDrawable_Element() {
+    // I can drop a sprite from the viewport it's stored in its table
+    if(NIL_P(rViewport))
+        setOriginStack(nullptr);
+    CRect_Element* rect = getLinkedRect();
+    if(rect != nullptr)
+        rect->setElement(nullptr);
+}
 
 void CDrawable_Element::setIndex(unsigned long nindex)
 {

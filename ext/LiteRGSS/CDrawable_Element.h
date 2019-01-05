@@ -12,12 +12,12 @@ class CTone_Element;
 
 class CDrawable_Element {
     protected:
-        std::vector<CDrawable_Element*> *origin_stack;
+        std::vector<CDrawable_Element*> *origin_stack = nullptr;
         CRect_Element* linkedRect = nullptr;
-        unsigned long index;
+        unsigned long index = 0;
     public:
-        CDrawable_Element();
-        virtual ~CDrawable_Element() = default;
+        CDrawable_Element() = default;
+        virtual ~CDrawable_Element();
         void setOriginStack(std::vector<CDrawable_Element*> *o);
         void overrideOrigineStack(std::vector<CDrawable_Element*> *o) {origin_stack = o;};
         void setIndex(unsigned long nindex);
@@ -29,5 +29,8 @@ class CDrawable_Element {
 		virtual bool isShape() const = 0;
         void setLinkedRect(CRect_Element* _rect) { linkedRect = _rect; };
         CRect_Element* getLinkedRect() const { return linkedRect; };
+
+        /* Instance variable for Ruby */
+        VALUE rViewport = Qnil;
 };
 #endif

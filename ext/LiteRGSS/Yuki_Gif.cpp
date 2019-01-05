@@ -4,16 +4,6 @@ VALUE rb_cYukiGifReader = Qnil;
 VALUE rb_cYukiGifError = Qnil;
 double rb_YukiGifReaderFrameDelta = 16.666666666666666;
 
-#define GIF_PROTECT if(RDATA(self)->data == nullptr) \
-{\
-    rb_raise(rb_eRGSSError, "Disposed GIF."); \
-    return self; \
-}
-
-#define GET_GIF rb_yuki_gif_data* gif; \
-    Data_Get_Struct(self, rb_yuki_gif_data, gif); \
-    GIF_PROTECT \
-
 void rb_Yuki_Gif_Free(void* data)
 {
 	rb_yuki_gif_data* gif = reinterpret_cast<rb_yuki_gif_data*>(data);
@@ -80,8 +70,6 @@ static gif_bitmap_callback_vt bitmap_callbacks = {
 VALUE rb_Yuki_Gif_Alloc(VALUE klass)
 {
 	rb_yuki_gif_data* gif = new rb_yuki_gif_data();
-	gif->frame = 0;
-	gif->counter = 0;
 	gif_create(&gif->gif, &bitmap_callbacks);
 	return Data_Wrap_Struct(klass, NULL, rb_Yuki_Gif_Free, gif);
 }
@@ -108,7 +96,7 @@ void Init_YukiGifReader()
 
 VALUE rb_Yuki_GifReader_Initialize(int argc, VALUE *argv, VALUE self)
 {
-	GET_GIF;
+	auto& gif = rb::Get<rb_yuki_gif_data>(self);;
 	VALUE str, from_memory;
 	rb_scan_args(argc, argv, "11", &str, &from_memory);
 	rb_check_type(str, T_STRING);
@@ -116,7 +104,7 @@ VALUE rb_Yuki_GifReader_Initialize(int argc, VALUE *argv, VALUE self)
 	{
 		rb_str_freeze(str);
 		rb_iv_set(self, "@__gif_data", str);
-		gif_result code = gif_initialise(&gif->gif, RSTRING_LEN(str), reinterpret_cast<unsigned char*>(RSTRING_PTR(str)));
+		gif_result code = gif_initialise(&gif.gif, RSTRING_LEN(str), reinterpret_cast<unsigned char*>(RSTRING_PTR(str)));
 		if (code != GIF_OK && code != GIF_WORKING)
 		{
 			rb_raise(rb_cYukiGifError, "Failed to load GIF from Memory");
@@ -130,7 +118,7 @@ VALUE rb_Yuki_GifReader_Initialize(int argc, VALUE *argv, VALUE self)
 		rb_io_close(file);
 		rb_str_freeze(data);
 		rb_iv_set(self, "@__gif_data", data);
-		gif_result code = gif_initialise(&gif->gif, RSTRING_LEN(data), reinterpret_cast<unsigned char*>(RSTRING_PTR(data)));
+		gif_result code = gif_initialise(&gif.gif, RSTRING_LEN(data), reinterpret_cast<unsigned char*>(RSTRING_PTR(data)));
 		if (code != GIF_OK && code != GIF_WORKING)
 		{
 			rb_raise(rb_cYukiGifError, "Failed to load GIF from File (%s)", RSTRING_PTR(str));
@@ -141,68 +129,68 @@ VALUE rb_Yuki_GifReader_Initialize(int argc, VALUE *argv, VALUE self)
 
 VALUE rb_Yuki_GifReader_Update(VALUE self, VALUE bitmap)
 {
-	GET_GIF;
-	gif_animation* gifa = &gif->gif;
-	if (((gifa->frames[gif->frame].frame_delay * 10) <= gif->counter) || (gif->frame == 0 && gif->counter == 0))
+	auto& gif = rb::Get<rb_yuki_gif_data>(self);
+	gif_animation* gifa = &gif.gif;
+	if (((gifa->frames[gif.frame].frame_delay * 10) <= gif.counter) || (gif.frame == 0 && gif.counter == 0))
 	{
-		if (gif->frame != 0 || gif->counter != 0)
+		if (gif.frame != 0 || gif.counter != 0)
 		{
-			gif->counter -= gifa->frames[gif->frame].frame_delay * 10;
-			gif->frame++;
-			if (gif->frame >= gifa->frame_count)
-				gif->frame = 0;
+			gif.counter -= gifa->frames[gif.frame].frame_delay * 10;
+			gif.frame++;
+			if (gif.frame >= gifa->frame_count)
+				gif.frame = 0;
 		}
-		if (gif_decode_frame(gifa, gif->frame) == GIF_OK)
+		if (gif_decode_frame(gifa, gif.frame) == GIF_OK)
 		{
 			rb_Yuki_GifReader_Draw(self, bitmap);
 		}
 		else
 			rb_raise(rb_cYukiGifError, "Failed to decode GIF frame");
 	}
-	gif->counter += rb_YukiGifReaderFrameDelta;
+	gif.counter += rb_YukiGifReaderFrameDelta;
 	return self;
 }
 
 VALUE rb_Yuki_GifReader_Draw(VALUE self, VALUE bitmap)
 {
-	GET_GIF;
+	auto& gif = rb::Get<rb_yuki_gif_data>(self);
 	if (rb_obj_is_kind_of(bitmap, rb_cBitmap) == Qtrue)
 	{
 		sf::Texture& text = rb_Bitmap_getTexture(bitmap);
-		text.update(reinterpret_cast<sf::Uint8*>(gif->gif.frame_image), gif->gif.width, gif->gif.height, 0, 0);
+		text.update(reinterpret_cast<sf::Uint8*>(gif.gif.frame_image), gif.gif.width, gif.gif.height, 0, 0);
 	}
 	return self;
 }
 
 VALUE rb_Yuki_GifReader_Width(VALUE self)
 {
-	GET_GIF;
-	return UINT2NUM(gif->gif.width);
+	auto& gif = rb::Get<rb_yuki_gif_data>(self);
+	return UINT2NUM(gif.gif.width);
 }
 
 VALUE rb_Yuki_GifReader_Height(VALUE self)
 {
-	GET_GIF;
-	return UINT2NUM(gif->gif.height);
+	auto& gif = rb::Get<rb_yuki_gif_data>(self);
+	return UINT2NUM(gif.gif.height);
 }
 
 VALUE rb_Yuki_GifReader_Frame(VALUE self)
 {
-	GET_GIF;
-	return ULONG2NUM(gif->frame);
+	auto& gif = rb::Get<rb_yuki_gif_data>(self);
+	return ULONG2NUM(gif.frame);
 }
 
 VALUE rb_Yuki_GifReader_Frame_set(VALUE self, VALUE frame)
 {
-	GET_GIF;
-	gif->frame = NUM2ULONG(frame);
+	auto& gif = rb::Get<rb_yuki_gif_data>(self);
+	gif.frame = NUM2ULONG(frame);
 	return self;
 }
 
 VALUE rb_Yuki_GifReader_FrameCount(VALUE self)
 {
-	GET_GIF;
-	return UINT2NUM(gif->gif.frame_count);
+	auto& gif = rb::Get<rb_yuki_gif_data>(self);
+	return UINT2NUM(gif.gif.frame_count);
 }
 
 VALUE rb_Yuki_GifReader_SetDeltaCounter(VALUE self, VALUE delta)

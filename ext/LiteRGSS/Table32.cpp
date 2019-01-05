@@ -2,11 +2,6 @@
 
 VALUE rb_cTable32 = Qnil;
 
-#define GET_TABLE rb_Table32_Struct* table; \
-    Data_Get_Struct(self, rb_Table32_Struct, table); \
-    if(table == nullptr) \
-        return Qnil;
-
 void rb_Table32_Free(void* data)
 {
     rb_Table32_Struct* table = reinterpret_cast<rb_Table32_Struct*>(data);
@@ -22,8 +17,7 @@ void rb_Table32_Free(void* data)
 
 VALUE rb_Table32_Alloc(VALUE klass)
 {
-    rb_Table32_Struct* table = new rb_Table32_Struct();
-    return Data_Wrap_Struct(klass, NULL, rb_Table32_Free, table);
+    return Data_Wrap_Struct(klass, NULL, rb_Table32_Free, new rb_Table32_Struct());
 }
 
 void Init_Table32()
@@ -47,57 +41,57 @@ void Init_Table32()
 
 VALUE rb_Table32_initialize(int argc, VALUE* argv, VALUE self)
 {
-    GET_TABLE
+    auto& table = rb::Get<rb_Table32_Struct>(self);
     switch(argc)
     {
         case 1:
-            table->header.xsize = rb_num2ulong(argv[0]);
-            table->header.ysize = 1;
-            table->header.zsize = 1;
+            table.header.xsize = rb_num2ulong(argv[0]);
+            table.header.ysize = 1;
+            table.header.zsize = 1;
             break;
         case 2:
-            table->header.xsize = rb_num2ulong(argv[0]);
-            table->header.ysize = rb_num2ulong(argv[1]);
-            table->header.zsize = 1;
+            table.header.xsize = rb_num2ulong(argv[0]);
+            table.header.ysize = rb_num2ulong(argv[1]);
+            table.header.zsize = 1;
             break;
         case 3:
-            table->header.xsize = rb_num2ulong(argv[0]);
-            table->header.ysize = rb_num2ulong(argv[1]);
-            table->header.zsize = rb_num2ulong(argv[2]);
+            table.header.xsize = rb_num2ulong(argv[0]);
+            table.header.ysize = rb_num2ulong(argv[1]);
+            table.header.zsize = rb_num2ulong(argv[2]);
             break;
         default:
             rb_raise(rb_eRGSSError, "Table32 can be 1D, 2D or 3D but nothing else, requested dimension : %dD", argc);
             return Qnil;
     }
-    if(table->header.xsize == 0)
-        table->header.xsize = 1;
-    if(table->header.ysize == 0)
-        table->header.ysize = 1;
-    if(table->header.zsize == 0)
-        table->header.zsize = 1;
-    table->header.dim = argc;
-    table->header.data_size = table->header.xsize * table->header.ysize * table->header.zsize;
-    table->heap = new int32_t[table->header.data_size]();
+    if(table.header.xsize == 0)
+        table.header.xsize = 1;
+    if(table.header.ysize == 0)
+        table.header.ysize = 1;
+    if(table.header.zsize == 0)
+        table.header.zsize = 1;
+    table.header.dim = argc;
+    table.header.data_size = table.header.xsize * table.header.ysize * table.header.zsize;
+    table.heap = new int32_t[table.header.data_size]();
     return self;
 }
 
 VALUE rb_Table32_get(int argc, VALUE* argv, VALUE self)
 {
-    GET_TABLE
+    auto& table = rb::Get<rb_Table32_Struct>(self);
     VALUE rx, ry, rz;
     unsigned long x, y, z;
     rb_scan_args(argc, argv, "12", &rx, &ry, &rz);
     x = rb_num2ulong(rx);
     y = NIL_P(ry) ? 0 : rb_num2ulong(ry);
     z = NIL_P(rz) ? 0 : rb_num2ulong(rz);
-    if(x >= table->header.xsize || y >= table->header.ysize || z >= table->header.zsize)
+    if(x >= table.header.xsize || y >= table.header.ysize || z >= table.header.zsize)
         return Qnil;
-    return rb_int2inum(table->heap[x + (y * table->header.xsize) + (z * table->header.xsize * table->header.ysize)]);
+    return rb_int2inum(table.heap[x + (y * table.header.xsize) + (z * table.header.xsize * table.header.ysize)]);
 }
 
 VALUE rb_Table32_set(int argc, VALUE* argv, VALUE self)
 {
-    GET_TABLE
+    auto& table = rb::Get<rb_Table32_Struct>(self);
     VALUE rx, ry, rz, rv;
     unsigned long x, y, z;
     long v;
@@ -120,34 +114,34 @@ VALUE rb_Table32_set(int argc, VALUE* argv, VALUE self)
         z = rb_num2ulong(rz);
         v = RB_NUM2LONG(rv);
     }
-    if(x >= table->header.xsize || y >= table->header.ysize || z >= table->header.zsize)
+    if(x >= table.header.xsize || y >= table.header.ysize || z >= table.header.zsize)
         return Qnil;
-    table->heap[x + (y * table->header.xsize) + (z * table->header.xsize * table->header.ysize)] = v;
+    table.heap[x + (y * table.header.xsize) + (z * table.header.xsize * table.header.ysize)] = v;
     return self;
 }
 
 VALUE rb_Table32_xSize(VALUE self)
 {
-    GET_TABLE
-    return rb_uint2inum(table->header.xsize);
+    auto& table = rb::Get<rb_Table32_Struct>(self);
+    return rb_uint2inum(table.header.xsize);
 }
 
 VALUE rb_Table32_ySize(VALUE self)
 {
-    GET_TABLE
-    return rb_uint2inum(table->header.ysize);
+    auto& table = rb::Get<rb_Table32_Struct>(self);
+    return rb_uint2inum(table.header.ysize);
 }
 
 VALUE rb_Table32_zSize(VALUE self)
 {
-    GET_TABLE
-    return rb_uint2inum(table->header.zsize);
+    auto& table = rb::Get<rb_Table32_Struct>(self);
+    return rb_uint2inum(table.header.zsize);
 }
 
 VALUE rb_Table32_dim(VALUE self)
 {
-    GET_TABLE
-    return rb_uint2inum(table->header.dim);
+    auto& table = rb::Get<rb_Table32_Struct>(self);
+    return rb_uint2inum(table.header.dim);
 }
 
 void table_copy(int32_t* dheap, int32_t* sheap, unsigned long dxsize, unsigned long dysize,
@@ -175,12 +169,12 @@ void table_copy(int32_t* dheap, int32_t* sheap, unsigned long dxsize, unsigned l
 
 VALUE rb_Table32_resize(int argc, VALUE* argv, VALUE self)
 {
-    GET_TABLE
-    auto table2 = *table;
+    auto& table = rb::Get<rb_Table32_Struct>(self);
+    auto table2 = table;
     rb_Table32_initialize(argc, argv, self);
     // Copying data
-    table_copy(table->heap, table2.heap,
-        table->header.xsize, table->header.ysize, table->header.zsize,
+    table_copy(table.heap, table2.heap,
+        table.header.xsize, table.header.ysize, table.header.zsize,
         table2.header.xsize, table2.header.ysize, table2.header.zsize);
     // Freeing heap
     delete[] table2.heap;
@@ -205,18 +199,18 @@ VALUE rb_Table32_Load(VALUE self, VALUE str)
 
 VALUE rb_Table32_Save(VALUE self, VALUE limit)
 {
-    GET_TABLE
-    VALUE str1 = rb_str_new(reinterpret_cast<char*>(&table->header), sizeof(rb_Table32_Struct_Header));
-    VALUE str2 = rb_str_new(reinterpret_cast<char*>(table->heap), table->header.data_size * sizeof(long));
+    auto& table = rb::Get<rb_Table32_Struct>(self);
+    VALUE str1 = rb_str_new(reinterpret_cast<char*>(&table.header), sizeof(rb_Table32_Struct_Header));
+    VALUE str2 = rb_str_new(reinterpret_cast<char*>(table.heap), table.header.data_size * sizeof(long));
     return rb_str_concat(str1, str2);
 }
 
 VALUE rb_Table32_Fill(VALUE self, VALUE val)
 {
-    GET_TABLE
+    auto& table = rb::Get<rb_Table32_Struct>(self);
     long v = RB_NUM2LONG(val);
-    unsigned long sz = table->header.data_size;
-	int32_t* data = table->heap;
+    unsigned long sz = table.header.data_size;
+	int32_t* data = table.heap;
     for(unsigned long i = 0;i < sz;i++)
     {
         data[i] = v;

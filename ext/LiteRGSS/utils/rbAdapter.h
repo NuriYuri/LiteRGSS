@@ -4,14 +4,17 @@
 #include "utils/metadata.h"
 #include "ruby.h"
 
+extern VALUE rb_eRGSSError;
+
 namespace rb {
     template <class T>
-    auto Protect(VALUE self) {
+    void Protect(VALUE self) {
         if(RDATA(self)->data == nullptr) { 
-            auto disposedMessage = std::string {"Disposed "};
-            disposedMessage += meta::Log<T>::classname;
-            disposedMessage += ".";
-            rb_raise(rb_eRGSSError, "%s", disposedMessage.c_str());
+            auto errorMessage = std::string { "Disposed "}; 
+            errorMessage += meta::Log<T>::classname;
+            errorMessage += ".";
+            rb_raise(rb_eRGSSError, "%s", errorMessage.c_str());
+            throw std::runtime_error(errorMessage);
         }
     }
 
@@ -22,13 +25,31 @@ namespace rb {
     }
 
     template <class T>
+    auto& GetSafe(VALUE self, VALUE expectedType) {
+        if (rb_obj_is_kind_of(self, expectedType) != Qtrue) {
+            auto errorMessage = std::string { "Expected " };
+            errorMessage += meta::Log<T>::classname;
+            errorMessage += " got ";
+            errorMessage += RSTRING_PTR(rb_class_name(CLASS_OF(self)));
+            errorMessage += ".";
+            rb_raise(rb_eTypeError, "%s", errorMessage.c_str());
+            throw std::runtime_error(errorMessage);
+        }
+
+        return Get<T>(self);
+    }
+
+    template <class T>
     void Free(void* data) {
         delete reinterpret_cast<T*>(data);
     }
 
     template <class T>
+    void Mark(T* data) {}
+
+    template <class T>
     VALUE Alloc(VALUE klass) {
-        return Data_Wrap_Struct(klass, NULL, Free<T>, new T());
+        return Data_Wrap_Struct(klass, Mark<T>, Free<T>, new T());
     }
 
 }
