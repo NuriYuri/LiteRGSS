@@ -4,31 +4,8 @@
 
 VALUE rb_cWindow = Qnil;
 
-
-#define WINDOW_PROTECT if(RDATA(self)->data == nullptr) \
-{\
-    rb_raise(rb_eRGSSError, "Disposed Window."); \
-}
-
-#define GET_WINDOW CWindow_Element* window; \
-    Data_Get_Struct(self, CWindow_Element, window); \
-    WINDOW_PROTECT
-
-void rb_Window_Free(void* data)
-{
-	CWindow_Element* window = reinterpret_cast<CWindow_Element*>(data);
-	if (window != nullptr)
-	{
-		if (NIL_P(window->rViewport)) // I can drop a sprite from the viewport it's stored in its table
-			window->setOriginStack(nullptr);
-		CRect_Element* rect = window->getLinkedRect();
-		if (rect != nullptr)
-			rect->setElement(nullptr);
-		delete window;
-	}
-}
-
-void rb_Window_Mark(CWindow_Element* window)
+template<>
+void rb::Mark<CWindow_Element>(CWindow_Element* window)
 {
 	if (window == nullptr)
 		return;
@@ -56,17 +33,10 @@ void rb_Window_Mark(CWindow_Element* window)
 	rb_gc_mark(window->rStretch);
 }
 
-VALUE rb_Window_Alloc(VALUE klass)
-{
-	CWindow_Element* window = new CWindow_Element();
-	window->setLinkedRect(nullptr);
-	return Data_Wrap_Struct(klass, rb_Window_Mark, rb_Window_Free, window);
-}
-
 void Init_Window()
 {
 	rb_cWindow = rb_define_class_under(rb_mLiteRGSS, "Window", rb_cObject);
-	rb_define_alloc_func(rb_cWindow, rb_Window_Alloc);
+	rb_define_alloc_func(rb_cWindow, rb::Alloc<CWindow_Element>);
 
 	rb_define_method(rb_cWindow, "initialize", _rbf rb_Window_Initialize, -1);
 	rb_define_method(rb_cWindow, "dispose", _rbf rb_Window_Dispose, 0);
@@ -130,9 +100,9 @@ void Init_Window()
 
 VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 {
-	GET_WINDOW;
-	VALUE viewport;
-	VALUE table;
+	auto& window = rb::Get<CWindow_Element>(self);
+	VALUE viewport = Qnil;
+	VALUE table = Qnil;
 	
 	rb_scan_args(argc, argv, "01", &viewport);
 
@@ -143,33 +113,33 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 		Data_Get_Struct(argv[0], CViewport_Element, viewport);
 		viewport->bind(window);
 		table = rb_ivar_get(argv[0], rb_iElementTable);
-		window->rViewport = argv[0];
+		window.rViewport = argv[0];
 	}
 	/* Otherwise */
 	else
 	{
-		global_Graphics_Bind(window);
+		global_Graphics_Bind(&window);
 		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-		window->rViewport = Qnil;
+		window.rViewport = Qnil;
 	}
 	rb_ary_push(table, self);
 
 	/* Sprite table creation */
 	rb_ivar_set(self, rb_iElementTable, rb_ary_new());
-	window->clearStack();
+	window.clearStack();
 
 	/* Rect definition */
 	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };
-	window->rRect = rb_class_new_instance(4, args, rb_cRect);
-	rb_obj_freeze(window->rRect);
+	window.rRect = rb_class_new_instance(4, args, rb_cRect);
+	rb_obj_freeze(window.rRect);
 
 	return self;
 }
 
 VALUE rb_Window_getViewport(VALUE self)
 {
-	GET_WINDOW;
-	return window->rViewport;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rViewport;
 }
 
 void __Window_Dispose_AllSprite(VALUE table)
@@ -195,28 +165,28 @@ VALUE rb_Window_DisposeFromViewport(VALUE self)
 {
 	if (RDATA(self)->data == nullptr)
 		return self;
-	GET_WINDOW;
-		RDATA(self)->data = nullptr;
-	rb_Window_Free(reinterpret_cast<void*>(window));
+	auto& window = rb::Get<CWindow_Element>(self);
+	delete &window;
+	RDATA(self)->data = nullptr;
 	return self;
 }
 
 VALUE rb_Window_Dispose(VALUE self)
 {
-	GET_WINDOW;
-	RDATA(self)->data = nullptr;
-	/* Suppression de la fenêtre de ses stacks */
-	VALUE viewport = window->rViewport;
+	auto& window = rb::Get<CWindow_Element>(self);
+	/* Suppression de la fenÃªtre de ses stacks */
+	VALUE viewport = window.rViewport;
 	VALUE table;
 	if (NIL_P(viewport))
 		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
 	else
 		table = rb_ivar_get(viewport, rb_iElementTable);
 	rb_ary_delete(table, self);
-	window->setOriginStack(nullptr);
-	window->clearStack();
+	window.setOriginStack(nullptr);
+	window.clearStack();
 	__Window_Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-	rb_Window_Free(window);
+	delete &window;
+	RDATA(self)->data = nullptr;
 	return self;
 }
 
@@ -229,17 +199,17 @@ VALUE rb_Window_Disposed(VALUE self)
 
 VALUE rb_Window_setWindowSkin(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	if (val != Qnil)
 	{
-		window->setTexture(rb_Bitmap_getTexture(val));
-		window->rBitmap = val;
-		window->updateVertices();
+		window.setTexture(&rb_Bitmap_getTexture(val));
+		window.rBitmap = val;
+		window.updateVertices();
 	}
 	else
 	{
-		window->setTexture(nullptr);
-		window->rBitmap = Qnil;
+		window.setTexture(nullptr);
+		window.rBitmap = Qnil;
 	}
 	
 	return self;
@@ -247,57 +217,57 @@ VALUE rb_Window_setWindowSkin(VALUE self, VALUE val)
 
 VALUE rb_Window_getWindowSkin(VALUE self)
 {
-	GET_WINDOW;
-	return window->rBitmap;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rBitmap;
 }
 
 VALUE rb_Window_setWidth(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2ULONG(val);
-	window->rWidth = val;
-	window->updateVertices();
-	window->updateView();
+	window.rWidth = val;
+	window.updateVertices();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_getWidth(VALUE self)
 {
-	GET_WINDOW;
-	return window->rWidth;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rWidth;
 }
 
 VALUE rb_Window_setHeight(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2ULONG(val);
-	window->rHeight = val;
-	window->updateVertices();
-	window->updateView();
+	window.rHeight = val;
+	window.updateVertices();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_getHeight(VALUE self)
 {
-	GET_WINDOW;
-	return window->rHeight;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rHeight;
 }
 
 VALUE rb_Window_setSize(VALUE self, VALUE x, VALUE y)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2ULONG(x);
 	NUM2ULONG(y);
-	window->rWidth = x;
-	window->rHeight = y;
-	window->updateVertices();
-	window->updateView();
+	window.rWidth = x;
+	window.rHeight = y;
+	window.updateVertices();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_setWindowBuilder(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	Check_Type(val, T_ARRAY);
 	// Lenght check
 	if (rb_array_len(val) < 6)
@@ -311,138 +281,138 @@ VALUE rb_Window_setWindowBuilder(VALUE self, VALUE val)
 	}
 	// Freeze window builder
 	rb_obj_freeze(val);
-	window->rWindowBuilder = val;
-	window->updateVertices();
-	window->updateView();
+	window.rWindowBuilder = val;
+	window.updateVertices();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_getWindowBuilder(VALUE self)
 {
-	GET_WINDOW;
-	return window->rWindowBuilder;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rWindowBuilder;
 }
 
 VALUE rb_Window_setX(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2LONG(val);
-	window->rX = val;
-	window->updateVertices();
-	window->updateView();
+	window.rX = val;
+	window.updateVertices();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_getX(VALUE self)
 {
-	GET_WINDOW;
-	return window->rX;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rX;
 }
 
 VALUE rb_Window_setY(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2LONG(val);
-	window->rY = val;
-	window->updateVertices();
-	window->updateView();
+	window.rY = val;
+	window.updateVertices();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_getY(VALUE self)
 {
-	GET_WINDOW;
-	return window->rY;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rY;
 }
 
 VALUE rb_Window_setPosition(VALUE self, VALUE x, VALUE y)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2LONG(x);
 	NUM2LONG(y);
-	window->rX = x;
-	window->rY = y;
-	window->updateVertices();
-	window->updateView();
+	window.rX = x;
+	window.rY = y;
+	window.updateVertices();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_setZ(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2LONG(val);
-	window->rZ = val;
+	window.rZ = val;
 	return self;
 }
 
 VALUE rb_Window_getZ(VALUE self)
 {
-	GET_WINDOW;
-	return window->rZ;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rZ;
 }
 
 VALUE rb_Window_setOX(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2LONG(val);
-	window->rOX = val;
-	window->updateContents();
-	window->updateView();
+	window.rOX = val;
+	window.updateContents();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_getOX(VALUE self)
 {
-	GET_WINDOW;
-	return window->rOX;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rOX;
 }
 
 VALUE rb_Window_setOY(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2LONG(val);
-	window->rOY = val;
-	window->updateContents();
-	window->updateView();
+	window.rOY = val;
+	window.updateContents();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_getOY(VALUE self)
 {
-	GET_WINDOW;
-	return window->rOY;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rOY;
 }
 
 VALUE rb_Window_setOrigin(VALUE self, VALUE x, VALUE y)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	NUM2LONG(x);
 	NUM2LONG(y);
-	window->rOX = x;
-	window->rOY = y;
-	window->updateContents();
-	window->updateView();
+	window.rOX = x;
+	window.rOY = y;
+	window.updateContents();
+	window.updateView();
 	return self;
 }
 
 VALUE rb_Window_setStretch(VALUE self, VALUE val)
 {
-	GET_WINDOW;
-	window->rStretch = (RTEST(val) ? Qtrue : Qfalse);
-	window->updateVertices();
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.rStretch = (RTEST(val) ? Qtrue : Qfalse);
+	window.updateVertices();
 	return self;
 }
 
 VALUE rb_Window_getStretch(VALUE self)
 {
-	GET_WINDOW;
-	return window->rStretch;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rStretch;
 }
 
 VALUE rb_Window_getCursorRect(VALUE self)
 {
-	GET_WINDOW;
-	VALUE rc = window->rCursorRect;
+	auto& window = rb::Get<CWindow_Element>(self);
+	VALUE rc = window.rCursorRect;
 	if (!NIL_P(rc))
 		return rc;
 	/* Creating rect */
@@ -450,244 +420,241 @@ VALUE rb_Window_getCursorRect(VALUE self)
 	argv[0] = argv[1] = LONG2FIX(0);
 	rc = rb_class_new_instance(2, argv, rb_cRect);
 	/* Fetching data */
-	CRect_Element* rect = rb_Rect_get_rect(rc);
+	auto& rect = rb::GetSafe<CRect_Element>(rc, rb_cRect);
 	/* Linking Rect */
-	rect->setElement(window);
-	window->setLinkedRect(rect);
-	window->rCursorRect = rc;
+	rect.setElement(&window);
+	window.setLinkedRect(&rect);
+	window.rCursorRect = rc;
 	return rc;
 }
 
 VALUE rb_Window_setCursorRect(VALUE self, VALUE val)
 {
-	GET_WINDOW;
-	CRect_Element* rect1;
-	CRect_Element* rect2;
+	auto& window = rb::Get<CWindow_Element>(self);
 	VALUE rc = rb_Window_getCursorRect(self);
 	if (RDATA(rc)->data == nullptr) { return Qnil; }
 	/* Getting data to update the rect */
-	rect1 = rb_Rect_get_rect(val);
-	rect2 = rb_Rect_get_rect(rc);
-	Data_Get_Struct(rc, CRect_Element, rect2);
+	auto& rect1 = rb::GetSafe<CRect_Element>(val, rb_cRect);
+	auto& rect2 = rb::GetSafe<CRect_Element>(rc, rb_cRect);
 	/* Copying the rect */
-	sf::IntRect* rect_target = rect2->getRect();
-	rect_copy(rect_target, rect1->getRect());
+	sf::IntRect& rect_target = rect2.getRect();
+	rect_copy(&rect_target, &rect1.getRect());
 	/* Update cursor rect */
-	window->resetCursorPosition(rect_target);
+	window.resetCursorPosition(&rect_target);
 	return self;
 }
 
 VALUE rb_Window_getCursorSkin(VALUE self)
 {
-	GET_WINDOW;
-	return window->rCursorSkin;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rCursorSkin;
 }
 
 VALUE rb_Window_setCursorSkin(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	if (NIL_P(val))
 	{
-		window->rCursorSkin = Qnil;
+		window.rCursorSkin = Qnil;
 	}
 	else
 	{
-		window->getCursorSprite()->setTexture(*rb_Bitmap_getTexture(val));
-		window->rCursorSkin = val;
-		window->updateCursorSprite();
+		window.getCursorSprite().setTexture(rb_Bitmap_getTexture(val));
+		window.rCursorSkin = val;
+		window.updateCursorSprite();
 	}
 	return self;
 }
 
 VALUE rb_Window_getPauseSkin(VALUE self)
 {
-	GET_WINDOW;
-	return window->rPauseSkin;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rPauseSkin;
 }
 
 VALUE rb_Window_setPauseSkin(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	if (NIL_P(val))
 	{
-		window->rPauseSkin = Qnil;
+		window.rPauseSkin = Qnil;
 	}
 	else
 	{
-		window->getPauseSprite()->setTexture(*rb_Bitmap_getTexture(val));
-		window->rPauseSkin = val;
-		window->resetPausePosition();
-		window->updatePauseSprite();
+		window.getPauseSprite().setTexture(rb_Bitmap_getTexture(val));
+		window.rPauseSkin = val;
+		window.resetPausePosition();
+		window.updatePauseSprite();
 	}
 	return self;
 }
 
 VALUE rb_Window_getPause(VALUE self)
 {
-	GET_WINDOW;
-	return window->rPause;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rPause;
 }
 
 VALUE rb_Window_setPause(VALUE self, VALUE val)
 {
-	GET_WINDOW;
-	window->rPause = RTEST(val) ? Qtrue : Qfalse;
-	window->updatePauseSprite();
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.rPause = RTEST(val) ? Qtrue : Qfalse;
+	window.updatePauseSprite();
 	return self;
 }
 
 VALUE rb_Window_getPauseX(VALUE self)
 {
-	GET_WINDOW;
-	return window->rPauseX;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rPauseX;
 }
 
 VALUE rb_Window_setPauseX(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	if (NIL_P(val))
 	{
-		window->rPauseX = Qnil;
+		window.rPauseX = Qnil;
 	}
 	else
 	{
 		NUM2LONG(val);
-		window->rPauseX = val;
-		window->resetPausePosition();
+		window.rPauseX = val;
+		window.resetPausePosition();
 	}
 	return self;
 }
 
 VALUE rb_Window_getPauseY(VALUE self)
 {
-	GET_WINDOW;
-	return window->rPauseY;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rPauseY;
 }
 
 VALUE rb_Window_setPauseY(VALUE self, VALUE val)
 {
-	GET_WINDOW;
+	auto& window = rb::Get<CWindow_Element>(self);
 	if (NIL_P(val))
 	{
-		window->rPauseY = Qnil;
+		window.rPauseY = Qnil;
 	}
 	else
 	{
 		NUM2LONG(val);
-		window->rPauseY = val;
-		window->resetPausePosition();
+		window.rPauseY = val;
+		window.resetPausePosition();
 	}
 	return self;
 }
 
 VALUE rb_Window_getActive(VALUE self)
 {
-	GET_WINDOW;
-	return window->rActive;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rActive;
 }
 
 VALUE rb_Window_setActive(VALUE self, VALUE val)
 {
-	GET_WINDOW;
-	window->rActive = RTEST(val) ? Qtrue : Qfalse;
-	window->resetCursorPosition(rb_Rect_get_rect(rb_Window_getCursorRect(self))->getRect());
-	window->updateCursorSprite();
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.rActive = RTEST(val) ? Qtrue : Qfalse;
+	window.resetCursorPosition(&rb::GetSafe<CRect_Element>(rb_Window_getCursorRect(self), rb_cRect).getRect());
+	window.updateCursorSprite();
 	return self;
 }
 
 VALUE rb_Window_update(VALUE self)
 {
-	GET_WINDOW;
-	window->update();
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.update();
 	return self;
 }
 
 VALUE rb_Window_getOpacity(VALUE self)
 {
-	GET_WINDOW;
-	return window->rOpacity;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rOpacity;
 }
 
 VALUE rb_Window_setOpacity(VALUE self, VALUE val)
 {
-	GET_WINDOW;
-	window->rOpacity = LONG2NUM(normalize_long(NUM2LONG(val), 0, 255));
-	window->updateBackOpacity();
-	window->updateContentsOpacity();
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.rOpacity = LONG2NUM(normalize_long(NUM2LONG(val), 0, 255));
+	window.updateBackOpacity();
+	window.updateContentsOpacity();
 	return self;
 }
 
 VALUE rb_Window_getBackOpacity(VALUE self)
 {
-	GET_WINDOW;
-	return window->rBackOpacity;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rBackOpacity;
 }
 
 VALUE rb_Window_setBackOpacity(VALUE self, VALUE val)
 {
-	GET_WINDOW;
-	window->rBackOpacity = LONG2NUM(normalize_long(NUM2LONG(val), 0, 255));
-	window->updateBackOpacity();
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.rBackOpacity = LONG2NUM(normalize_long(NUM2LONG(val), 0, 255));
+	window.updateBackOpacity();
 	return self;
 }
 
 VALUE rb_Window_getContentsOpacity(VALUE self)
 {
-	GET_WINDOW;
-	return window->rContentOpacity;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rContentOpacity;
 }
 
 VALUE rb_Window_setContentsOpacity(VALUE self, VALUE val)
 {
-	GET_WINDOW;
-	window->rContentOpacity = LONG2NUM(normalize_long(NUM2LONG(val), 0, 255));
-	window->updateContentsOpacity();
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.rContentOpacity = LONG2NUM(normalize_long(NUM2LONG(val), 0, 255));
+	window.updateContentsOpacity();
 	return self;
 }
 
 VALUE rb_Window_getRect(VALUE self)
 {
-	GET_WINDOW;
-	return window->rRect;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.rRect;
 }
 
 VALUE rb_Window_getVisible(VALUE self)
 {
-	GET_WINDOW;
-	return window->getVisible() ? Qtrue : Qfalse;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.getVisible() ? Qtrue : Qfalse;
 }
 
 VALUE rb_Window_setVisible(VALUE self, VALUE val)
 {
-	GET_WINDOW;
-	window->setVisible(RTEST(val) ? true : false);
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.setVisible(RTEST(val) ? true : false);
 	return self;
 }
 
 VALUE rb_Window_getIndex(VALUE self)
 {
-	GET_WINDOW;
-	return ULONG2NUM(window->getIndex());
+	auto& window = rb::Get<CWindow_Element>(self);
+	return ULONG2NUM(window.getIndex());
 }
 
 VALUE rb_Window_lock(VALUE self)
 {
-	GET_WINDOW;
-	window->lock();
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.lock();
 	return self;
 }
 
 VALUE rb_Window_unlock(VALUE self)
 {
-	GET_WINDOW;
-	window->unlock();
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.unlock();
 	return self;
 }
 
 VALUE rb_Window_locked(VALUE self)
 {
-	GET_WINDOW;
-	return window->is_locked() ? Qtrue : Qfalse;
+	auto& window = rb::Get<CWindow_Element>(self);
+	return window.is_locked() ? Qtrue : Qfalse;
 }
 
 VALUE rb_Window_Copy(VALUE self)
@@ -696,17 +663,3 @@ VALUE rb_Window_Copy(VALUE self)
 	return self;
 }
 
-CWindow_Element* rb_Window_get_window(VALUE self)
-{
-	rb_Window_test_window(self);
-	GET_WINDOW;
-	return window;
-}
-
-void rb_Window_test_window(VALUE self)
-{
-	if (rb_obj_is_kind_of(self, rb_cWindow) != Qtrue)
-	{
-		rb_raise(rb_eTypeError, "Expected Window got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
-	}
-}

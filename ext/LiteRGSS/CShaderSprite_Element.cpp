@@ -1,5 +1,11 @@
 #include "CShaderSprite_Element.h"
 
+CShaderSprite_Element::CShaderSprite_Element() {
+	getSprite().setColor(sf::Color(255, 255, 255, 255));
+    setLinkedRect(nullptr);
+	rRenderStates = Qnil;
+}
+
 void CShaderSprite_Element::draw(sf::RenderTarget& target) const
 {
     if(drawable && visible)

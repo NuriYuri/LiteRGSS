@@ -2,11 +2,6 @@
 
 VALUE rb_cTable = Qnil;
 
-#define GET_TABLE rb_Table_Struct* table; \
-    Data_Get_Struct(self, rb_Table_Struct, table); \
-    if(table == nullptr) \
-        return Qnil;
-
 void rb_Table_Free(void* data)
 {
     rb_Table_Struct* table = reinterpret_cast<rb_Table_Struct*>(data);
@@ -22,11 +17,7 @@ void rb_Table_Free(void* data)
 
 VALUE rb_Table_Alloc(VALUE klass)
 {
-    rb_Table_Struct* table = new rb_Table_Struct();
-    table->heap = nullptr;
-    table->header.dim = 0;
-    table->header.data_size = 0;
-    return Data_Wrap_Struct(klass, NULL, rb_Table_Free, table);
+    return Data_Wrap_Struct(klass, NULL, rb_Table_Free, new rb_Table_Struct());
 }
 
 void Init_Table()
@@ -42,8 +33,8 @@ void Init_Table()
     rb_define_method(rb_cTable, "dim", _rbf rb_Table_dim, 0);
     rb_define_method(rb_cTable, "resize", _rbf rb_Table_resize, -1);
     rb_define_method(rb_cTable, "fill", _rbf rb_Table_Fill, 1);
-	rb_define_method(rb_cTable, "copy", _rbf rb_Table_Copy, 3);
-	rb_define_method(rb_cTable, "copy_modulo", _rbf rb_Table_CopyModulo, 7);
+    rb_define_method(rb_cTable, "copy", _rbf rb_Table_Copy, 3);
+    rb_define_method(rb_cTable, "copy_modulo", _rbf rb_Table_CopyModulo, 7);
 
     rb_define_method(rb_cTable, "_dump", _rbf rb_Table_Save, 1);
     rb_define_singleton_method(rb_cTable, "_load", _rbf rb_Table_Load, 1);
@@ -52,57 +43,57 @@ void Init_Table()
 
 VALUE rb_Table_initialize(int argc, VALUE* argv, VALUE self)
 {
-    GET_TABLE
+    auto& table = rb::Get<rb_Table_Struct>(self);
     switch(argc)
     {
         case 1:
-            table->header.xsize = NUM2ULONG(argv[0]);
-            table->header.ysize = 1;
-            table->header.zsize = 1;
+            table.header.xsize = NUM2ULONG(argv[0]);
+            table.header.ysize = 1;
+            table.header.zsize = 1;
             break;
         case 2:
-            table->header.xsize = NUM2ULONG(argv[0]);
-            table->header.ysize = NUM2ULONG(argv[1]);
-            table->header.zsize = 1;
+            table.header.xsize = NUM2ULONG(argv[0]);
+            table.header.ysize = NUM2ULONG(argv[1]);
+            table.header.zsize = 1;
             break;
         case 3:
-            table->header.xsize = NUM2ULONG(argv[0]);
-            table->header.ysize = NUM2ULONG(argv[1]);
-            table->header.zsize = NUM2ULONG(argv[2]);
+            table.header.xsize = NUM2ULONG(argv[0]);
+            table.header.ysize = NUM2ULONG(argv[1]);
+            table.header.zsize = NUM2ULONG(argv[2]);
             break;
         default:
             rb_raise(rb_eRGSSError, "Table can be 1D, 2D or 3D but nothing else, requested dimension : %dD", argc);
             return Qnil;
     }
-    if(table->header.xsize == 0)
-        table->header.xsize = 1;
-    if(table->header.ysize == 0)
-        table->header.ysize = 1;
-    if(table->header.zsize == 0)
-        table->header.zsize = 1;
-    table->header.dim = argc;
-    table->header.data_size = table->header.xsize * table->header.ysize * table->header.zsize;
-    table->heap = new short[table->header.data_size];
+    if(table.header.xsize == 0)
+        table.header.xsize = 1;
+    if(table.header.ysize == 0)
+        table.header.ysize = 1;
+    if(table.header.zsize == 0)
+        table.header.zsize = 1;
+    table.header.dim = argc;
+    table.header.data_size = table.header.xsize * table.header.ysize * table.header.zsize;
+    table.heap = new short[table.header.data_size]();
     return self;
 }
 
 VALUE rb_Table_get(int argc, VALUE* argv, VALUE self)
 {
-    GET_TABLE
+    auto& table = rb::Get<rb_Table_Struct>(self);
     VALUE rx, ry, rz;
     unsigned long x, y, z;
     rb_scan_args(argc, argv, "12", &rx, &ry, &rz);
     x = NUM2ULONG(rx);
     y = NIL_P(ry) ? 0 : NUM2ULONG(ry);
     z = NIL_P(rz) ? 0 : NUM2ULONG(rz);
-    if(x >= table->header.xsize || y >= table->header.ysize || z >= table->header.zsize)
+    if(x >= table.header.xsize || y >= table.header.ysize || z >= table.header.zsize)
         return Qnil;
-    return rb_int2inum(table->heap[x + (y * table->header.xsize) + (z * table->header.xsize * table->header.ysize)]);
+    return rb_int2inum(table.heap[x + (y * table.header.xsize) + (z * table.header.xsize * table.header.ysize)]);
 }
 
 VALUE rb_Table_set(int argc, VALUE* argv, VALUE self)
 {
-    GET_TABLE
+    auto& table = rb::Get<rb_Table_Struct>(self);
     VALUE rx, ry, rz, rv;
     unsigned long x, y, z;
     short v;
@@ -125,34 +116,34 @@ VALUE rb_Table_set(int argc, VALUE* argv, VALUE self)
         z = NUM2ULONG(rz);
         v = NUM2SHORT(rv);
     }
-    if(x >= table->header.xsize || y >= table->header.ysize || z >= table->header.zsize)
+    if(x >= table.header.xsize || y >= table.header.ysize || z >= table.header.zsize)
         return Qnil;
-    table->heap[x + (y * table->header.xsize) + (z * table->header.xsize * table->header.ysize)] = v;
+    table.heap[x + (y * table.header.xsize) + (z * table.header.xsize * table.header.ysize)] = v;
     return self;
 }
 
 VALUE rb_Table_xSize(VALUE self)
 {
-    GET_TABLE
-    return rb_uint2inum(table->header.xsize);
+    auto& table = rb::Get<rb_Table_Struct>(self);
+    return rb_uint2inum(table.header.xsize);
 }
 
 VALUE rb_Table_ySize(VALUE self)
 {
-    GET_TABLE
-    return rb_uint2inum(table->header.ysize);
+    auto& table = rb::Get<rb_Table_Struct>(self);
+    return rb_uint2inum(table.header.ysize);
 }
 
 VALUE rb_Table_zSize(VALUE self)
 {
-    GET_TABLE
-    return rb_uint2inum(table->header.zsize);
+    auto& table = rb::Get<rb_Table_Struct>(self);
+    return rb_uint2inum(table.header.zsize);
 }
 
 VALUE rb_Table_dim(VALUE self)
 {
-    GET_TABLE
-    return rb_uint2inum(table->header.dim);
+    auto& table = rb::Get<rb_Table_Struct>(self);
+    return rb_uint2inum(table.header.dim);
 }
 
 void table_copy(short* dheap, short* sheap, unsigned long dxsize, unsigned long dysize, 
@@ -180,12 +171,12 @@ void table_copy(short* dheap, short* sheap, unsigned long dxsize, unsigned long 
 
 VALUE rb_Table_resize(int argc, VALUE* argv, VALUE self)
 {
-    GET_TABLE
-    auto table2 = *table;
+    auto& table = rb::Get<rb_Table_Struct>(self);
+    auto table2 = table;
     rb_Table_initialize(argc, argv, self);
     // Copying data
-    table_copy(table->heap, table2.heap,
-        table->header.xsize, table->header.ysize, table->header.zsize,
+    table_copy(table.heap, table2.heap,
+        table.header.xsize, table.header.ysize, table.header.zsize,
         table2.header.xsize, table2.header.ysize, table2.header.zsize);
     // Freeing heap
     delete[] table2.heap;
@@ -210,18 +201,18 @@ VALUE rb_Table_Load(VALUE self, VALUE str)
 
 VALUE rb_Table_Save(VALUE self, VALUE limit)
 {
-    GET_TABLE
-    VALUE str1 = rb_str_new(reinterpret_cast<char*>(&table->header), sizeof(rb_Table_Struct_Header));
-    VALUE str2 = rb_str_new(reinterpret_cast<char*>(table->heap), table->header.data_size * sizeof(short));
+    auto& table = rb::Get<rb_Table_Struct>(self);
+    VALUE str1 = rb_str_new(reinterpret_cast<char*>(&table.header), sizeof(rb_Table_Struct_Header));
+    VALUE str2 = rb_str_new(reinterpret_cast<char*>(table.heap), table.header.data_size * sizeof(short));
     return rb_str_concat(str1, str2);
 }
 
 VALUE rb_Table_Fill(VALUE self, VALUE val)
 {
-    GET_TABLE
+    auto& table = rb::Get<rb_Table_Struct>(self);
     short v = NUM2SHORT(val);
-	short* max_data = table->heap + table->header.data_size;
-    short* data = table->heap;
+	short* max_data = table.heap + table.header.data_size;
+    short* data = table.heap;
     for(;data < max_data;data++)
 		*data = v;
     return self;
@@ -229,38 +220,38 @@ VALUE rb_Table_Fill(VALUE self, VALUE val)
 
 VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_offset_y)
 {
-	GET_TABLE;
-	rb_Table_Struct* source_table = rb_Table_get_table(source);
+	auto& table = rb::Get<rb_Table_Struct>(self);
+	auto& source_table = rb::GetSafe<rb_Table_Struct>(source, rb_cTable);
 	long offsetx = NUM2LONG(dest_offset_x);
 	long offsety = NUM2LONG(dest_offset_y);
-	if (offsetx < 0 || offsetx >= table->header.xsize)
+	if (offsetx < 0 || offsetx >= table.header.xsize)
 		return Qfalse;
-	if (offsety < 0 || offsety >= table->header.ysize)
+	if (offsety < 0 || offsety >= table.header.ysize)
 		return Qfalse;
 
 	// Usefull variables
-	long target_z = table->header.zsize;
-	if (source_table->header.zsize < target_z)
-		target_z = source_table->header.zsize;
+	long target_z = table.header.zsize;
+	if (source_table.header.zsize < target_z)
+		target_z = source_table.header.zsize;
 
-	long target_x = offsetx + source_table->header.xsize;
-	if (table->header.xsize < target_x)
-		target_x = table->header.xsize;
+	long target_x = offsetx + source_table.header.xsize;
+	if (table.header.xsize < target_x)
+		target_x = table.header.xsize;
 
-	long target_y = offsety + source_table->header.ysize;
-	if (table->header.ysize < target_y)
-		target_y = table->header.ysize;
+	long target_y = offsety + source_table.header.ysize;
+	if (table.header.ysize < target_y)
+		target_y = table.header.ysize;
 
-	long deltay = table->header.xsize;
-	long deltaz = deltay * table->header.ysize;
+	long deltay = table.header.xsize;
+	long deltaz = deltay * table.header.ysize;
 
-	long deltay2 = source_table->header.xsize;
-	long deltaz2 = deltay2 * source_table->header.ysize;
+	long deltay2 = source_table.header.xsize;
+	long deltaz2 = deltay2 * source_table.header.ysize;
 
 	short *zheap1, *zheap2, *yheap1, *yheap2, *xheap1, *xheap2;
 
-	zheap1 = table->heap + (offsety * deltay + offsetx);
-	zheap2 = source_table->heap;
+	zheap1 = table.heap + (offsety * deltay + offsetx);
+	zheap2 = source_table.heap;
 
 	// Copy loops
 	long y, z;
@@ -289,38 +280,38 @@ VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_of
 
 VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE source_origin_y, VALUE dest_offset_x, VALUE dest_offset_y, VALUE dest_width, VALUE dest_height)
 {
-	GET_TABLE;
-	rb_Table_Struct* source_table = rb_Table_get_table(source);
+	auto& table = rb::Get<rb_Table_Struct>(self);
+	auto& source_table = rb::GetSafe<rb_Table_Struct>(source, rb_cTable);
 	long offsetx = NUM2LONG(dest_offset_x);
 	long offsety = NUM2LONG(dest_offset_y);
 	long ox2 = NUM2LONG(source_origin_x);
 	long oy2 = NUM2LONG(source_origin_y);
-	if (offsetx < 0 || offsetx >= table->header.xsize)
+	if (offsetx < 0 || offsetx >= table.header.xsize)
 		return Qfalse;
-	if (offsety < 0 || offsety >= table->header.ysize)
+	if (offsety < 0 || offsety >= table.header.ysize)
 		return Qfalse;
-	if (ox2 < 0 || ox2 >= source_table->header.xsize)
+	if (ox2 < 0 || ox2 >= source_table.header.xsize)
 		return Qfalse;
-	if (oy2 < 0 || oy2 >= source_table->header.ysize)
+	if (oy2 < 0 || oy2 >= source_table.header.ysize)
 		return Qfalse;
 
-	long src_xsize = (long)source_table->header.xsize;
-	long src_ysize = (long)source_table->header.ysize;
+	long src_xsize = (long)source_table.header.xsize;
+	long src_ysize = (long)source_table.header.ysize;
 
 	// Usefull variables
 
 
-	long target_z = table->header.zsize;
-	if (source_table->header.zsize < target_z)
-		target_z = source_table->header.zsize;
+	long target_z = table.header.zsize;
+	if (source_table.header.zsize < target_z)
+		target_z = source_table.header.zsize;
 
 	long target_x = offsetx + NUM2LONG(dest_width);
-	if (table->header.xsize < target_x)
-		target_x = table->header.xsize;
+	if (table.header.xsize < target_x)
+		target_x = table.header.xsize;
 
 	long target_y = offsety + NUM2LONG(dest_height);
-	if (table->header.ysize < target_y)
-		target_y = table->header.ysize;
+	if (table.header.ysize < target_y)
+		target_y = table.header.ysize;
 
 	long n = (target_y - offsety - src_ysize + oy2) / src_ysize;
 	long m = (target_x - offsetx - src_xsize + ox2) / src_xsize;
@@ -329,17 +320,17 @@ VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE
 	if (m < 0)
 		m = 0;
 
-	long deltay = table->header.xsize;
-	long deltaz = deltay * table->header.ysize;
+	long deltay = table.header.xsize;
+	long deltaz = deltay * table.header.ysize;
 
-	long deltay2 = source_table->header.xsize;
-	long deltaz2 = deltay2 * source_table->header.ysize;
+	long deltay2 = source_table.header.xsize;
+	long deltaz2 = deltay2 * source_table.header.ysize;
 
 	short *zheap1, *zheap2, *yheap1, *yheap2, *xheap1, *xheap2;
 	long target_x2, target_y2;
 
-	zheap1 = table->heap + (offsety * deltay + offsetx);
-	zheap2 = source_table->heap;
+	zheap1 = table.heap + (offsety * deltay + offsetx);
+	zheap2 = source_table.heap;
 
 	// Copy loops
 	long j, y, z;
@@ -393,22 +384,6 @@ VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE
 		zheap2 += deltaz2;
 	}
 	return Qtrue;
-}
-
-rb_Table_Struct* rb_Table_get_table(VALUE self)
-{
-	rb_Table_test_table(self);
-	rb_Table_Struct* table;
-	Data_Get_Struct(self, rb_Table_Struct, table);
-	return table;
-}
-
-void rb_Table_test_table(VALUE self)
-{
-	if (rb_obj_is_kind_of(self, rb_cTable) != Qtrue)
-	{
-		rb_raise(rb_eTypeError, "Expected Table got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
-	}
 }
 
 void rb_Table_internal_copyLine(short* &xheap1, short* &xheap2, long ini_x, long max_x)

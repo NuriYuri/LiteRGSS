@@ -1,3 +1,4 @@
+#include <cassert>
 #include "LiteRGSS.h"
 #include "CViewport_Element.h"
 #include "Graphics.local.h"
@@ -6,7 +7,7 @@ double Graphics_Scale = 1;
 bool SmoothScreen = false;
 bool RGSSTransition = false;
 unsigned char Graphics_Brightness = 255;
-sf::RenderTexture* Graphics_Render = nullptr;
+std::unique_ptr<sf::RenderTexture> Graphics_Render = nullptr;
 sf::RenderStates* Graphics_States = nullptr;
 
 void* local_Graphics_Update_Internal(void* data)
@@ -111,9 +112,10 @@ VALUE local_Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message
                 }
         }
         local_Graphics_Clear_Stack();
-        game_window->close();
-        delete game_window;
-        game_window = nullptr;
+        if(game_window != nullptr) {
+            game_window->close();
+            game_window = nullptr;
+        }
     }
     /* We raise the message */
     InsideGraphicsUpdate = false;
@@ -125,7 +127,7 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 {
     bool was_viewport = false;
     sf::View defview = game_window->getDefaultView();
-	sf::RenderTarget* render_target = game_window;
+	sf::RenderTarget* render_target = game_window.get();
 	// Setting the default view parameters
     defview.setSize(ScreenWidth, ScreenHeight);
     defview.setCenter(round(ScreenWidth / 2.0f), round(ScreenHeight / 2.0f));
@@ -135,7 +137,7 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 	{
 		Graphics_Render->setView(defview);
 		Graphics_Render->clear();
-		render_target = Graphics_Render;
+		render_target = Graphics_Render.get();
 	}
 	// Rendering stuff
     for(auto element = stack->begin();element != stack->end(); element++)
@@ -156,7 +158,7 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 	if (Graphics_freeze_sprite != nullptr)
 	{
 		if (RGSSTransition)
-			game_window->draw(*Graphics_freeze_sprite, Graphics_freeze_shader);
+			game_window->draw(*Graphics_freeze_sprite, Graphics_freeze_shader.get());
 		else
 			game_window->draw(*Graphics_freeze_sprite);
 	}
@@ -271,7 +273,7 @@ void local_Graphics_TransitionRGSS(VALUE self, long time, VALUE bitmap)
 {
 	Graphics_freeze_sprite->setColor(sf::Color(255, 255, 255, 255));
 	RGSSTransition = true;
-	Graphics_freeze_shader->setUniform("transition", *rb_Bitmap_getTexture(bitmap));
+	Graphics_freeze_shader->setUniform("transition", rb_Bitmap_getTexture(bitmap));
 	for (long i = 1; i <= time; i++)
 	{
 		Graphics_freeze_shader->setUniform("param", static_cast<float>(i) / time);
@@ -300,11 +302,11 @@ const std::string GraphicsTransitionFragmentShader = \
 
 void local_Graphics_LoadShader()
 {
-	Graphics_freeze_shader = new sf::Shader();
+	Graphics_freeze_shader = std::make_unique<sf::Shader>();
 	Graphics_freeze_shader->loadFromMemory(GraphicsTransitionFragmentShader, sf::Shader::Type::Fragment);
 }
 
-void local_Graphics_Take_Snapshot(sf::Texture* text)
+void local_Graphics_Take_Snapshot(sf::Texture& text)
 {
     sf::Vector2u sc_sz = game_window->getSize();
     int x = 0;
@@ -323,47 +325,48 @@ void local_Graphics_Take_Snapshot(sf::Texture* text)
     }
     else
         sh = sc_sz.y;
-    text->create(sw, sh);
-    text->update(*game_window, x, y);
+    text.create(sw, sh);
+    text.update(*game_window, x, y);
 }
 
 void local_Graphics_initRender()
 {
 	if (Graphics_Render == nullptr && Graphics_States != nullptr)
 	{
-		Graphics_Render = new sf::RenderTexture();
+		Graphics_Render = std::unique_ptr<sf::RenderTexture>();
 		Graphics_Render->create(ScreenWidth, ScreenHeight);
 	}
 }
 
 VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE* argv)
 {
-    if(RDATA(block_arg)->data != nullptr)
+    assert(rb_obj_is_kind_of(block_arg, rb_cBitmap) == Qtrue);
+    if(RDATA(block_arg)->data != nullptr) {
         rb_Bitmap_Dispose(block_arg);
+    }
+    return Qnil;
 }
 
 void local_Graphics_Clear_Stack()
 {
-    //std::cout << "CLEAN STACK" << std::endl;
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
     /* Disposing each Sprite/Viewport/Text */
-    for(long i = 0; i < sz; i++)
-    {
-        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue)
-        {
-            if(RDATA(ori[i])->data != nullptr)
+    for(long i = 0; i < sz; i++) {
+        if(RDATA(ori[i])->data != nullptr) {
+            if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue) {
                 rb_Viewport_Dispose(ori[i]);
+            } else if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
+                rb_Sprite_DisposeFromViewport(ori[i]);
+            } else if(rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue) {
+                rb_Text_DisposeFromViewport(ori[i]);
+            }
         }
-        else if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
-            rb_Sprite_DisposeFromViewport(ori[i]);
-        else if(rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
-            rb_Text_DisposeFromViewport(ori[i]);
     }
     rb_ary_clear(table);
     /* Disposing each Bitmap */
-    rb_block_call(rb_const_get(rb_cObject, rb_intern("ObjectSpace")), rb_intern("each_object"), 1, &rb_cBitmap,
-    (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);
+    auto objectSpace = rb_const_get(rb_cObject, rb_intern("ObjectSpace"));
+    rb_block_call(objectSpace, rb_intern("each_object"), 1, &rb_cBitmap, (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);
     rb_gc_start();
 }

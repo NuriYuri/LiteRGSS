@@ -4,17 +4,8 @@
 
 VALUE rb_cShaderSprite = Qnil;
 
-#define SHADER_SPRITE_PROTECT if(RDATA(self)->data == nullptr) \
-{\
-    rb_raise(rb_eRGSSError, "Disposed Sprite."); \
-    return self; \
-}
-
-#define GET_SHADER_SPRITE CShaderSprite_Element* sprite; \
-    Data_Get_Struct(self, CShaderSprite_Element, sprite); \
-    SHADER_SPRITE_PROTECT
-
-void rb_ShaderSprite_Mark(CShaderSprite_Element* sprite)
+template<>
+void rb::Mark<CShaderSprite_Element>(CShaderSprite_Element* sprite)
 {
     if(sprite == nullptr)
         return;
@@ -32,18 +23,9 @@ void rb_ShaderSprite_Mark(CShaderSprite_Element* sprite)
 	rb_gc_mark(sprite->rRenderStates);
 }
 
-VALUE rb_ShaderSprite_Alloc(VALUE klass)
-{
-	CShaderSprite_Element* sprite = new CShaderSprite_Element();
-    sprite->getSprite()->setColor(sf::Color(255, 255, 255, 255));
-    sprite->setLinkedRect(nullptr);
-	sprite->rRenderStates = Qnil;
-    return Data_Wrap_Struct(klass, rb_ShaderSprite_Mark, rb_Sprite_Free, sprite);
-}
-
 void Init_ShaderSprite() {
 	rb_cShaderSprite = rb_define_class_under(rb_mLiteRGSS, "ShaderedSprite", rb_cSprite);
-    rb_define_alloc_func(rb_cShaderSprite, rb_ShaderSprite_Alloc);
+    rb_define_alloc_func(rb_cShaderSprite, rb::Alloc<CShaderSprite_Element>);
 
 	rb_define_method(rb_cShaderSprite, "shader", _rbf rb_ShaderSprite_getShader, 0);
 	rb_define_method(rb_cShaderSprite, "shader=", _rbf rb_ShaderSprite_setShader, 1);
@@ -54,25 +36,25 @@ void Init_ShaderSprite() {
 
 VALUE rb_ShaderSprite_getShader(VALUE self)
 {
-	GET_SHADER_SPRITE;
-	return sprite->rRenderStates;
+	auto& sprite = rb::Get<CShaderSprite_Element>(self);
+	return sprite.rRenderStates;
 }
 
 VALUE rb_ShaderSprite_setShader(VALUE self, VALUE shader)
 {
 	sf::RenderStates* render_state;
-	GET_SHADER_SPRITE;
+	auto& sprite = rb::Get<CShaderSprite_Element>(self);
 	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue) 
 	{
 		Data_Get_Struct(shader, sf::RenderStates, render_state);
 		if (render_state != nullptr)
 		{
-			sprite->rRenderStates = shader;
-			sprite->setRenderState(render_state);
+			sprite.rRenderStates = shader;
+			sprite.setRenderState(render_state);
 			return self;
 		}
 	}
-	sprite->rRenderStates = Qnil;
-	sprite->setRenderState(nullptr);
+	sprite.rRenderStates = Qnil;
+	sprite.setRenderState(nullptr);
 	return self;
 }

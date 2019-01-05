@@ -1,6 +1,8 @@
 #ifndef L_COLOR_H
 #define L_COLOR_H
 
+#include "utils/rbAdapter.h"
+
 VALUE rb_Color_Initialize(int argc, VALUE* argv, VALUE self); // Also .set
 VALUE rb_Color_InitializeCopy(VALUE self, VALUE original);
 VALUE rb_Color_getRed(VALUE self);
@@ -16,7 +18,11 @@ VALUE rb_Color_Load(VALUE self, VALUE str);
 VALUE rb_Color_Save(VALUE self, VALUE limit);
 VALUE rb_Color_to_s(VALUE self);
 
-sf::Color* rb_Color_get_color(VALUE self);
-void rb_Color_test_color(VALUE self);
+namespace meta {
+    template<>
+    struct Log<sf::Color> {
+        static constexpr auto classname = "Color";
+    };
+}
 
 #endif

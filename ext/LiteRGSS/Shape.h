@@ -1,6 +1,7 @@
 #ifndef L_SHAPE_HEADER
 #define L_SHAPE_HEADER
 #include "Graphics.h"
+#include "utils/rbAdapter.h"
 
 VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Shape_Dispose(VALUE self);
@@ -53,9 +54,11 @@ VALUE rb_Shape_getShader(VALUE self);
 VALUE rb_Shape_setShader(VALUE self, VALUE shader);
 
 VALUE rb_Shape_Copy(VALUE self);
-CShape_Element* rb_Shape_get_shape(VALUE self);
-void rb_Shape_test_shape(VALUE self);
 
 VALUE rb_Shape_DisposeFromViewport(VALUE self);
 
+namespace rb {
+    template<>
+    void Mark<CShape_Element>(CShape_Element* shape);
+}
 #endif
