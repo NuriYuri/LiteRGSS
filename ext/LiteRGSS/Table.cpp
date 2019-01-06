@@ -73,7 +73,10 @@ VALUE rb_Table_initialize(int argc, VALUE* argv, VALUE self)
         table.header.zsize = 1;
     table.header.dim = argc;
     table.header.data_size = table.header.xsize * table.header.ysize * table.header.zsize;
-    table.heap = new short[table.header.data_size]();
+    if(table.heap != nullptr) {
+		delete[] table.heap;
+	}
+	table.heap = new short[table.header.data_size]();
     return self;
 }
 
@@ -173,6 +176,7 @@ VALUE rb_Table_resize(int argc, VALUE* argv, VALUE self)
 {
     auto& table = rb::Get<rb_Table_Struct>(self);
     auto table2 = table;
+	table2.heap = nullptr;
     rb_Table_initialize(argc, argv, self);
     // Copying data
     table_copy(table.heap, table2.heap,
