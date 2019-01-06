@@ -1,5 +1,4 @@
 #ifndef YUKI_GIF_H
-#define YUKI_GIF_H
 #include "libnsgif.hpp"
 
 #define BYTES_PER_PIXEL 4
@@ -19,15 +18,8 @@ VALUE rb_Yuki_GifReader_SetDeltaCounter(VALUE self, VALUE delta);
 
 struct rb_yuki_gif_data {
 	gif_animation gif;
-	unsigned long frame = 0;
-	double counter = 0.0;
+	unsigned long frame;
+	double counter;
 };
-
-namespace meta {
-    template<>
-    struct Log<rb_yuki_gif_data> {
-        static constexpr auto classname = "GIF";
-    };
-}
 
 #endif // !YUKI_GIF_H

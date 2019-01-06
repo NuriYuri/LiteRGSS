@@ -25,12 +25,12 @@ extern "C" {
     Init_Input();
     Init_Table();
     Init_Table32();
-	  Init_Yuki();
-	  Init_BlendMode();
-	  Init_Shader();
-	  Init_ShaderSprite();
-	  Init_YukiGifReader();
-	  Init_Shape();
-	  Init_Window();
+	Init_Yuki();
+	Init_BlendMode();
+	Init_Shader();
+	Init_ShaderSprite();
+	Init_YukiGifReader();
+	Init_Shape();
+	Init_Window();
   }
 }

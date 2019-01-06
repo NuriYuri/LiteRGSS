@@ -4,13 +4,30 @@
 #include "CRect_Element.h"
 #include <iostream>
 
-CWindow_Element::CWindow_Element()
+CWindow_Element::CWindow_Element() : CDrawable_Element()
 {
+	vertices = nullptr;
+	visible = true;
+	texture = nullptr;
+	locked = false;
+	counter = 0;
+	rViewport = Qnil;
+	rBitmap = Qnil;
 	rX = rY = rZ = rOX = rOY = LONG2FIX(0);
 	rWidth = rHeight = LONG2FIX(-1);
+	rCursorRect = Qnil;
 	rBackOpacity = rContentOpacity = rOpacity = LONG2FIX(255);
+	rWindowBuilder = rPauseSkin = rCursorSkin = Qnil;
 	rActive = rPause = Qfalse;
+	rPauseX = rPauseY = Qnil;
 	rStretch = Qfalse;
+}
+
+CWindow_Element::~CWindow_Element()
+{
+	if (vertices)
+		delete[] vertices;
+	vertices = nullptr;
 }
 
 void CWindow_Element::draw(sf::RenderTarget& target) const
@@ -20,7 +37,7 @@ void CWindow_Element::draw(sf::RenderTarget& target) const
 
 void CWindow_Element::drawFast(sf::RenderTarget& target) const 
 {
-    if(!vertices.empty() && visible)
+    if(vertices != nullptr && visible)
     {
 		/* Draw window */
 		for(unsigned long i = 0; i < num_vertices_line; i++)
@@ -85,6 +102,16 @@ void CWindow_Element::drawCalculateView(sf::RenderTarget & target, sf::View & ta
 	targetView.setViewport(targetViewport);
 }
 
+sf::VertexArray * CWindow_Element::getVertices()
+{
+	return vertices;
+}
+
+void CWindow_Element::setVertices(sf::VertexArray * _vertices)
+{
+	vertices = _vertices;
+}
+
 sf::Texture * CWindow_Element::getTexture()
 {
 	return texture;
@@ -117,7 +144,7 @@ void CWindow_Element::updateVertices()
 	updateBackOpacity();
 	resetPausePosition();
 	if (!NIL_P(rCursorRect))
-		resetCursorPosition(&rb::GetSafe<CRect_Element>(rCursorRect, rb_cRect).getRect());
+		resetCursorPosition(rb_Rect_get_rect(rCursorRect)->getRect());
 }
 
 void CWindow_Element::update()
@@ -404,42 +431,42 @@ void CWindow_Element::rectSet(sf::IntRect &rect, long x, long y, long width, lon
 
 void CWindow_Element::calculateVertices(long x, long y, long line, long cell, sf::Vector2i &a, sf::IntRect &rect)
 {
-	auto& vertArr = vertices[line];
+	sf::VertexArray* vertArr = &vertices[line];
 	int i = cell * 6;
 	if (cell < 0)
-		i += vertArr.getVertexCount();
+		i += vertArr->getVertexCount();
 	x += a.x;
 	y += a.y;
 	// Texture coords
-	vertArr[i].texCoords = sf::Vector2f(rect.left, rect.top);
-	vertArr[i + 1].texCoords = vertArr[i + 3].texCoords = sf::Vector2f(rect.left, rect.height + rect.top);
-	vertArr[i + 2].texCoords = vertArr[i + 4].texCoords = sf::Vector2f(rect.width + rect.left, rect.top);
-	vertArr[i + 5].texCoords = sf::Vector2f(rect.width + rect.left, rect.height + rect.top);
+	(*vertArr)[i].texCoords = sf::Vector2f(rect.left, rect.top);
+	(*vertArr)[i + 1].texCoords = (*vertArr)[i + 3].texCoords = sf::Vector2f(rect.left, rect.height + rect.top);
+	(*vertArr)[i + 2].texCoords = (*vertArr)[i + 4].texCoords = sf::Vector2f(rect.width + rect.left, rect.top);
+	(*vertArr)[i + 5].texCoords = sf::Vector2f(rect.width + rect.left, rect.height + rect.top);
 	// Coordinates
-	vertArr[i].position = sf::Vector2f(x, y);
-	vertArr[i + 1].position = vertArr[i + 3].position = sf::Vector2f(x, y + rect.height);
-	vertArr[i + 2].position = vertArr[i + 4].position = sf::Vector2f(x + rect.width, y);
-	vertArr[i + 5].position = sf::Vector2f(x + rect.width, y + rect.height);
+	(*vertArr)[i].position = sf::Vector2f(x, y);
+	(*vertArr)[i + 1].position = (*vertArr)[i + 3].position = sf::Vector2f(x, y + rect.height);
+	(*vertArr)[i + 2].position = (*vertArr)[i + 4].position = sf::Vector2f(x + rect.width, y);
+	(*vertArr)[i + 5].position = sf::Vector2f(x + rect.width, y + rect.height);
 }
 
 void CWindow_Element::calculateVerticesStretch(long x, long y, long line, long cell, sf::Vector2i &s, sf::Vector2i &a, sf::IntRect &rect)
 {
-	auto& vertArr = vertices[line];
+	sf::VertexArray* vertArr = &vertices[line];
 	int i = cell * 6;
 	if (cell < 0)
-		i += vertArr.getVertexCount();
+		i += vertArr->getVertexCount();
 	x += a.x;
 	y += a.y;
 	// Texture coords
-	vertArr[i].texCoords = sf::Vector2f(rect.left, rect.top);
-	vertArr[i + 1].texCoords = vertArr[i + 3].texCoords = sf::Vector2f(rect.left, rect.height + rect.top);
-	vertArr[i + 2].texCoords = vertArr[i + 4].texCoords = sf::Vector2f(rect.width + rect.left, rect.top);
-	vertArr[i + 5].texCoords = sf::Vector2f(rect.width + rect.left, rect.height + rect.top);
+	(*vertArr)[i].texCoords = sf::Vector2f(rect.left, rect.top);
+	(*vertArr)[i + 1].texCoords = (*vertArr)[i + 3].texCoords = sf::Vector2f(rect.left, rect.height + rect.top);
+	(*vertArr)[i + 2].texCoords = (*vertArr)[i + 4].texCoords = sf::Vector2f(rect.width + rect.left, rect.top);
+	(*vertArr)[i + 5].texCoords = sf::Vector2f(rect.width + rect.left, rect.height + rect.top);
 	// Coordinates
-	vertArr[i].position = sf::Vector2f(x, y);
-	vertArr[i + 1].position = vertArr[i + 3].position = sf::Vector2f(x, y + s.y);
-	vertArr[i + 2].position = vertArr[i + 4].position = sf::Vector2f(x + s.x, y);
-	vertArr[i + 5].position = sf::Vector2f(x + s.x, y + s.y);
+	(*vertArr)[i].position = sf::Vector2f(x, y);
+	(*vertArr)[i + 1].position = (*vertArr)[i + 3].position = sf::Vector2f(x, y + s.y);
+	(*vertArr)[i + 2].position = (*vertArr)[i + 4].position = sf::Vector2f(x + s.x, y);
+	(*vertArr)[i + 5].position = sf::Vector2f(x + s.x, y + s.y);
 }
 
 void CWindow_Element::updatePauseSprite()
@@ -493,9 +520,11 @@ void CWindow_Element::allocateVerticesBlt(long delta_w, long nb2, long delta_h, 
 	else
 		nb4 += 2;
 	// Delete the vertices if the number of line is different
+	if(vertices != nullptr && nb4 != num_vertices_line)
+		delete[] vertices;
 	// Alloction of the vertex Arrays (if no vertices or different lines)
-	if(vertices.empty() || nb4 != num_vertices_line)
-		vertices = std::vector<sf::VertexArray>(nb4);
+	if(vertices == nullptr || nb4 != num_vertices_line)
+		vertices = new sf::VertexArray[nb4];
 	// Update the number of lines
 	num_vertices_line = nb4;
 	for (long i = 0; i < nb4; i++)
@@ -514,22 +543,22 @@ void CWindow_Element::allocateVerticesStretch()
 void CWindow_Element::updateContents()
 {
 	if (!NIL_P(rCursorRect))
-		resetCursorPosition(&rb::GetSafe<CRect_Element>(rCursorRect, rb_cRect).getRect());
+		resetCursorPosition(rb_Rect_get_rect(rCursorRect)->getRect());
 }
 
 void CWindow_Element::updateBackOpacity()
 {
 	sf::Color col = sf::Color::White;
 	col.a = NUM2LONG(rOpacity) * NUM2LONG(rBackOpacity) / 255;
-	if (!vertices.empty())
+	if (vertices != nullptr)
 	{
 		long num_vertices = vertices[0].getVertexCount();
 		for (int i = 0; i < num_vertices_line; i++)
 		{
-			auto& vertArr = vertices[i];
+			sf::VertexArray* vertArr = &vertices[i];
 			for (int j = 0; j < num_vertices; j++)
 			{
-				vertArr[j].color = col;
+				(*vertArr)[j].color = col;
 			}
 		}
 	}
@@ -538,29 +567,33 @@ void CWindow_Element::updateBackOpacity()
 }
 
 void CWindow_Element::updateContentsOpacity()
-{	
+{
+	CText_Element* text;
+	CSprite_Element* sprite;
+	sf::Text2* text2;
+	sf::Color col;
 	long opacity = NUM2LONG(rOpacity) * NUM2LONG(rContentOpacity) / 255;
-	for (auto& sp : stack)
+	for (auto sp = stack.begin(); sp != stack.end(); sp++)
 	{
-		CText_Element* text = dynamic_cast<CText_Element*>(sp);
+		text = dynamic_cast<CText_Element*>((*sp));
 		if (text != nullptr)
 		{
-			auto& text2 = text->getText();
-			sf::Color col = sf::Color(text2.getFillColor());
+			text2 = text->getText();
+			col = sf::Color(text2->getFillColor());
 			col.a = opacity;
-			text2.setFillColor(col);
-			col = sf::Color(text2.getOutlineColor());
+			text2->setFillColor(col);
+			col = sf::Color(text2->getOutlineColor());
 			col.a = opacity;
-			text2.setOutlineColor(col);
+			text2->setOutlineColor(col);
 		}
 		else
 		{
-			CSprite_Element* sprite = dynamic_cast<CSprite_Element*>(sp);
+			sprite = dynamic_cast<CSprite_Element*>((*sp));
 			if (sprite != nullptr)
 			{
-				sf::Color col = sf::Color(sprite->getSprite().getColor());
+				col = sf::Color(sprite->getSprite()->getColor());
 				col.a = opacity;
-				sprite->getSprite().setColor(col);
+				sprite->getSprite()->setColor(col);
 			}
 		}
 	}
@@ -577,11 +610,11 @@ void CWindow_Element::updateView()
 	long width = NUM2LONG(rWidth) - 2 * offset_x;
 	long height = NUM2LONG(rHeight) - 2 * offset_y;
 	// Update rect
-	sf::IntRect& rect = rb::GetSafe<CRect_Element>(rRect, rb_cRect).getRect();
-	rect.left = x;
-	rect.top = y;
-	rect.width = width;
-	rect.height = height;
+	sf::IntRect* rect = rb_Rect_get_rect(rRect)->getRect();
+	rect->left = x;
+	rect->top = y;
+	rect->width = width;
+	rect->height = height;
 	// Update Window view
 	if (width & 1)
 		width++;
@@ -612,14 +645,14 @@ bool CWindow_Element::is_locked()
 	return locked;
 }
 
-sf::Sprite& CWindow_Element::getPauseSprite()
+sf::Sprite * CWindow_Element::getPauseSprite()
 {
-	return pause_sprite;
+	return &pause_sprite;
 }
 
-sf::Sprite& CWindow_Element::getCursorSprite()
+sf::Sprite * CWindow_Element::getCursorSprite()
 {
-	return cursor_sprite;
+	return &cursor_sprite;
 }
 
 void CWindow_Element::resetPausePosition()
@@ -628,11 +661,11 @@ void CWindow_Element::resetPausePosition()
 		return;
 	long pause_x, pause_y;
 	if (NIL_P(rPauseX))
-		pause_x = (NUM2LONG(rWidth) - rb_Bitmap_getTexture(rPauseSkin).getSize().x) / 2;
+		pause_x = (NUM2LONG(rWidth) - rb_Bitmap_getTexture(rPauseSkin)->getSize().x) / 2;
 	else
 		pause_x = NUM2LONG(rPauseX);
 	if (NIL_P(rPauseY))
-		pause_y = NUM2LONG(rHeight) - rb_Bitmap_getTexture(rPauseSkin).getSize().y / 2 - 2;
+		pause_y = NUM2LONG(rHeight) - rb_Bitmap_getTexture(rPauseSkin)->getSize().y / 2 - 2;
 	else
 		pause_y = NUM2LONG(rPauseY);
 	pause_x += NUM2LONG(rX);

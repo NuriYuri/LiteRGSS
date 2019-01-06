@@ -205,8 +205,11 @@ VALUE rb_Shader_setTextureUniform(VALUE self, VALUE name, VALUE uniform)
 	rb_check_type(name, T_STRING);
 	if (rb_obj_is_kind_of(uniform, rb_cBitmap) == Qtrue)
 	{
-		sf::Texture& texture = rb_Bitmap_getTexture(uniform);
-		shader->setUniform(rb_string_value_cstr(&name), texture);
+		sf::Texture* texture = rb_Bitmap_getTexture(uniform);
+		if (texture != nullptr)
+		{
+			shader->setUniform(rb_string_value_cstr(&name), *texture);
+		}
 	}
 	else
 	{
@@ -251,14 +254,15 @@ VALUE rb_Shader_setFloatArrayUniform(VALUE self, VALUE name, VALUE uniform)
 	rb_check_type(name, T_STRING);
 	rb_check_type(uniform, T_ARRAY);
 	unsigned int len = RARRAY_LEN(uniform);
-	auto floats = std::vector<float>(len);
+	float* floats = new float[len];
 	for (unsigned int i = 0; i < len; i++)
 	{
 		VALUE val = rb_ary_entry(uniform, i);
 		rb_check_type(val, T_FLOAT);
 		floats[i] = static_cast<float>(NUM2DBL(val));
 	}
-	shader->setUniformArray(rb_string_value_cstr(&name), &floats[0], len);
+	shader->setUniformArray(rb_string_value_cstr(&name), floats, len);
+	delete floats;
 	return self;
 }
 

@@ -7,8 +7,30 @@ ID rb_iShapeCircle = Qnil;
 ID rb_iShapeConvex = Qnil;
 ID rb_iShapeRectangle = Qnil;
 
-template<>
-void rb::Mark<CShape_Element>(CShape_Element* shape)
+#define SHAPE_PROTECT if(RDATA(self)->data == nullptr) \
+{\
+    rb_raise(rb_eRGSSError, "Disposed Shape."); \
+}
+
+#define GET_SHAPE CShape_Element* shape; \
+    Data_Get_Struct(self, CShape_Element, shape); \
+    SHAPE_PROTECT
+
+void rb_Shape_Free(void* data)
+{
+	CShape_Element* shape = reinterpret_cast<CShape_Element*>(data);
+	if (shape != nullptr)
+	{
+		if (NIL_P(shape->rViewport)) // I can drop a sprite from the viewport it's stored in its table
+			shape->setOriginStack(nullptr);
+		CRect_Element* rect = shape->getLinkedRect();
+		if (rect != nullptr)
+			rect->setElement(nullptr);
+		delete shape;
+	}
+}
+
+void rb_Shape_Mark(CShape_Element* shape)
 {
 	if (shape == nullptr)
 		return;
@@ -30,10 +52,17 @@ void rb::Mark<CShape_Element>(CShape_Element* shape)
 	rb_gc_mark(shape->rOutlineThickness);
 }
 
+VALUE rb_Shape_Alloc(VALUE klass)
+{
+	CShape_Element* shape = new CShape_Element();
+	shape->setLinkedRect(nullptr);
+	return Data_Wrap_Struct(klass, rb_Shape_Mark, rb_Shape_Free, shape);
+}
+
 void Init_Shape()
 {
 	rb_cShape = rb_define_class_under(rb_mLiteRGSS, "Shape", rb_cObject);
-	rb_define_alloc_func(rb_cShape, rb::Alloc<CShape_Element>);
+	rb_define_alloc_func(rb_cShape, rb_Shape_Alloc);
 
 	rb_iShapeCircle = rb_intern("circle");
 	rb_iShapeConvex = rb_intern("convex");
@@ -100,13 +129,13 @@ void Init_Shape()
 	rb_define_const(rb_cShader, "RECTANGLE", ID2SYM(rb_iShapeRectangle));
 }
 
-void rb_Shape_InitObject(CShape_Element& shape)
+void rb_Shape_InitObject(CShape_Element* shape)
 {
-	sf::Shape* sf_shape = shape.getShape();
+	sf::Shape* sf_shape = shape->getShape();
 	sf_shape->setFillColor(sf::Color::White);
-	shape.rOutlineThickness = shape.rAngle = shape.rOX = shape.rOY = shape.rX = shape.rY = shape.rZ = LONG2NUM(0);
-	shape.rZoomX = shape.rZoomY = LONG2NUM(1);
-	shape.rColor = shape.rOutlineColor = shape.rBitmap = shape.rRect = shape.rRenderStates = Qnil;
+	shape->rOutlineThickness = shape->rAngle = shape->rOX = shape->rOY = shape->rX = shape->rY = shape->rZ = LONG2NUM(0);
+	shape->rZoomX = shape->rZoomY = LONG2NUM(1);
+	shape->rColor = shape->rOutlineColor = shape->rBitmap = shape->rRect = shape->rRenderStates = Qnil;
 }
 
 VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
@@ -123,7 +152,7 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 		rb_raise(rb_eRGSSError, "Shape require viewport to be initialized.");
 	CViewport_Element* viewport_el;
 	Data_Get_Struct(viewport, CViewport_Element, viewport_el);
-	viewport_el->bind(*shape);
+	viewport_el->bind(shape);
 	shape->rViewport = viewport;
 
 	// Shape initialization
@@ -141,7 +170,7 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 				radius = abs(NUM2DBL(rad_numPoint));
 			numpt = NUM2ULONG(numPoint);
 		}
-		shape->setShape<sf::CircleShape>(radius, numpt);
+		shape->setShape(new sf::CircleShape(radius, numpt));
 		shape->rShapeType = type;
 	}
 	/* Convex Shape */
@@ -150,36 +179,37 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 		unsigned long numpt = 4;
 		if (!NIL_P(rad_numPoint))
 			numpt = NUM2ULONG(rad_numPoint);
-		shape->setShape<sf::ConvexShape>(numpt);
+		shape->setShape(new sf::ConvexShape(numpt));
 		shape->rShapeType = type;
 	}
 	/* Rectangle Shape */
 	else
 	{
 		if (!NIL_P(rad_numPoint) && !NIL_P(numPoint))
-			shape->setShape<sf::RectangleShape>(sf::Vector2f(NUM2DBL(rad_numPoint), NUM2DBL(numPoint)));
+			shape->setShape(new sf::RectangleShape(sf::Vector2f(NUM2DBL(rad_numPoint), NUM2DBL(numPoint))));
 		else
-			shape->setShape<sf::RectangleShape>();
+			shape->setShape(new sf::RectangleShape());
 		shape->rShapeType = ID2SYM(rb_iShapeRectangle);
 	}
-	rb_Shape_InitObject(*shape);
+	rb_Shape_InitObject(shape);
 	return self;
 }
 
 
 VALUE rb_Shape_Dispose(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
+	GET_SHAPE;
+	RDATA(self)->data = nullptr;
 	/* Suppression du shape de ses stacks */
-	VALUE viewport = shape.rViewport;
+	VALUE viewport = shape->rViewport;
 	VALUE table;
 	if (NIL_P(viewport))
 		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
 	else
 		table = rb_ivar_get(viewport, rb_iElementTable);
 	rb_ary_delete(table, self);
-	delete &shape;
-	RDATA(self)->data = nullptr;
+	shape->setOriginStack(nullptr);
+	rb_Shape_Free(shape);
 	return self;
 }
 
@@ -191,46 +221,46 @@ VALUE rb_Shape_Disposed(VALUE self)
 
 VALUE rb_Shape_getBitmap(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rBitmap;
+	GET_SHAPE;
+	return shape->rBitmap;
 }
 
 VALUE rb_Shape_setBitmap(VALUE self, VALUE bitmap)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	
+	GET_SHAPE;
+	CRect_Element* rect;
 	if (NIL_P(bitmap))
 	{
-		shape.getShape()->setTexture(nullptr);
-		shape.rBitmap = Qnil;
+		shape->getShape()->setTexture(nullptr);
+		shape->rBitmap = Qnil;
 		/* unlink rect */
-		if (!NIL_P(shape.rRect))
+		if (!NIL_P(shape->rRect))
 		{
-			auto& rect = rb::GetSafe<CRect_Element>(shape.rRect, rb_cRect);
-			rect.setElement(nullptr);
-			shape.setLinkedRect(nullptr);
-			shape.rRect = Qnil;
+			rect = rb_Rect_get_rect(shape->rRect);
+			rect->setElement(nullptr);
+			shape->setLinkedRect(nullptr);
+			shape->rRect = Qnil;
 		}
 		return self;
 	}
-	sf::Texture& texture = rb_Bitmap_getTexture(bitmap);
-	shape.getShape()->setTexture(&texture, true);
-	shape.rBitmap = bitmap;
+	sf::Texture* texture = rb_Bitmap_getTexture(bitmap);
+	shape->getShape()->setTexture(texture, true);
+	shape->rBitmap = bitmap;
 	/* update rect */
-	if (!NIL_P(shape.rRect))
+	if (!NIL_P(shape->rRect))
 	{
-		auto& rect = rb::GetSafe<CRect_Element>(shape.rRect, rb_cRect);
+		rect = rb_Rect_get_rect(shape->rRect);
 		/* Setting rect parameter */
-		const sf::IntRect rectorigin = shape.getShape()->getTextureRect();
-		rect_copy(&rect.getRect(), &rectorigin);
+		const sf::IntRect rectorigin = shape->getShape()->getTextureRect();
+		rect_copy(rect->getRect(), &rectorigin);
 	}
 	return self;
 }
 
 VALUE rb_Shape_getRect(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	VALUE rc = shape.rRect;
+	GET_SHAPE;
+	VALUE rc = shape->rRect;
 	if (!NIL_P(rc))
 		return rc;
 	/* Creating rect */
@@ -238,225 +268,228 @@ VALUE rb_Shape_getRect(VALUE self)
 	argv[0] = argv[1] = LONG2FIX(0);
 	rc = rb_class_new_instance(2, argv, rb_cRect);
 	/* Fetching data */
-	auto& rect = rb::GetSafe<CRect_Element>(rc, rb_cRect);
+	CRect_Element* rect = rb_Rect_get_rect(rc);
 	/* Setting rect parameter */
-	const sf::IntRect rectorigin = shape.getShape()->getTextureRect();
-	rect_copy(&rect.getRect(), &rectorigin);
+	const sf::IntRect rectorigin = shape->getShape()->getTextureRect();
+	rect_copy(rect->getRect(), &rectorigin);
 	/* Linking Rect */
-	rect.setElement(&shape);
-	shape.setLinkedRect(&rect);
-	shape.rRect = rc;
+	rect->setElement(shape);
+	shape->setLinkedRect(rect);
+	shape->rRect = rc;
 	return rc;
 }
 
 VALUE rb_Shape_setRect(VALUE self, VALUE rect)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
+	GET_SHAPE;
+	CRect_Element* rect1;
+	CRect_Element* rect2;
 	VALUE rc = rb_Shape_getRect(self);
 	if (RDATA(rc)->data == nullptr) { return Qnil; }
 	/* Getting data to update the rect */
-	auto& rect1 = rb::GetSafe<CRect_Element>(rect, rb_cRect);
-	auto& rect2 = rb::GetSafe<CRect_Element>(rc, rb_cRect);
+	rect1 = rb_Rect_get_rect(rect);
+	rect2 = rb_Rect_get_rect(rc);
+	Data_Get_Struct(rc, CRect_Element, rect2);
 	/* Copying the rect */
-	sf::IntRect& rect_target = rect2.getRect();
-	rect_copy(&rect_target, &rect1.getRect());
+	sf::IntRect* rect_target = rect2->getRect();
+	rect_copy(rect_target, rect1->getRect());
 	/* Update texture rect */
-	shape.getShape()->setTextureRect(rect_target);
+	shape->getShape()->setTextureRect(*rect_target);
 	return self;
 }
 
 VALUE rb_Shape_getX(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rX;
+	GET_SHAPE;
+	return shape->rX;
 }
 
 VALUE rb_Shape_setX(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.getShape()->setPosition(sf::Vector2f(NUM2DBL(val), NUM2DBL(shape.rY)));
-	shape.rX = val;
+	GET_SHAPE;
+	shape->getShape()->setPosition(sf::Vector2f(NUM2DBL(val), NUM2DBL(shape->rY)));
+	shape->rX = val;
 	return self;
 }
 
 VALUE rb_Shape_getY(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rY;
+	GET_SHAPE;
+	return shape->rY;
 }
 
 VALUE rb_Shape_setY(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.getShape()->setPosition(sf::Vector2f(NUM2DBL(shape.rX), NUM2DBL(val)));
-	shape.rY = val;
+	GET_SHAPE;
+	shape->getShape()->setPosition(sf::Vector2f(NUM2DBL(shape->rX), NUM2DBL(val)));
+	shape->rY = val;
 	return self;
 }
 
 VALUE rb_Shape_setPosition(VALUE self, VALUE x, VALUE y)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.getShape()->setPosition(sf::Vector2f(NUM2DBL(x), NUM2DBL(y)));
-	shape.rX = x;
-	shape.rY = y;
+	GET_SHAPE;
+	shape->getShape()->setPosition(sf::Vector2f(NUM2DBL(x), NUM2DBL(y)));
+	shape->rX = x;
+	shape->rY = y;
 	return self;
 }
 
 VALUE rb_Shape_getZ(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rZ;
+	GET_SHAPE;
+	return shape->rZ;
 }
 
 VALUE rb_Shape_setZ(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
+	GET_SHAPE;
 	NUM2LONG(val);
-	shape.rZ = val;
+	shape->rZ = val;
 	return self;
 }
 
 VALUE rb_Shape_getOX(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rOX;
+	GET_SHAPE;
+	return shape->rOX;
 }
 
 VALUE rb_Shape_setOX(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.getShape()->setOrigin(sf::Vector2f(NUM2DBL(val), NUM2DBL(shape.rOY)));
-	shape.rOX = val;
+	GET_SHAPE;
+	shape->getShape()->setOrigin(sf::Vector2f(NUM2DBL(val), NUM2DBL(shape->rOY)));
+	shape->rOX = val;
 	return self;
 }
 
 VALUE rb_Shape_getOY(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rOY;
+	GET_SHAPE;
+	return shape->rOY;
 }
 
 VALUE rb_Shape_setOY(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.getShape()->setOrigin(sf::Vector2f(NUM2DBL(shape.rOX), NUM2DBL(val)));
-	shape.rOY = val;
+	GET_SHAPE;
+	shape->getShape()->setOrigin(sf::Vector2f(NUM2DBL(shape->rOX), NUM2DBL(val)));
+	shape->rOY = val;
 	return self;
 }
 
 VALUE rb_Shape_setOrigin(VALUE self, VALUE ox, VALUE oy)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.getShape()->setOrigin(sf::Vector2f(NUM2DBL(ox), NUM2DBL(oy)));
-	shape.rOX = ox;
-	shape.rOY = oy;
+	GET_SHAPE;
+	shape->getShape()->setOrigin(sf::Vector2f(NUM2DBL(ox), NUM2DBL(oy)));
+	shape->rOX = ox;
+	shape->rOY = oy;
 	return self;
 }
 
 VALUE rb_Shape_getAngle(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rAngle;
+	GET_SHAPE;
+	return shape->rAngle;
 }
 
 VALUE rb_Shape_setAngle(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
+	GET_SHAPE;
 	float angle = NUM2DBL(val);
 	if (angle >= 360 || angle < 0)
 	{
 		angle = fmod(angle, 360);
 		if (angle == (long)angle)
-			shape.rAngle = LONG2NUM((long)angle);
+			shape->rAngle = LONG2NUM((long)angle);
 		else
-			shape.rAngle = DBL2NUM(angle);
+			shape->rAngle = DBL2NUM(angle);
 	}
 	else
-		shape.rAngle = val;
-	shape.getShape()->setRotation(angle);
+		shape->rAngle = val;
+	shape->getShape()->setRotation(angle);
 	return self;
 }
 
 VALUE rb_Shape_getZoomX(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rZoomX;
+	GET_SHAPE;
+	return shape->rZoomX;
 }
 
 VALUE rb_Shape_setZoomX(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.getShape()->setScale(sf::Vector2f(NUM2DBL(val), NUM2DBL(shape.rZoomY)));
-	shape.rZoomX = val;
+	GET_SHAPE;
+	shape->getShape()->setScale(sf::Vector2f(NUM2DBL(val), NUM2DBL(shape->rZoomY)));
+	shape->rZoomX = val;
 	return self;
 }
 
 VALUE rb_Shape_getZoomY(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rZoomY;
+	GET_SHAPE;
+	return shape->rZoomY;
 }
 
 VALUE rb_Shape_setZoomY(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.getShape()->setScale(sf::Vector2f(NUM2DBL(shape.rZoomX), NUM2DBL(val)));
-	shape.rZoomY = val;
+	GET_SHAPE;
+	shape->getShape()->setScale(sf::Vector2f(NUM2DBL(shape->rZoomX), NUM2DBL(val)));
+	shape->rZoomY = val;
 	return self;
 }
 
 VALUE rb_Shape_setZoom(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
+	GET_SHAPE;
 	float zoom = NUM2DBL(val);
-	shape.getShape()->setScale(sf::Vector2f(zoom, zoom));
-	shape.rZoomX = val;
-	shape.rZoomY = val;
+	shape->getShape()->setScale(sf::Vector2f(zoom, zoom));
+	shape->rZoomX = val;
+	shape->rZoomY = val;
 	return self;
 }
 
 VALUE rb_Shape_getIndex(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return LONG2NUM(shape.getIndex());
+	GET_SHAPE;
+	return LONG2NUM(shape->getIndex());
 }
 
 VALUE rb_Shape_getViewport(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rViewport;
+	GET_SHAPE;
+	return shape->rViewport;
 }
 
 VALUE rb_Shape_getVisible(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.getVisible() ? Qtrue : Qfalse;
+	GET_SHAPE;
+	return shape->getVisible() ? Qtrue : Qfalse;
 }
 
 VALUE rb_Shape_setVisible(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.setVisible(RTEST(val));
+	GET_SHAPE;
+	shape->setVisible(RTEST(val));
 	return self;
 }
 
 VALUE rb_Shape_getPointCount(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return LONG2NUM(shape.getShape()->getPointCount());
+	GET_SHAPE;
+	return LONG2NUM(shape->getShape()->getPointCount());
 }
 
 VALUE rb_Shape_setPointCount(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	sf::ConvexShape* convex = dynamic_cast<sf::ConvexShape*>(shape.getShape());
+	GET_SHAPE;
+	sf::ConvexShape* convex = dynamic_cast<sf::ConvexShape*>(shape->getShape());
 	if (convex != nullptr)
 	{
 		convex->setPointCount(NUM2ULONG(val));
 	}
 	else
 	{
-		sf::CircleShape* circle = dynamic_cast<sf::CircleShape*>(shape.getShape());
+		sf::CircleShape* circle = dynamic_cast<sf::CircleShape*>(shape->getShape());
 		if (circle != nullptr)
 		{
 			circle->setPointCount(NUM2ULONG(val));
@@ -467,8 +500,8 @@ VALUE rb_Shape_setPointCount(VALUE self, VALUE val)
 
 VALUE rb_Shape_getRadius(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	sf::CircleShape* circle = dynamic_cast<sf::CircleShape*>(shape.getShape());
+	GET_SHAPE;
+	sf::CircleShape* circle = dynamic_cast<sf::CircleShape*>(shape->getShape());
 	if (circle != nullptr)
 	{
 		return DBL2NUM(circle->getRadius());
@@ -478,8 +511,8 @@ VALUE rb_Shape_getRadius(VALUE self)
 
 VALUE rb_Shape_setRadius(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	sf::CircleShape* circle = dynamic_cast<sf::CircleShape*>(shape.getShape());
+	GET_SHAPE;
+	sf::CircleShape* circle = dynamic_cast<sf::CircleShape*>(shape->getShape());
 	if (circle != nullptr)
 	{
 		circle->setRadius(NUM2DBL(val));
@@ -489,17 +522,17 @@ VALUE rb_Shape_setRadius(VALUE self, VALUE val)
 
 VALUE rb_Shape_getType(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rShapeType;
+	GET_SHAPE;
+	return shape->rShapeType;
 }
 
 VALUE rb_Shape_getPoint(VALUE self, VALUE index)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
+	GET_SHAPE;
 	long lindex = NUM2LONG(index);
-	if (lindex < 0 || lindex >= shape.getShape()->getPointCount())
+	if (lindex < 0 || lindex >= shape->getShape()->getPointCount())
 		return Qnil;
-	sf::Vector2f point = shape.getShape()->getPoint(lindex);
+	sf::Vector2f point = shape->getShape()->getPoint(lindex);
 	VALUE arr = rb_ary_new();
 	rb_ary_push(arr, DBL2NUM(point.x));
 	rb_ary_push(arr, DBL2NUM(point.y));
@@ -508,12 +541,12 @@ VALUE rb_Shape_getPoint(VALUE self, VALUE index)
 
 VALUE rb_Shape_setPoint(VALUE self, VALUE index, VALUE x, VALUE y)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	sf::ConvexShape* convex = dynamic_cast<sf::ConvexShape*>(shape.getShape());
+	GET_SHAPE;
+	sf::ConvexShape* convex = dynamic_cast<sf::ConvexShape*>(shape->getShape());
 	if (convex != nullptr)
 	{
 		long lindex = NUM2LONG(index);
-		if (lindex < 0 || lindex >= shape.getShape()->getPointCount())
+		if (lindex < 0 || lindex >= shape->getShape()->getPointCount())
 			return self;
 		convex->setPoint(lindex, sf::Vector2f(NUM2DBL(x), NUM2DBL(y)));
 	}
@@ -522,80 +555,80 @@ VALUE rb_Shape_setPoint(VALUE self, VALUE index, VALUE x, VALUE y)
 
 VALUE rb_Shape_getColor(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	if (shape.rColor == Qnil)
+	GET_SHAPE;
+	if (shape->rColor == Qnil)
 	{
-		sf::Color col = shape.getShape()->getFillColor();
+		sf::Color col = shape->getShape()->getFillColor();
 		VALUE args[4] = {
 			LONG2NUM(col.r),
 			LONG2NUM(col.g),
 			LONG2NUM(col.b),
 			LONG2NUM(col.a)
 		};
-		shape.rColor = rb_class_new_instance(4, args, rb_cColor);
+		shape->rColor = rb_class_new_instance(4, args, rb_cColor);
 	}
-	return shape.rColor;
+	return shape->rColor;
 }
 
 VALUE rb_Shape_setColor(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	auto& color = rb::GetSafe<sf::Color>(val, rb_cColor);
-	shape.getShape()->setFillColor(color);
-	shape.rColor = val;
+	GET_SHAPE;
+	sf::Color* color = rb_Color_get_color(val);
+	shape->getShape()->setFillColor(*color);
+	shape->rColor = val;
 	return self;
 }
 
 VALUE rb_Shape_getOutlineColor(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	if (shape.rOutlineColor == Qnil)
+	GET_SHAPE;
+	if (shape->rOutlineColor == Qnil)
 	{
-		sf::Color col = shape.getShape()->getFillColor();
+		sf::Color col = shape->getShape()->getFillColor();
 		VALUE args[4] = {
 			LONG2NUM(col.r),
 			LONG2NUM(col.g),
 			LONG2NUM(col.b),
 			LONG2NUM(col.a)
 		};
-		shape.rOutlineColor = rb_class_new_instance(4, args, rb_cColor);
+		shape->rOutlineColor = rb_class_new_instance(4, args, rb_cColor);
 	}
-	return shape.rOutlineColor;
+	return shape->rOutlineColor;
 }
 
 VALUE rb_Shape_setOutlineColor(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	auto& color = rb::GetSafe<sf::Color>(val, rb_cColor);
-	shape.getShape()->setOutlineColor(color);
-	shape.rOutlineColor = val;
+	GET_SHAPE;
+	sf::Color* color = rb_Color_get_color(val);
+	shape->getShape()->setOutlineColor(*color);
+	shape->rOutlineColor = val;
 	return self;
 }
 
 VALUE rb_Shape_getOutlineThickness(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rOutlineThickness;
+	GET_SHAPE;
+	return shape->rOutlineThickness;
 }
 
 VALUE rb_Shape_setOutlineThickness(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.getShape()->setOutlineThickness(NUM2DBL(val));
-	shape.rOutlineThickness = val;
+	GET_SHAPE;
+	shape->getShape()->setOutlineThickness(NUM2DBL(val));
+	shape->rOutlineThickness = val;
 	return self;
 }
 
 VALUE rb_Shape_getWidth(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return LONG2NUM(shape.getShape()->getGlobalBounds().width);
+	GET_SHAPE;
+	return LONG2NUM(shape->getShape()->getGlobalBounds().width);
 }
 
 VALUE rb_Shape_setWidth(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	sf::RectangleShape* rectangle = dynamic_cast<sf::RectangleShape*>(shape.getShape());
+	GET_SHAPE;
+	sf::RectangleShape* rectangle = dynamic_cast<sf::RectangleShape*>(shape->getShape());
 	if (rectangle != nullptr)
 	{
 		sf::Vector2f size = rectangle->getSize();
@@ -607,14 +640,14 @@ VALUE rb_Shape_setWidth(VALUE self, VALUE val)
 
 VALUE rb_Shape_getHeight(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return LONG2NUM(shape.getShape()->getGlobalBounds().height);
+	GET_SHAPE;
+	return LONG2NUM(shape->getShape()->getGlobalBounds().height);
 }
 
 VALUE rb_Shape_setHeight(VALUE self, VALUE val)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	sf::RectangleShape* rectangle = dynamic_cast<sf::RectangleShape*>(shape.getShape());
+	GET_SHAPE;
+	sf::RectangleShape* rectangle = dynamic_cast<sf::RectangleShape*>(shape->getShape());
 	if (rectangle != nullptr)
 	{
 		sf::Vector2f size = rectangle->getSize();
@@ -626,26 +659,26 @@ VALUE rb_Shape_setHeight(VALUE self, VALUE val)
 
 VALUE rb_Shape_getShader(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	return shape.rRenderStates;
+	GET_SHAPE;
+	return shape->rRenderStates;
 }
 
 VALUE rb_Shape_setShader(VALUE self, VALUE shader)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
+	sf::RenderStates* render_state;
+	GET_SHAPE;
 	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue)
 	{
-		sf::RenderStates* render_state;
 		Data_Get_Struct(shader, sf::RenderStates, render_state);
 		if (render_state != nullptr)
 		{
-			shape.rRenderStates = shader;
-			shape.setRenderState(render_state);
+			shape->rRenderStates = shader;
+			shape->setRenderState(render_state);
 			return self;
 		}
 	}
-	shape.rRenderStates = Qnil;
-	shape.setRenderState(nullptr);
+	shape->rRenderStates = Qnil;
+	shape->setRenderState(nullptr);
 	return self;
 }
 
@@ -655,12 +688,27 @@ VALUE rb_Shape_Copy(VALUE self)
 	return self;
 }
 
+CShape_Element* rb_Shape_get_shape(VALUE self)
+{
+	rb_Shape_test_shape(self);
+	GET_SHAPE;
+	return shape;
+}
+
+void rb_Shape_test_shape(VALUE self)
+{
+	if (rb_obj_is_kind_of(self, rb_cShape) != Qtrue)
+	{
+		rb_raise(rb_eTypeError, "Expected Shape got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
+	}
+}
+
 VALUE rb_Shape_DisposeFromViewport(VALUE self)
 {
 	if (RDATA(self)->data == nullptr)
 		return self;
-	auto& shape = rb::Get<CShape_Element>(self);
-	delete &shape;
-	RDATA(self)->data = nullptr;	
+	GET_SHAPE;
+	RDATA(self)->data = nullptr;
+	rb_Shape_Free(reinterpret_cast<void*>(shape));
 	return self;
 }

@@ -2,8 +2,29 @@
 
 VALUE rb_cText = Qnil;
 
-template<>
-void rb::Mark<CText_Element>(CText_Element* text)
+#define TEXT_PROTECT if(RDATA(self)->data == nullptr) \
+{\
+    rb_raise(rb_eRGSSError, "Disposed Text."); \
+    return self; \
+}
+
+#define GET_TEXT CText_Element* text; \
+    Data_Get_Struct(self, CText_Element, text); \
+    TEXT_PROTECT
+
+
+void rb_Text_Free(void* data)
+{
+    CText_Element* text = reinterpret_cast<CText_Element*>(data);
+    if(text)
+    {
+        if(NIL_P(text->rViewport))
+            text->setOriginStack(nullptr);
+        delete text;
+    }
+}
+
+void rb_Text_Mark(CText_Element* text)
 {
     if(text == nullptr)
         return;
@@ -17,11 +38,20 @@ void rb::Mark<CText_Element>(CText_Element* text)
     rb_gc_mark(text->rZ);
 }
 
+VALUE rb_Text_Alloc(VALUE klass)
+{
+    CText_Element* text = new CText_Element();
+    text->rAlign = LONG2FIX(0);
+    text->rZ = LONG2FIX(0);
+    text->rtext = Qnil;
+    return Data_Wrap_Struct(klass, rb_Text_Mark, rb_Text_Free, text);
+}
+
 void Init_Text()
 {
     rb_cText = rb_define_class_under(rb_mLiteRGSS, "Text", rb_cObject);
 
-    rb_define_alloc_func(rb_cText, rb::Alloc<CText_Element>);
+    rb_define_alloc_func(rb_cText, rb_Text_Alloc);
 
     rb_define_method(rb_cText, "initialize", _rbf rb_Text_Initialize, -1);
     rb_define_method(rb_cText, "dispose", _rbf rb_Text_Dispose, 0);
@@ -74,14 +104,14 @@ void Init_Text()
 
 VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     VALUE fontid, viewport, x, y, width, height, str, align, outlinesize, table;
 	VALUE opacity = LONG2NUM(255);
     rb_scan_args(argc, argv,"72", &fontid, &viewport, &x, &y, &width, &height, &str, &align, &outlinesize);
     /* Viewport */
     if(rb_obj_is_kind_of(viewport, rb_cViewport) == Qtrue)
     {
-        text.rViewport = viewport;
+        text->rViewport = viewport;
 
         CViewport_Element* viewporte;
         Data_Get_Struct(viewport, CViewport_Element, viewporte);
@@ -91,56 +121,56 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
 	/* If a window is specified */
 	else if (rb_obj_is_kind_of(viewport, rb_cWindow) == Qtrue)
 	{
-		auto& window = rb::GetSafe<CWindow_Element>(viewport, rb_cWindow);
-		window.bind(&text);
+		CWindow_Element* window = rb_Window_get_window(viewport);
+		window->bind(text);
 		table = rb_ivar_get(viewport, rb_iElementTable);
-		text.rViewport = viewport;
-		opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rContentOpacity) / 255);
+		text->rViewport = viewport;
+		opacity = LONG2NUM(NUM2LONG(window->rOpacity) * NUM2LONG(window->rContentOpacity) / 255);
 	}
     else
     {
-        global_Graphics_Bind(&text);
+        global_Graphics_Bind(text);
         table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-        text.rViewport = Qnil;
+        text->rViewport = Qnil;
     }
     rb_ary_push(table, self);
     /* Surface */
     rb_check_type(x, T_FIXNUM);
-    text.rX = x;
+    text->rX = x;
     rb_check_type(y, T_FIXNUM);
-    text.rY = y;
+    text->rY = y;
     rb_check_type(width, T_FIXNUM);
-    text.rwidth = width;
+    text->rwidth = width;
     rb_check_type(height, T_FIXNUM);
-    text.rheight = height;
+    text->rheight = height;
     /* Aligment */
     if(!NIL_P(align))
     {
         long ralign = rb_num2long(align);
         if(ralign <= 2 && ralign >= 0)
-            text.rAlign = align;
+            text->rAlign = align;
     }
     /* Outline size */
     if(!NIL_P(outlinesize))
     {
-        text.getText().setOutlineThickness(static_cast<float>(rb_num2dbl(outlinesize)));
+        text->getText()->setOutlineThickness(static_cast<float>(rb_num2dbl(outlinesize)));
     }
     /* Font */
     VALUE fcol = rb_Fonts_get_fill_color(rb_mFonts, fontid);
     if(rb_obj_is_kind_of(fcol, rb_cColor) == Qtrue)
         rb_Text_set_fill_color(self, fcol);
     VALUE ocol;
-    if(text.getText().getOutlineThickness() < 1.0f)
+    if(text->getText()->getOutlineThickness() < 1.0f)
         ocol = rb_Fonts_get_shadow_color(rb_mFonts, fontid);
     else
         ocol = rb_Fonts_get_outline_color(rb_mFonts, fontid);
     if(rb_obj_is_kind_of(ocol, rb_cColor) == Qtrue)
         rb_Text_set_outline_color(self, ocol);
-    text.getText().setFont(rb_Fonts_get_font(rb_num2long(fontid)));
+    text->getText()->setFont(rb_Fonts_get_font(rb_num2long(fontid)));
     /* Size */
     VALUE size = rb_Fonts_get_default_size(rb_mFonts, fontid);
     if(!NIL_P(size))
-        text.getText().setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(size), 1, 0xFFFF)));
+        text->getText()->setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(size), 1, 0xFFFF)));
     /* Text */
     rb_Text_set_Text(self, str); /* Invokes rb_Text_UpdateI */
 	rb_Text_setOpacity(self, opacity);
@@ -155,19 +185,18 @@ VALUE rb_Text_Copy(VALUE self)
 
 VALUE rb_Text_Dispose(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    
+    GET_TEXT
+    RDATA(self)->data = nullptr;
     /* Suppression du sprite de ses stacks */
-    VALUE viewport = text.rViewport;
+    VALUE viewport = text->rViewport;
     VALUE table;
     if(NIL_P(viewport))
         table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     else
         table = rb_ivar_get(viewport, rb_iElementTable);
     rb_ary_delete(table, self);
-    text.setOriginStack(nullptr); // Ensure the text is removed from the sprite stack
-    delete &text;
-    RDATA(self)->data = nullptr;
+    text->setOriginStack(nullptr); // Ensure the text is removed from the sprite stack
+    rb_Text_Free(reinterpret_cast<void*>(text));
     return self;
 }
 
@@ -175,9 +204,9 @@ VALUE rb_Text_DisposeFromViewport(VALUE self)
 {
     if(RDATA(self)->data == nullptr)
         return self;
-    auto& text = rb::Get<CText_Element>(self);
-    delete &text;
+    GET_TEXT
     RDATA(self)->data = nullptr;
+    rb_Text_Free(reinterpret_cast<void*>(text));
     return self;
 }
 
@@ -190,80 +219,80 @@ VALUE rb_Text_Disposed(VALUE self)
 
 VALUE rb_Text_setPosition(VALUE self, VALUE x, VALUE y)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     rb_check_type(x, T_FIXNUM);
     rb_check_type(y, T_FIXNUM);
-    text.rX = x;
-    text.rY = y;
+    text->rX = x;
+    text->rY = y;
     rb_Text_UpdateI(text);
     return self;
 }
 
 VALUE rb_Text_get_x(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return text.rX;
+    GET_TEXT
+    return text->rX;
 }
 
 VALUE rb_Text_set_x(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     rb_check_type(val, T_FIXNUM);
-    text.rX = val;
+    text->rX = val;
     rb_Text_UpdateI(text);
     return val;
 }
 
 VALUE rb_Text_get_y(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return text.rY;
+    GET_TEXT
+    return text->rY;
 }
 
 VALUE rb_Text_set_y(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     rb_check_type(val, T_FIXNUM);
-    text.rY = val;
+    text->rY = val;
     rb_Text_UpdateI(text);
     return val;
 }
 
 VALUE rb_Text_get_width(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return text.rwidth;
+    GET_TEXT
+    return text->rwidth;
 }
 
 VALUE rb_Text_set_width(VALUE self, VALUE val)
 {
     rb_check_type(val, T_FIXNUM);
-    auto& text = rb::Get<CText_Element>(self);
-    text.rwidth = val;
+    GET_TEXT
+    text->rwidth = val;
     rb_Text_UpdateI(text);
     return val;
 }
 
 VALUE rb_Text_get_height(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return text.rheight;
+    GET_TEXT
+    return text->rheight;
 }
 
 VALUE rb_Text_set_height(VALUE self, VALUE val)
 {
     rb_check_type(val, T_FIXNUM);
-    auto& text = rb::Get<CText_Element>(self);
-    text.rheight = val;
+    GET_TEXT
+    text->rheight = val;
     rb_Text_UpdateI(text);
     return val;
 }
 
 VALUE rb_Text_get_fill_color(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     VALUE argv[4];
-    sf::Color col = text.getText().getFillColor();
+    sf::Color col = text->getText()->getFillColor();
     argv[0] = LONG2FIX(col.r);
     argv[1] = LONG2FIX(col.g);
     argv[2] = LONG2FIX(col.b);
@@ -273,22 +302,22 @@ VALUE rb_Text_get_fill_color(VALUE self)
 
 VALUE rb_Text_set_fill_color(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     if(rb_obj_is_kind_of(val, rb_cColor) == Qfalse)
         rb_raise(rb_eTypeError, "Expected Color got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(val))));
     sf::Color* color;
     Data_Get_Struct(val, sf::Color, color);
     if(color == nullptr)
         return Qnil;
-    text.getText().setFillColor(*color);
+    text->getText()->setFillColor(*color);
     return val;
 }
 
 VALUE rb_Text_get_outline_color(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     VALUE argv[4];
-    sf::Color col = text.getText().getOutlineColor();
+    sf::Color col = text->getText()->getOutlineColor();
     argv[0] = LONG2FIX(col.r);
     argv[1] = LONG2FIX(col.g);
     argv[2] = LONG2FIX(col.b);
@@ -298,35 +327,35 @@ VALUE rb_Text_get_outline_color(VALUE self)
 
 VALUE rb_Text_set_outline_color(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     if(rb_obj_is_kind_of(val, rb_cColor) == Qfalse)
         rb_raise(rb_eTypeError, "Expected Color got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(val))));
     sf::Color* color;
     Data_Get_Struct(val, sf::Color, color);
     if(color == nullptr)
         return Qnil;
-    text.getText().setOutlineColor(*color);
+    text->getText()->setOutlineColor(*color);
     return val;
 }
 
 VALUE rb_Text_get_outline_thickness(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return rb_float_new(static_cast<double>(text.getText().getOutlineThickness()));
+    GET_TEXT
+    return rb_float_new(static_cast<double>(text->getText()->getOutlineThickness()));
 }
 
 VALUE rb_Text_set_outline_thickness(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    text.getText().setOutlineThickness(static_cast<float>(rb_num2dbl(val)));
+    GET_TEXT
+    text->getText()->setOutlineThickness(static_cast<float>(rb_num2dbl(val)));
     return val;
 }
 
 VALUE rb_Text_load_color(VALUE self, VALUE id)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     rb_Text_set_fill_color(self, rb_Fonts_get_fill_color(rb_mFonts, id));
-    if(text.getText().getDrawShadow())
+    if(text->getText()->getDrawShadow())
         rb_Text_set_outline_color(self, rb_Fonts_get_shadow_color(rb_mFonts, id));
     else
         rb_Text_set_outline_color(self, rb_Fonts_get_outline_color(rb_mFonts, id));
@@ -335,206 +364,205 @@ VALUE rb_Text_load_color(VALUE self, VALUE id)
 
 VALUE rb_Text_get_align(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return text.rAlign;
+    GET_TEXT
+    return text->rAlign;
 }
 
 VALUE rb_Text_set_align(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     long align = rb_num2long(val);
     if(align == 1 || align == 2)
-        text.rAlign = val;
+        text->rAlign = val;
     else
-        text.rAlign = LONG2FIX(0);
+        text->rAlign = LONG2FIX(0);
     rb_Text_UpdateI(text);
-    return self;
 }
 
 VALUE rb_Text_get_size(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return rb_int2inum(static_cast<long>(text.getText().getCharacterSize()));
+    GET_TEXT
+    return rb_int2inum(static_cast<long>(text->getText()->getCharacterSize()));
 }
 
 VALUE rb_Text_set_size(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    text.getText().setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(val), 1, 0xFFFF)));
+    GET_TEXT
+    text->getText()->setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(val), 1, 0xFFFF)));
     rb_Text_UpdateI(text);
     return self;
 }
 
 VALUE rb_Text_set_Text(VALUE self, VALUE str)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     rb_check_type(str, T_STRING);
-    text.rtext = str;
-    text.getText().setLineHeight(rb_num2dbl(text.rheight));
+    text->rtext = str;
+    text->getText()->setLineHeight(rb_num2dbl(text->rheight));
     std::string stru8(RSTRING_PTR(str));
-    text.getText().setString(sf::String::fromUtf8(stru8.begin(), stru8.end()));
+    text->getText()->setString(sf::String::fromUtf8(stru8.begin(), stru8.end()));
     rb_Text_UpdateI(text);
     return str;
 }
 
 VALUE rb_Text_get_text_width(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     rb_check_type(val, T_STRING);
     std::string stru8(RSTRING_PTR(val));
-    sf::Uint32 width = text.getText().getTextWidth(sf::String::fromUtf8(stru8.begin(), stru8.end()));
+    sf::Uint32 width = text->getText()->getTextWidth(sf::String::fromUtf8(stru8.begin(), stru8.end()));
     return RB_UINT2NUM(width);
 }
 
 VALUE rb_Text_get_Text(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return text.rtext;
+    GET_TEXT
+    return text->rtext;
 }
 
 VALUE rb_Text_get_visible(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return (text.getVisible() ? Qtrue : Qfalse);
+    GET_TEXT
+    return (text->getVisible() ? Qtrue : Qfalse);
 }
 
 VALUE rb_Text_set_visible(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    text.setVisible(RTEST(val));
+    GET_TEXT
+    text->setVisible(RTEST(val));
     return self;
 }
 
 VALUE rb_Text_set_num_char(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    text.getText().setNumCharToDraw(rb_num2ulong(val));
+    GET_TEXT
+    text->getText()->setNumCharToDraw(rb_num2ulong(val));
     rb_Text_UpdateI(text);
     return self;
 }
 
 VALUE rb_Text_get_num_char(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return RB_UINT2NUM(text.getText().getNumCharToDraw());
+    GET_TEXT
+    return RB_UINT2NUM(text->getText()->getNumCharToDraw());
 }
 
 VALUE rb_Text_set_draw_shadow(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    text.getText().setDrawShadow(RTEST(val));
+    GET_TEXT
+    text->getText()->setDrawShadow(RTEST(val));
     return self;
 }
 
 VALUE rb_Text_get_draw_shadow(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return (text.getText().getDrawShadow() ? Qtrue : Qfalse);
+    GET_TEXT
+    return (text->getText()->getDrawShadow() ? Qtrue : Qfalse);
 }
 
 VALUE rb_Text_getRealWidth(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return rb_int2inum(text.getText().getLocalBounds().width);
+    GET_TEXT
+    return rb_int2inum(text->getText()->getLocalBounds().width);
 }
 
 VALUE rb_Text_getOpacity(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return rb_int2inum(text.getText().getFillColor().a);
+    GET_TEXT
+    return rb_int2inum(text->getText()->getFillColor().a);
 }
 
 VALUE rb_Text_setOpacity(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     long opacity = normalize_long(rb_num2long(val), 0, 255);
-    auto& t = text.getText();
-    sf::Color col = t.getFillColor();
+    sf::Text2* t = text->getText();
+    sf::Color col = t->getFillColor();
     col.a = opacity;
-    t.setFillColor(col);
-    if(text.getText().getOutlineThickness() < 1.0f && opacity != 255)
+    t->setFillColor(col);
+    if(text->getText()->getOutlineThickness() < 1.0f && opacity != 255)
     {
-        col = t.getOutlineColor();
+        col = t->getOutlineColor();
         col.a = opacity / 3;
-        t.setOutlineColor(col);
+        t->setOutlineColor(col);
     }
     return self;
 }
 
 VALUE rb_Text_getZ(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return text.rZ;
+    GET_TEXT
+    return text->rZ;
 }
 
 VALUE rb_Text_setZ(VALUE self, VALUE val)
 {
-    auto& text = rb::Get<CText_Element>(self);
+    GET_TEXT
     rb_num2long(val);
-    text.rZ = val;
+    text->rZ = val;
     return self;
 }
 
 VALUE rb_Text_Index(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return rb_uint2inum(text.getIndex());
+    GET_TEXT
+    return rb_uint2inum(text->getIndex());
 }
 
 VALUE rb_Text_Viewport(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    return text.rViewport;
+    GET_TEXT
+    return text->rViewport;
 }
 
 VALUE rb_Text_getItalic(VALUE self)
 {
-	auto& text = rb::Get<CText_Element>(self);
-	return ((text.getText().getStyle() & sf::Text2::Style::Italic) ? Qtrue : Qfalse);
+	GET_TEXT
+	return ((text->getText()->getStyle() & sf::Text2::Style::Italic) ? Qtrue : Qfalse);
 }
 
 VALUE rb_Text_setItalic(VALUE self, VALUE val)
 {
-	auto& text = rb::Get<CText_Element>(self);
-	sf::Uint32 style = text.getText().getStyle();
+	GET_TEXT
+	sf::Uint32 style = text->getText()->getStyle();
 	if (RTEST(val))
 		style |= sf::Text2::Style::Italic;
 	else
 		style &= ~(sf::Text2::Style::Italic);
-	text.getText().setStyle(style);
+	text->getText()->setStyle(style);
 	return self;
 }
 
 VALUE rb_Text_getBold(VALUE self)
 {
-	auto& text = rb::Get<CText_Element>(self);
-		return ((text.getText().getStyle() & sf::Text2::Style::Bold) ? Qtrue : Qfalse);
+	GET_TEXT
+		return ((text->getText()->getStyle() & sf::Text2::Style::Bold) ? Qtrue : Qfalse);
 }
 
 VALUE rb_Text_setBold(VALUE self, VALUE val)
 {
-	auto& text = rb::Get<CText_Element>(self);
-		sf::Uint32 style = text.getText().getStyle();
+	GET_TEXT
+		sf::Uint32 style = text->getText()->getStyle();
 	if (RTEST(val))
 		style |= sf::Text2::Style::Bold;
 	else
 		style &= ~(sf::Text2::Style::Bold);
-	text.getText().setStyle(style);
+	text->getText()->setStyle(style);
 	return self;
 }
 
-VALUE rb_Text_UpdateI(CText_Element& text)
+VALUE rb_Text_UpdateI(CText_Element* text)
 {
-    sf::Text2& sftext = text.getText();
+    sf::Text2* sftext = text->getText();
     float x, y, width, height, ox;
     long align;
     VALUE zero = LONG2FIX(0);
-    x = rb_num2long(text.rX);
-    y = rb_num2long(text.rY);
-    height = rb_num2long(text.rheight);// / 2.0f;//static_cast<float>(rb_num2long(text.rheight)) / 2;
-    sf::FloatRect bounds = sftext.getLocalBounds();
-    align = rb_num2long(text.rAlign);
-    width = rb_num2long(text.rwidth);
+    x = rb_num2long(text->rX);
+    y = rb_num2long(text->rY);
+    height = rb_num2long(text->rheight);// / 2.0f;//static_cast<float>(rb_num2long(text->rheight)) / 2;
+    sf::FloatRect bounds = sftext->getLocalBounds();
+    align = rb_num2long(text->rAlign);
+    width = rb_num2long(text->rwidth);
     switch(align)
     {
         case 1: /* Center */
@@ -550,8 +578,8 @@ VALUE rb_Text_UpdateI(CText_Element& text)
     }
     y = round(y + height / 2);// + (height - bounds.height));
     /* Position update */
-    sftext.setPosition(x, y);
-    sftext.setOrigin(ox, round(sftext.getCharacterSize() / 2.0f));
+    sftext->setPosition(x, y);
+    sftext->setOrigin(ox, round(sftext->getCharacterSize() / 2.0f));
     //std::cout << "(" << x << "," << y << ") / (" << ox << ", " << height << ") ->" << sftext->getCharacterSize() << " // " << bounds.height << std::endl;
     return Qnil;
 }

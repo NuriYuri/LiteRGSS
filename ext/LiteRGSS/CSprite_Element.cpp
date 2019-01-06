@@ -1,4 +1,5 @@
 #include "CViewport_Element.h"
+#include <iostream>
 
 void CSprite_Element::draw(sf::RenderTarget& target) const 
 {
@@ -11,9 +12,4 @@ void CSprite_Element::drawFast(sf::RenderTarget& target) const
     {
         target.draw(sprite);
     }
-}
-
-CSprite_Element::~CSprite_Element() {
-    getSprite().setColor(sf::Color(255, 255, 255, 255));
-    setLinkedRect(nullptr);
 }

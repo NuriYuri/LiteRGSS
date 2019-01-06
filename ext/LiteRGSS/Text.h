@@ -2,7 +2,6 @@
 #define L_TEXT_HEADER
 #include "CText_Element.h"
 #include "Graphics.h"
-#include "utils/rbAdapter.h"
 
 VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Text_Copy(VALUE self);
@@ -31,6 +30,7 @@ VALUE rb_Text_set_size(VALUE self, VALUE val);
 VALUE rb_Text_set_Text(VALUE self, VALUE str);
 VALUE rb_Text_get_Text(VALUE self);
 VALUE rb_Text_DisposeFromViewport(VALUE self);
+VALUE rb_Text_UpdateI(CText_Element* text);
 VALUE rb_Text_get_visible(VALUE self);
 VALUE rb_Text_set_visible(VALUE self, VALUE val);
 VALUE rb_Text_set_num_char(VALUE self, VALUE val);
@@ -49,11 +49,4 @@ VALUE rb_Text_getItalic(VALUE self);
 VALUE rb_Text_setItalic(VALUE self, VALUE val);
 VALUE rb_Text_getBold(VALUE self);
 VALUE rb_Text_setBold(VALUE self, VALUE val);
-
-VALUE rb_Text_UpdateI(CText_Element& text);
-
-namespace rb {
-    template<>
-    void Mark<CText_Element>(CText_Element* text);
-}
 #endif

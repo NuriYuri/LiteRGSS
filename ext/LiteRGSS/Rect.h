@@ -18,4 +18,7 @@ VALUE rb_Rect_eql(VALUE self, VALUE other);
 VALUE rb_Rect_empty(VALUE self);
 VALUE rb_Rect_to_s(VALUE self);
 
+CRect_Element* rb_Rect_get_rect(VALUE self);
+void rb_Rect_test_rect(VALUE self);
+
 #endif

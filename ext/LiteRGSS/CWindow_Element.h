@@ -5,16 +5,16 @@
 
 class CWindow_Element : public CDrawable_Element {
     protected:
-		std::vector<sf::VertexArray> vertices;
-		sf::Texture* texture = nullptr;
+		sf::VertexArray* vertices;
+		sf::Texture* texture;
 		sf::View view;
 		std::vector<CDrawable_Element*> stack;
-        bool visible = true;
-		unsigned long num_vertices_line = 0;
-		long counter = 0;
+        bool visible;
+		unsigned long num_vertices_line;
+		long counter;
 		sf::Sprite pause_sprite;
 		sf::Sprite cursor_sprite;
-		bool locked = false;
+		bool locked;
 		void updateVerticesBlt(long wt, long ht);
 		void updateVerticesStretch(long wt, long ht);
 		void allocateVerticesBlt(long delta_w, long nb2, long delta_h, long nb4);
@@ -24,7 +24,7 @@ class CWindow_Element : public CDrawable_Element {
 		void calculateVerticesStretch(long x, long y, long line, long cell, sf::Vector2i &s, sf::Vector2i &a, sf::IntRect &rect);
     public:
 		CWindow_Element();
-		virtual ~CWindow_Element() = default;
+		~CWindow_Element();
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
 		void drawCalculateView(sf::RenderTarget& target, sf::View& targetView) const;
@@ -48,40 +48,34 @@ class CWindow_Element : public CDrawable_Element {
 		void lock();
 		void unlock();
 		bool is_locked();
-		sf::Sprite& getPauseSprite();
-		sf::Sprite& getCursorSprite();
+		sf::Sprite* getPauseSprite();
+		sf::Sprite* getCursorSprite();
 		void resetPausePosition();
 		void resetCursorPosition(sf::IntRect* rect);
 		void bind(CDrawable_Element* sprite);
 		void clearStack();
-
         /* Instance variable for Ruby */
-        VALUE rBitmap = Qnil;
-        VALUE rX = Qnil;
-        VALUE rY = Qnil;
-        VALUE rZ = Qnil;
-        VALUE rOX = Qnil;
-        VALUE rOY = Qnil;
-		VALUE rRect = Qnil;
-		VALUE rWidth = Qnil;
-		VALUE rHeight = Qnil;
-		VALUE rCursorRect = Qnil;
-		VALUE rBackOpacity = Qnil;
-		VALUE rContentOpacity = Qnil;
-		VALUE rOpacity = Qnil;
-		VALUE rWindowBuilder = Qnil;
-		VALUE rPauseSkin = Qnil;
-		VALUE rCursorSkin = Qnil;
-		VALUE rPause = Qnil;
-		VALUE rPauseX = Qnil;
-		VALUE rPauseY = Qnil;
-		VALUE rActive = Qnil;
-		VALUE rStretch = Qnil;
+        VALUE rViewport;
+        VALUE rBitmap;
+        VALUE rX;
+        VALUE rY;
+        VALUE rZ;
+        VALUE rOX;
+        VALUE rOY;
+		VALUE rRect;
+		VALUE rWidth;
+		VALUE rHeight;
+		VALUE rCursorRect;
+		VALUE rBackOpacity;
+		VALUE rContentOpacity;
+		VALUE rOpacity;
+		VALUE rWindowBuilder;
+		VALUE rPauseSkin;
+		VALUE rCursorSkin;
+		VALUE rPause;
+		VALUE rPauseX;
+		VALUE rPauseY;
+		VALUE rActive;
+		VALUE rStretch;
 };
-namespace meta {
-    template<>
-    struct Log<CWindow_Element> {
-        static constexpr auto classname = "Window";
-    };
-}
 #endif

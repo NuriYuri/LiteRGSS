@@ -1,7 +1,6 @@
 #ifndef L_SPRITE_HEADER
 #define L_SPRITE_HEADER
 #include "Graphics.h"
-#include "utils/rbAdapter.h"
 
 VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Sprite_Copy(VALUE self);
@@ -42,8 +41,6 @@ VALUE rb_Sprite_setMirror(VALUE self, VALUE val);
 VALUE rb_Sprite_width(VALUE self);
 VALUE rb_Sprite_height(VALUE self);
 
-namespace rb {
-    template<>
-    void Mark<CSprite_Element>(CSprite_Element* sprite);
-}
+CSprite_Element* rb_Sprite_get_sprite(VALUE self);
+void rb_Sprite_test_sprite(VALUE self);
 #endif

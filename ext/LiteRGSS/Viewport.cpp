@@ -5,8 +5,33 @@
 
 VALUE rb_cViewport = Qnil;
 
-template<>
-void rb::Mark<CViewport_Element>(CViewport_Element* viewport)
+#define VIEWPORT_PROTECT if(RDATA(self)->data == nullptr) \
+{\
+    rb_raise(rb_eRGSSError, "Disposed Viewport."); \
+    return self; \
+}
+
+#define GET_VIEWPORT CViewport_Element* viewport; \
+    Data_Get_Struct(self, CViewport_Element, viewport); \
+    VIEWPORT_PROTECT
+
+void rb_Viewport_Free(void* data)
+{
+    CViewport_Element* viewport = reinterpret_cast<CViewport_Element*>(data);
+    if(viewport != nullptr)
+    {
+        viewport->setOriginStack(nullptr);
+        CRect_Element* rect = viewport->getLinkedRect();
+        if(rect != nullptr)
+            rect->setElement(nullptr);
+        CTone_Element* tone = viewport->getLinkedTone();
+        if(tone != nullptr)
+            tone->setElement(nullptr);
+        delete viewport;
+    }
+}
+
+void rb_Viewport_Mark(CViewport_Element* viewport)
 {
     if(viewport == nullptr)
         return;
@@ -19,11 +44,21 @@ void rb::Mark<CViewport_Element>(CViewport_Element* viewport)
 	rb_gc_mark(viewport->rRenderState);
 }
 
+VALUE rb_Viewport_Alloc(VALUE klass)
+{
+    CViewport_Element* viewport = new CViewport_Element();
+    viewport->setLinkedRect(nullptr);
+    viewport->setLinkedTone(nullptr);
+	viewport->setVisible(true);
+    viewport->rZ = LONG2FIX(0);
+    return Data_Wrap_Struct(klass, rb_Viewport_Mark, rb_Viewport_Free, viewport);
+}
+
 void Init_Viewport()
 {
     rb_cViewport = rb_define_class_under(rb_mLiteRGSS, "Viewport", rb_cObject);
 
-    rb_define_alloc_func(rb_cViewport, rb::Alloc<CViewport_Element>);
+    rb_define_alloc_func(rb_cViewport, rb_Viewport_Alloc);
 
     rb_define_method(rb_cViewport, "initialize", _rbf rb_Viewport_Initialize, -1);
     rb_define_method(rb_cViewport, "ox", _rbf rb_Viewport_getOX, 0);
@@ -85,26 +120,27 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     /* Sprite table creation */
     rb_ivar_set(self, rb_iElementTable, rb_ary_new());
     /* Viewport setting */
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    global_Graphics_Bind(&viewport);
-    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+    GET_VIEWPORT
+    VALUE table;
+    global_Graphics_Bind(viewport);
+    table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_push(table, self);
-    viewport.setOx(0);
-    viewport.setOy(0);
-	viewport.rAngle = LONG2FIX(0);
-	viewport.rZoom = LONG2FIX(1);
+    viewport->setOx(0);
+    viewport->setOy(0);
+	viewport->rAngle = LONG2FIX(0);
+	viewport->rZoom = LONG2FIX(1);
     Viewport_SetView(viewport, rb_num2long(x), rb_num2long(y), rb_num2long(width), rb_num2long(height));
     /* Creating rect */
     VALUE rc = rb_class_new_instance(argc, argv, rb_cRect);
     /* Fetching data */
     CRect_Element* rect;
     Data_Get_Struct(rc, CRect_Element, rect);
-    rect->setElement(&viewport);
-    viewport.setLinkedRect(rect);
-    viewport.rRect = rc;
-    viewport.rTone = Qnil;
-    viewport.rColor = Qnil;
-    viewport.clearStack();
+    rect->setElement(viewport);
+    viewport->setLinkedRect(rect);
+    viewport->rRect = rc;
+    viewport->rTone = Qnil;
+    viewport->rColor = Qnil;
+    viewport->clearStack();
     return self;
 }
 
@@ -129,13 +165,13 @@ void __Viewport_Dispose_AllSprite(VALUE table)
 
 VALUE rb_Viewport_Dispose(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
+    GET_VIEWPORT
+    RDATA(self)->data = nullptr;
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_delete(table, self);
-    viewport.clearStack();
+    viewport->clearStack();
     __Viewport_Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-    delete &viewport;
-    RDATA(self)->data = nullptr;
+    rb_Viewport_Free(reinterpret_cast<void*>(viewport));
     return self;
 }
 
@@ -145,50 +181,50 @@ VALUE rb_Viewport_Disposed(VALUE self)
     return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
 }
 
-void Viewport_AdjustOXY(CViewport_Element& viewport, VALUE rect)
+void Viewport_AdjustOXY(CViewport_Element* viewport, VALUE rect)
 {
     if(RDATA(rect)->data == nullptr)
         return;
     CRect_Element* srect;
     Data_Get_Struct(rect, CRect_Element, srect);
-    sf::IntRect& rc = srect->getRect();
-    sf::View& view = viewport.getView();
-    view.setCenter(std::roundf(static_cast<float>(viewport.getOx()) + static_cast<float>(rc.width) / 2.0f),
-                    std::roundf(static_cast<float>(viewport.getOy()) + static_cast<float>(rc.height) / 2.0f));
+    sf::IntRect* rc = srect->getRect();
+    sf::View* view = viewport->getView();
+    view->setCenter(std::roundf(static_cast<float>(viewport->getOx()) + static_cast<float>(rc->width) / 2.0f),
+                    std::roundf(static_cast<float>(viewport->getOy()) + static_cast<float>(rc->height) / 2.0f));
 }
 
 VALUE rb_Viewport_getOX(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    return rb_int2inum(viewport.getOx());
+    GET_VIEWPORT
+    return rb_int2inum(viewport->getOx());
 }
 
 VALUE rb_Viewport_setOX(VALUE self, VALUE val)
 {
-	auto& viewport = rb::Get<CViewport_Element>(self);
-    viewport.setOx(rb_num2long(val));
-    Viewport_AdjustOXY(viewport, viewport.rRect);
+	GET_VIEWPORT
+    viewport->setOx(rb_num2long(val));
+    Viewport_AdjustOXY(viewport, viewport->rRect);
     return val;
 }
 
 VALUE rb_Viewport_getOY(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    return rb_int2inum(viewport.getOy());
+    GET_VIEWPORT
+    return rb_int2inum(viewport->getOy());
 }
 
 VALUE rb_Viewport_setOY(VALUE self, VALUE val)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    viewport.setOy(rb_num2long(val));
-    Viewport_AdjustOXY(viewport, viewport.rRect);
+    GET_VIEWPORT
+    viewport->setOy(rb_num2long(val));
+    Viewport_AdjustOXY(viewport, viewport->rRect);
     return val;
 }
 
 VALUE rb_Viewport_getRect(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    return viewport.rRect;
+    GET_VIEWPORT
+    return viewport->rRect;
 }
 
 VALUE rb_Viewport_setRect(VALUE self, VALUE val)
@@ -209,30 +245,30 @@ VALUE rb_Viewport_setRect(VALUE self, VALUE val)
     CRect_Element* rect2;
     Data_Get_Struct(rc, CRect_Element, rect2);
     /* Copying the rect */
-    sf::IntRect& rect_target = rect2->getRect();
-    rect_copy(&rect_target, &rect1->getRect());
+    sf::IntRect* rect_target = rect2->getRect();
+    rect_copy(rect_target, rect1->getRect());
     /* Updating the viewport view */
-    Viewport_SetView(*viewport, rect_target.left, rect_target.top, rect_target.width, rect_target.height);
+    Viewport_SetView(viewport, rect_target->left, rect_target->top, rect_target->width, rect_target->height);
     return val;
 
 }
 
 VALUE rb_Viewport_getTone(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    VALUE tn = viewport.rTone;
+    GET_VIEWPORT
+    VALUE tn = viewport->rTone;
     if(!NIL_P(tn))
         return tn;
     /* New tone */
     VALUE argv[4] = {LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0)};
-    viewport.rColor = rb_class_new_instance(4, argv, rb_cColor);
+    viewport->rColor = rb_class_new_instance(4, argv, rb_cColor);
     tn = rb_class_new_instance(4, argv, rb_cTone);
     CTone_Element* tone;
     Data_Get_Struct(tn, CTone_Element, tone);
-    tone->setElement(&viewport);
-    viewport.setLinkedTone(tone);
-    viewport.rTone = tn;
-    viewport.create_render();
+    tone->setElement(viewport);
+    viewport->setLinkedTone(tone);
+    viewport->rTone = tn;
+    viewport->create_render();
     return tn;
 }
 
@@ -246,18 +282,18 @@ VALUE rb_Viewport_setTone(VALUE self, VALUE val)
         return Qnil;
     }
     if(RDATA(val)->data == nullptr) { return Qnil; }
-    auto& viewport = rb::Get<CViewport_Element>(self);
+    GET_VIEWPORT
     CTone_Element* tonesrc;
     Data_Get_Struct(val, CTone_Element, tonesrc);
     CTone_Element* tonedest;
     Data_Get_Struct(tn, CTone_Element, tonedest);
 	sf::Glsl::Vec4* stone = tonesrc->getTone();
-	sf::Glsl::Vec4* vtone = viewport.getTone();
+	sf::Glsl::Vec4* vtone = viewport->getTone();
 	if (vtone->x != stone->x || vtone->y != stone->y || vtone->z != stone->z || vtone->w != vtone->w)
 	{
 		tone_copy(tonedest->getTone(), stone);
 		tone_copy(vtone, stone);
-		viewport.updatetone();
+		viewport->updatetone();
 	}
     return val;
 }
@@ -265,155 +301,156 @@ VALUE rb_Viewport_setTone(VALUE self, VALUE val)
 VALUE rb_Viewport_getColor(VALUE self)
 {
     VALUE tn = rb_Viewport_getTone(self);
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    return viewport.rColor;
+    GET_VIEWPORT
+    return viewport->rColor;
 }
 
 VALUE rb_Viewport_setColor(VALUE self, VALUE val)
 {
     VALUE tn = rb_Viewport_getTone(self);
-    auto& viewport = rb::Get<CViewport_Element>(self);
+    GET_VIEWPORT
     if(rb_obj_is_kind_of(val, rb_cColor) != Qtrue)
     {
         rb_raise(rb_eTypeError, "Expected Color, got %s", RSTRING_PTR(rb_class_name(CLASS_OF(val))));
         return Qnil;
     }
-    viewport.rColor = val;
+    viewport->rColor = val;
     return self;
 }
 
 VALUE rb_Viewport_getVisible(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    return (viewport.getVisible() ? Qtrue : Qfalse);
+    GET_VIEWPORT
+    return (viewport->getVisible() ? Qtrue : Qfalse);
 }
 
 VALUE rb_Viewport_setVisible(VALUE self, VALUE val)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    viewport.setVisible(RTEST(val));
+    GET_VIEWPORT
+    viewport->setVisible(RTEST(val));
     return self;
 }
 
 VALUE rb_Viewport_Update(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
+    GET_VIEWPORT
     return self;
 }
 
 VALUE rb_Viewport_getZ(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    return viewport.rZ;
+    GET_VIEWPORT
+    return viewport->rZ;
 }
 
 VALUE rb_Viewport_setZ(VALUE self, VALUE val)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
+    GET_VIEWPORT
     rb_num2long(val);
-    viewport.rZ = val;
+    viewport->rZ = val;
     return self;
 }
 
-void Viewport_AdjustZoomAngle(CViewport_Element& viewport, VALUE rect)
+void Viewport_AdjustZoomAngle(CViewport_Element* viewport, VALUE rect)
 {
 	if (RDATA(rect)->data == nullptr)
 		return;
 	long x, y, width, height;
 	CRect_Element* srect;
 	Data_Get_Struct(rect, CRect_Element, srect);
-	sf::IntRect& rc = srect->getRect();
-	auto& view = viewport.getView();
-	x = rc.left;
-	y = rc.top;
-	width = rc.width;
-	height = rc.height;
+	sf::IntRect* rc = srect->getRect();
+	sf::View* view = viewport->getView();
+	x = rc->left;
+	y = rc->top;
+	width = rc->width;
+	height = rc->height;
 	if (width & 1)
 		width++;
 	if (height & 1)
 		height++;
-	view.setCenter(static_cast<float>(viewport.getOx() + width / 2),
-		static_cast<float>(viewport.getOy() + height / 2));
-	view.setSize(static_cast<float>(width), static_cast<float>(height));
-	view.setRotation(-NUM2DBL(viewport.rAngle));
-	view.zoom(NUM2DBL(viewport.rZoom));
+	view->setCenter(static_cast<float>(viewport->getOx() + width / 2),
+		static_cast<float>(viewport->getOy() + height / 2));
+	view->setSize(static_cast<float>(width), static_cast<float>(height));
+	view->setRotation(-NUM2DBL(viewport->rAngle));
+	view->zoom(NUM2DBL(viewport->rZoom));
 	float sw = static_cast<float>(ScreenWidth);
 	float sh = static_cast<float>(ScreenHeight);
 	sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
-	view.setViewport(frect);
+	view->setViewport(frect);
 }
 
 VALUE rb_Viewport_getAngle(VALUE self)
 {
-	auto& viewport = rb::Get<CViewport_Element>(self);
-	return viewport.rAngle;
+	GET_VIEWPORT;
+	return viewport->rAngle;
 }
 
 VALUE rb_Viewport_setAngle(VALUE self, VALUE val)
 {
-	auto& viewport = rb::Get<CViewport_Element>(self);
-	viewport.rAngle = LONG2NUM(NUM2LONG(val) % 360);
-	Viewport_AdjustZoomAngle(viewport, viewport.rRect);
+	GET_VIEWPORT;
+	viewport->rAngle = LONG2NUM(NUM2LONG(val) % 360);
+	Viewport_AdjustZoomAngle(viewport, viewport->rRect);
 	return self;
 }
 
 VALUE rb_Viewport_getZoom(VALUE self)
 {
-	auto& viewport = rb::Get<CViewport_Element>(self);
-	return viewport.rZoom;
+	GET_VIEWPORT;
+	return viewport->rZoom;
 }
 
 VALUE rb_Viewport_setZoom(VALUE self, VALUE val)
 {
-	auto& viewport = rb::Get<CViewport_Element>(self);
-	viewport.rZoom = DBL2NUM(1.0 / normalize_double(NUM2DBL(val), 0.001, 1000.0));
-	Viewport_AdjustZoomAngle(viewport, viewport.rRect);
+	GET_VIEWPORT;
+	viewport->rZoom = DBL2NUM(1.0 / normalize_double(NUM2DBL(val), 0.001, 1000.0));
+	Viewport_AdjustZoomAngle(viewport, viewport->rRect);
 	return self;
 }
 
 VALUE rb_Viewport_getRenderState(VALUE self)
 {
-	auto& viewport = rb::Get<CViewport_Element>(self);
-	return viewport.rRenderState;
+	GET_VIEWPORT;
+	return viewport->rRenderState;
 }
 
 VALUE rb_Viewport_setRenderState(VALUE self, VALUE val)
 {
 	sf::RenderStates* render_state;
-	auto& viewport = rb::Get<CViewport_Element>(self);
+	GET_VIEWPORT;
 	if (rb_obj_is_kind_of(val, rb_cBlendMode) == Qtrue)
 	{
 		Data_Get_Struct(val, sf::RenderStates, render_state);
 		if (render_state)
 		{
-			viewport.setRenderStates(std::unique_ptr<sf::RenderStates>(render_state));
-			viewport.rRenderState = val;
-			viewport.create_render(); // Make sure the global render is initialized
-			viewport.updatetone();
+			viewport->setRenderStates(render_state);
+			viewport->rRenderState = val;
+			viewport->create_render(); // Make sure the global render is initialized
+			viewport->updatetone();
 			return self;
 		}
 	}
-	viewport.setRenderStates(nullptr);
-	if (viewport.rColor != Qnil && viewport.rTone != Qnil)
+	viewport->setRenderStates(nullptr);
+	if (viewport->rColor != Qnil && viewport->rTone != Qnil)
 	{
-		viewport.rRenderState = Qnil;
-		viewport.create_render(); // Restore the old render
-		viewport.updatetone();
+		viewport->rRenderState = Qnil;
+		viewport->create_render(); // Restore the old render
+		viewport->updatetone();
 	}
 	else
-		viewport.rRenderState = Qfalse; // False to prevent intempestive delete
+		viewport->rRenderState = Qfalse; // False to prevent intempestive delete
 	return self;
 }
 
 VALUE rb_Viewport_ReloadStack(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
+    GET_VIEWPORT
     VALUE table = rb_ivar_get(self, rb_iElementTable);
     rb_check_type(table, T_ARRAY);
-    for(auto& drawables : viewport.getStack()) {
-        drawables->overrideOrigineStack(nullptr);
+    for(auto it = viewport->getStack()->begin(); it != viewport->getStack()->end(); it++)
+    {
+        (*it)->overrideOrigineStack(nullptr);
     }
-    viewport.clearStack();
+    viewport->clearStack();
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
     for(long i = 0; i < sz; i++)
@@ -425,7 +462,7 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
         {
             if(RDATA(ori[i])->data != nullptr)
             {
-                viewport.bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
+                viewport->bind(reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
             }
         }
     }
@@ -434,26 +471,26 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
 
 VALUE rb_Viewport_Index(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    return rb_uint2inum(viewport.getIndex());
+    GET_VIEWPORT
+    return rb_uint2inum(viewport->getIndex());
 }
 
-void Viewport_SetView(CViewport_Element& viewport, long x, long y, long width, long height)
+void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, long height)
 {
-    auto& view = viewport.getView();
+    sf::View* view = viewport->getView();
     /* Adjustment for text */
     if(width & 1)
         width++;
     if(height & 1)
         height++;
-    view.setCenter(static_cast<float>(viewport.getOx() + width / 2), 
-                    static_cast<float>(viewport.getOy() + height / 2));
-    view.setSize(static_cast<float>(width), static_cast<float>(height));
-	view.setRotation(-NUM2DBL(viewport.rAngle));
-	view.zoom(NUM2DBL(viewport.rZoom));
+    view->setCenter(static_cast<float>(viewport->getOx() + width / 2), 
+                    static_cast<float>(viewport->getOy() + height / 2));
+    view->setSize(static_cast<float>(width), static_cast<float>(height));
+	view->setRotation(-NUM2DBL(viewport->rAngle));
+	view->zoom(NUM2DBL(viewport->rZoom));
     float sw = static_cast<float>(ScreenWidth);
     float sh = static_cast<float>(ScreenHeight);
     sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
-    view.setViewport(frect);
-    // viewport.reset_render();
+    view->setViewport(frect);
+    // viewport->reset_render();
 }
