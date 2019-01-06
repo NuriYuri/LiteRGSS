@@ -17,7 +17,7 @@ void* local_Graphics_Update_Internal(void* data)
     {
         /* Draw Processing */
         game_window->clear();
-        local_Graphics_Update_Draw((std::vector<CDrawable_Element*>*)data);
+        local_Graphics_Update_Draw(*reinterpret_cast<std::vector<CDrawable_Element*>*>(data));
         game_window->display();
     }
     else
@@ -123,7 +123,7 @@ VALUE local_Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message
     return self;
 }
 
-void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
+void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>& stack)
 {
     bool was_viewport = false;
     sf::View defview = game_window->getDefaultView();
@@ -140,18 +140,21 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 		render_target = Graphics_Render.get();
 	}
 	// Rendering stuff
-    for(auto element = stack->begin();element != stack->end(); element++)
+    for(auto& element : stack)
     {
-        if(was_viewport && !(*element)->isViewport())
+        if(was_viewport && !element->isViewport())
 			render_target->setView(defview);
-        was_viewport = (*element)->isViewport();
-        (*element)->draw(*render_target);
+        was_viewport = element->isViewport();
+        element->draw(*render_target);
     }
 	// Drawing render to window if finished
 	if (Graphics_Render)
 	{
 		Graphics_Render->display();
 		sf::Sprite sp(Graphics_Render->getTexture());
+        if(Graphics_States == nullptr) {
+            throw std::runtime_error("Internal error : Graphics_States is null");
+        }
 		game_window->draw(sp, *Graphics_States);
 	}
 	// Display transition sprite

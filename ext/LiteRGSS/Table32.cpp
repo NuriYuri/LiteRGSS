@@ -193,7 +193,7 @@ VALUE rb_Table32_Load(VALUE self, VALUE str)
     table->header.dim = normalize_long(table->header.dim, 1, 3);
     VALUE rtable = rb_class_new_instance(table->header.dim, arr, self);
     Data_Get_Struct(rtable, rb_Table32_Struct, table);
-    memcpy(table->heap, RSTRING_PTR(str) + sizeof(rb_Table32_Struct_Header), table->header.data_size * sizeof(long));
+    memcpy(table->heap, RSTRING_PTR(str) + sizeof(rb_Table32_Struct_Header), table->header.data_size * sizeof(std::remove_pointer<decltype(table->heap)>::type));
     return rtable;
 }
 
@@ -201,7 +201,7 @@ VALUE rb_Table32_Save(VALUE self, VALUE limit)
 {
     auto& table = rb::Get<rb_Table32_Struct>(self);
     VALUE str1 = rb_str_new(reinterpret_cast<char*>(&table.header), sizeof(rb_Table32_Struct_Header));
-    VALUE str2 = rb_str_new(reinterpret_cast<char*>(table.heap), table.header.data_size * sizeof(long));
+    VALUE str2 = rb_str_new(reinterpret_cast<char*>(table.heap), table.header.data_size * sizeof(std::remove_pointer<decltype(table.heap)>::type));
     return rb_str_concat(str1, str2);
 }
 

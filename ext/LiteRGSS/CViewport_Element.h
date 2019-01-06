@@ -15,8 +15,10 @@ class CViewport_Element : public CDrawable_Element {
         CTone_Element* linkedTone = nullptr;
 	std::unique_ptr<sf::Color> color_copy;
         bool visible = true;
-	std::unique_ptr<sf::RenderStates> render_states;
-        std::unique_ptr<sf::Shader> render_states_shader;
+        sf::RenderStates* render_states = nullptr;
+        mutable sf::Shader* render_states_shader = nullptr;
+	std::unique_ptr<sf::RenderStates> default_render_states;
+        mutable std::unique_ptr<sf::Shader> default_render_states_shader;
     public:
 	CViewport_Element() = default;
         virtual ~CViewport_Element();
@@ -26,7 +28,7 @@ class CViewport_Element : public CDrawable_Element {
 	bool isPureSprite() const override;
 	bool isShape() const override;
         sf::View& getView() {return view;};
-	void setRenderStates(std::unique_ptr<sf::RenderStates> states);
+	void setRenderStates(sf::RenderStates* states);
         long getOx() {return ox;};
         long getOy() {return oy;};
         void setOx(long nox) {ox = nox;};
@@ -55,6 +57,8 @@ class CViewport_Element : public CDrawable_Element {
 	static std::unique_ptr<sf::Sprite> render_sprite;
 private:
 	sf::Color* check_up_color() const;
+        sf::RenderStates* getRenderState();
+        sf::Shader* getRenderStateShader() const;
 };
 namespace meta {
     template<>

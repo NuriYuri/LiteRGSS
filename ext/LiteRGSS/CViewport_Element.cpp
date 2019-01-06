@@ -1,3 +1,4 @@
+#include <cassert>
 #include "LiteRGSS.h"
 #include "CViewport_Element.h"
 #include "CRect_Element.h"
@@ -23,7 +24,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 		return;
     if(render_states)
     {
-		sf::Color* col;
+		const sf::Color* col;
 		CRect_Element* rect = getLinkedRect();
         // Loading Window View
        /* sf::View wview = view;
@@ -40,7 +41,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 		if (render_states->shader)
 			col = check_up_color();
 		else
-			col = const_cast<sf::Color*>(&sf::Color::Transparent);
+			col = &sf::Color::Transparent;
         render->clear(*col);
         // Drawing sprites
         for(auto sp = stack.begin();sp != stack.end();sp++)
@@ -88,9 +89,24 @@ bool CViewport_Element::isShape() const
 	return false;
 }
 
-void CViewport_Element::setRenderStates(std::unique_ptr<sf::RenderStates> states)
+void CViewport_Element::setRenderStates(sf::RenderStates* states)
 {
-	render_states = std::move(states);
+	render_states = states;
+	render_states_shader = const_cast<sf::Shader*>(states->shader);
+}
+
+sf::RenderStates* CViewport_Element::getRenderState() {
+	if(render_states == nullptr) {
+		return default_render_states.get();
+	} 
+	return render_states;
+}
+
+sf::Shader* CViewport_Element::getRenderStateShader() const {
+	if(render_states_shader == nullptr) {
+		return default_render_states_shader.get();
+	} 
+	return render_states_shader;
 }
 
 void CViewport_Element::bind(CDrawable_Element& sprite)
@@ -111,8 +127,8 @@ sf::Glsl::Vec4* CViewport_Element::getTone()
 
 void CViewport_Element::updatetone()
 {
-	if(render_states && render_states->shader)
-		const_cast<sf::Shader*>(render_states->shader)->setUniform("tone", tone);
+	if(getRenderStateShader())
+		getRenderStateShader()->setUniform("tone", tone);
 }
 
 void CViewport_Element::setLinkedTone(CTone_Element * _tone)
@@ -131,7 +147,7 @@ sf::Color* CViewport_Element::check_up_color() const
 	if (*col != *color_copy)
 	{
 		sf::Glsl::Vec4 color(col->r / 255.0f, col->g / 255.0f, col->b / 255.0f, col->a / 255.0f);
-		const_cast<sf::Shader*>(render_states->shader)->setUniform("color", color);
+		getRenderStateShader()->setUniform("color", color);
 		color_copy->r = col->r;
 		color_copy->g = col->g;
 		color_copy->b = col->b;
@@ -182,19 +198,19 @@ void CViewport_Element::create_render()
 		render_sprite = std::make_unique<sf::Sprite>();
 	}
 	// Return if the render texture (internal_texture) is already created
-    if(render_states != nullptr)
+    if(default_render_states != nullptr)
         return;
 	// Creation of the render states
-	render_states_shader = std::make_unique<sf::Shader>();
+	default_render_states_shader = std::make_unique<sf::Shader>();
 	// Shader initialialization
-	sf::Shader& shader = *render_states_shader;
+	sf::Shader& shader = *default_render_states_shader;
 	if (shader.loadFromMemory(ViewportGlobalFragmentShader, sf::Shader::Fragment))
 	{
 		shader.setUniform("texture", sf::Shader::CurrentTexture);
 		shader.setUniform("tone", __Viewport_reset_tone);
 		shader.setUniform("color", __Viewport_reset_tone);
 	}
-	render_states = std::make_unique<sf::RenderStates>(render_states_shader.get());
+	default_render_states = std::make_unique<sf::RenderStates>(default_render_states_shader.get());
 	color_copy = std::make_unique<sf::Color>(0, 0, 0, 0);
 }
 

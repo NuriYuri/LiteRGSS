@@ -192,7 +192,7 @@ VALUE rb_Graphics_update(VALUE self)
     InsideGraphicsUpdate = true;
     /* Graphics.update real process */
     GraphicUpdateMessage* message = 
-        reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, (void*)&Graphics_stack, NULL, NULL));
+        reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, static_cast<void*>(&Graphics_stack), NULL, NULL));
     /* Message Processing */
     local_Graphics_Update_Process_Event(message);
     if(message != nullptr)
@@ -212,7 +212,7 @@ VALUE rb_Graphics_update_no_input_count(VALUE self)
 	InsideGraphicsUpdate = true;
 	/* Graphics.update real process */
 	GraphicUpdateMessage* message =
-		reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, (void*)&Graphics_stack, NULL, NULL));
+		reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, static_cast<void*>(&Graphics_stack), NULL, NULL));
 	if (message != nullptr)
 		return local_Graphics_Update_RaiseError(self, message);
 	/* End of Graphics.update process */
