@@ -4,28 +4,10 @@
 #include "CRect_Element.h"
 #include "Graphics.local.h"
 #include "CTone_Element.h"
+#include "CWindow_Element.h"
 
 std::unique_ptr<sf::RenderTexture> CViewport_Element::render = nullptr;
 std::unique_ptr<sf::Sprite> CViewport_Element::render_sprite = nullptr;
-
-void __Viewport_Dispose_AllSprite(VALUE table)
-{
-    rb_check_type(table, T_ARRAY);
-    long sz = RARRAY_LEN(table);
-    VALUE* ori = RARRAY_PTR(table);
-    for(long i = 0; i < sz; i++)
-    {
-        if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
-            rb_Sprite_DisposeFromViewport(ori[i]);
-		else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
-			rb_Text_DisposeFromViewport(ori[i]);
-		else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue)
-			rb_Shape_DisposeFromViewport(ori[i]);
-		else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
-			rb_Window_DisposeFromViewport(ori[i]);
-    }
-    rb_ary_clear(table);
-}
 
 CViewport_Element::~CViewport_Element() 
 {
@@ -38,8 +20,8 @@ CViewport_Element::~CViewport_Element()
 	
 	/*VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_delete(table, self);*/
-	__Viewport_Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
 	clearStack();
+	__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
 	std::cout << "!!!Ending Viewport destructor" << std::endl;
 }
 

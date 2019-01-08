@@ -78,6 +78,9 @@ class CWindow_Element : public CDrawable_Element {
 		VALUE rActive = Qnil;
 		VALUE rStretch = Qnil;
 };
+
+void __Dispose_AllSprite(VALUE table);
+
 namespace meta {
     template<>
     struct Log<CWindow_Element> {
