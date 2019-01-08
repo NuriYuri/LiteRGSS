@@ -41,6 +41,13 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)
 
 CDrawable_Element::~CDrawable_Element() {
     RDATA(self)->data = nullptr;
+    
+    CRect_Element* rect = getLinkedRect();
+    if(rect != nullptr) {
+        rect->setElement(nullptr);
+    }
+    setLinkedRect(nullptr);
+
     if(disposeFromViewport_) {
         return;
     }
@@ -54,10 +61,6 @@ CDrawable_Element::~CDrawable_Element() {
     }
 
     resetOriginStack();
-    CRect_Element* rect = getLinkedRect();
-    if(rect != nullptr) {
-        rect->setElement(nullptr);
-    }
 
     /* Suppression du drawable de ses stacks */
     if(rb_ary_delete(table, self) == Qnil && !(cppStackSize == 0 && sz == 0)) {
