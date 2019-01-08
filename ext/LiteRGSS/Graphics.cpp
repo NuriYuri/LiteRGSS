@@ -258,7 +258,7 @@ VALUE rb_Graphics_ReloadStack(VALUE self)
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_check_type(table, T_ARRAY);
     for(auto& graphic : Graphics_stack) {
-        graphic->overrideOrigineStack(nullptr);
+        graphic->overrideOrigineStack();
     }
     Graphics_stack.clear();
     long sz = RARRAY_LEN(table);

@@ -5,6 +5,7 @@
 extern ID rb_iElementTable;
 extern VALUE rb_mGraphics;
 extern std::vector<CDrawable_Element*> Graphics_stack;
+
 void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o) 
 {
     /* Removing from the old stack */
@@ -12,19 +13,12 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)
     {
         auto it = std::find(origin_stack->begin(), origin_stack->end(), this);
         if(it != origin_stack->end()) {
-            std::cout << "Drawable removed from graphic stack" << std::endl;
+            std::cout << "|C Drawable removed from " << (origin_stack == &Graphics_stack ? "GLOBAL " : "") << "graphic stack" << std::endl;
             origin_stack->erase(it);
         } else {
-            std::cout << "Drawable NOT FOUND in graphic stack" << std::endl;
+            std::cout << "|C NOT FOUND in "<< (origin_stack == &Graphics_stack ? "GLOBAL " : "") << "graphic stack" << std::endl;
         }
     }
-
-    auto it = std::find(Graphics_stack.begin(), Graphics_stack.end(), this);
-    if(it != Graphics_stack.end()) {
-        std::cout << "Drawable removed from global graphic stack" << std::endl;
-        Graphics_stack.erase(it);
-    }    
-
     origin_stack = o;
     if(o != nullptr)
     {
@@ -38,6 +32,10 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)
 CDrawable_Element::~CDrawable_Element() {
     std::cout << "Entering Drawable destructor for " << self << std::endl;
    
+    if(origin_stack != nullptr) {
+        std::cout << "|C stack = " << origin_stack->size() << std::endl;
+    }
+
     setOriginStack(nullptr);
     CRect_Element* rect = getLinkedRect();
     if(rect != nullptr) {
@@ -45,27 +43,17 @@ CDrawable_Element::~CDrawable_Element() {
     }
 
     /* Suppression du drawable de ses stacks */
-	VALUE viewport = rViewport;
-	VALUE table;
-	if (NIL_P(viewport)) {
-		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-        //std::cout << "Table element No Viewport :" << table << std::endl;
+	VALUE table = rb_ivar_get(NIL_P(rViewport) ? rb_mGraphics : rViewport, rb_iElementTable);
+    if(rb_ary_delete(table, self) != Qnil) {
+        std::cout << "|Ruby Deleted." << std::endl;
     } else {
-		table = rb_ivar_get(viewport, rb_iElementTable);
-        //std::cout << "Table element Viewport :" << table << std::endl;
+        std::cout << "|Ruby NOT FOUND" << std::endl;
     }
-    if(rb_ary_includes(table, self) == Qtrue) {
-	    rb_ary_delete(table, self);
-        std::cout << "Deleted." << std::endl;
-    } else {
-        std::cout << "NOT FOUND" << std::endl;
-    }
-    RDATA(self)->data = nullptr;
-}
 
-void CDrawable_Element::setIndex(unsigned long nindex)
-{
-    index = nindex;
+    const auto sz = RARRAY_LEN(table);
+    //TODO assert() ?
+    std::cout << "|Ruby stack = " << sz << std::endl;
+    RDATA(self)->data = nullptr;
 }
 
 unsigned long CDrawable_Element::getIndex()

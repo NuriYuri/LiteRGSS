@@ -13,6 +13,7 @@ CViewport_Element::~CViewport_Element()
 {
     if(game_window == nullptr || !game_window->isOpen())
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
+
 	std::cout << "!!!Entering Viewport destructor" << std::endl;
 	CTone_Element* tone = getLinkedTone();
     if(tone != nullptr)
@@ -21,7 +22,6 @@ CViewport_Element::~CViewport_Element()
 	/*VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_delete(table, self);*/
 	clearStack();
-	__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
 	std::cout << "!!!Ending Viewport destructor" << std::endl;
 }
 
@@ -124,7 +124,13 @@ void CViewport_Element::bind(CDrawable_Element& sprite)
 
 void CViewport_Element::clearStack() 
 {
-    stack.clear();
+	for(auto& it : stack) {
+		it->overrideOrigineStack();
+		delete it;
+	}
+	//__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+	stack.clear();
+	
 }
 
 sf::Glsl::Vec4* CViewport_Element::getTone() 

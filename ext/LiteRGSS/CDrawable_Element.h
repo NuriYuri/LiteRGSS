@@ -19,8 +19,7 @@ class CDrawable_Element {
         CDrawable_Element() {};
         virtual ~CDrawable_Element();
         void setOriginStack(std::vector<CDrawable_Element*> *o);
-        void overrideOrigineStack(std::vector<CDrawable_Element*> *o) {origin_stack = o;};
-        void setIndex(unsigned long nindex);
+        void overrideOrigineStack() {origin_stack = nullptr;};
         unsigned long getIndex();
         virtual void draw(sf::RenderTarget& target) const = 0;
         virtual void drawFast(sf::RenderTarget& target) const = 0;

@@ -6,10 +6,14 @@
 
 void __Dispose_AllSprite(VALUE table)
 {
+
 	rb_check_type(table, T_ARRAY);
-	long sz = RARRAY_LEN(table);
+	const auto sz = RARRAY_LEN(table);
 	VALUE* ori = RARRAY_PTR(table);
-	for (long i = 0; i < sz; i++)
+
+	std::cout << sz << std::endl;
+
+	for (std::size_t i = 0u; i < sz; i++)
 	{
 		if(RDATA(ori[i])->data != nullptr) {
 			if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
@@ -28,6 +32,7 @@ void __Dispose_AllSprite(VALUE table)
 		}
 	}
 	rb_ary_clear(table);
+	std::cout << RARRAY_LEN(table) << std::endl;
 }
 
 CWindow_Element::CWindow_Element()
@@ -42,7 +47,6 @@ CWindow_Element::CWindow_Element()
 CWindow_Element::~CWindow_Element() {
 	std::cout << "!!!Entering Window destructor" << std::endl;
 	clearStack();
-	__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
 	std::cout << "!!!Ending Window destructor" << std::endl;
 }
 
@@ -690,5 +694,10 @@ void CWindow_Element::bind(CDrawable_Element* sprite)
 
 void CWindow_Element::clearStack()
 {
+	for(auto& it : stack) {
+		it->overrideOrigineStack();
+		delete it;
+	}
+	//__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
 	stack.clear();
 }

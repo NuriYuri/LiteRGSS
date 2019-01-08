@@ -353,32 +353,12 @@ VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE
 
 void local_Graphics_Clear_Stack()
 {
-    std::cout << " Graphics clearing stack..." << std::endl;
-    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    long sz = RARRAY_LEN(table);
-    VALUE* ori = RARRAY_PTR(table);
-    /* Disposing each Sprite/Viewport/Text */
-    /*for(long i = 0; i < sz; i++) {
-        std::cout << "Clearing " << i << " : ";
-        if(RDATA(ori[i])->data != nullptr) {
-            if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue) {
-                std::cout << "Viewport" << std::endl;
-                rb_Viewport_Dispose(ori[i]);
-            } else if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
-                std::cout << "Sprite" << std::endl;
-                rb_Sprite_DisposeFromViewport(ori[i]);
-            } else if(rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue) {
-                std::cout << "Text" << std::endl;
-                rb_Text_DisposeFromViewport(ori[i]);
-            }
-        }
-    }
-    rb_ary_clear(table);*/
-
-    std::cout << "Graphics disposing bitmaps..." << std::endl;
+    std::cout << "> Graphics clearing stack..." << std::endl;
+    __Dispose_AllSprite(rb_ivar_get(rb_mGraphics, rb_iElementTable));
+    std::cout << "> Graphics disposing bitmaps..." << std::endl;
     /* Disposing each Bitmap */
     auto objectSpace = rb_const_get(rb_cObject, rb_intern("ObjectSpace"));
     rb_block_call(objectSpace, rb_intern("each_object"), 1, &rb_cBitmap, (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);
-    std::cout << "Graphics disposing end." << std::endl;
+    std::cout << "< Graphics disposing end." << std::endl;
     rb_gc_start();
 }

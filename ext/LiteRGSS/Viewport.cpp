@@ -386,7 +386,7 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
     VALUE table = rb_ivar_get(self, rb_iElementTable);
     rb_check_type(table, T_ARRAY);
     for(auto& drawables : viewport.getStack()) {
-        drawables->overrideOrigineStack(nullptr);
+        drawables->overrideOrigineStack();
     }
     viewport.clearStack();
     long sz = RARRAY_LEN(table);
