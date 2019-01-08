@@ -11,6 +11,9 @@ class CRect_Element;
 class CTone_Element;
 
 class CDrawable_Element {
+    private:
+        void resetOriginStack();
+        void setOriginStack(std::vector<CDrawable_Element*> *o);
     protected:
         std::vector<CDrawable_Element*> *origin_stack = nullptr;
         CRect_Element* linkedRect = nullptr;
@@ -18,7 +21,7 @@ class CDrawable_Element {
     public:
         CDrawable_Element() {};
         virtual ~CDrawable_Element();
-        void setOriginStack(std::vector<CDrawable_Element*> *o);
+        void setOriginStack(std::vector<CDrawable_Element*>& o);
         void overrideOrigineStack() {origin_stack = nullptr;};
         unsigned long getIndex();
         virtual void draw(sf::RenderTarget& target) const = 0;

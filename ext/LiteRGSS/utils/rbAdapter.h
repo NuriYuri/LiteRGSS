@@ -13,19 +13,19 @@ namespace rb {
             auto errorMessage = std::string { "Disposed "}; 
             errorMessage += meta::Log<T>::classname;
             errorMessage += ".";
-            rb_raise(rb_eRGSSError, "%s", errorMessage.c_str());
+            //rb_raise(rb_eRGSSError, "%s", errorMessage.c_str());
             throw std::runtime_error(errorMessage);
         }
     }
 
     template <class T>
     auto* GetPtr(VALUE self) {
-        Protect<T>(self);
         return reinterpret_cast<T*>(rb_data_object_get(self));
     }
 
     template <class T>
     auto& Get(VALUE self) {
+        Protect<T>(self);
         return *GetPtr<T>(self);
     }
 

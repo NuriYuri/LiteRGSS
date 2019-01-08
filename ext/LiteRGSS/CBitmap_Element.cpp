@@ -13,5 +13,5 @@ sf::Image& CBitmap_Element::getImage() {
 }
 
 CBitmap_Element::~CBitmap_Element() {
-    std::cout << "Entering Bitmap destructor" << std::endl;
+    //std::cout << "Entering Bitmap destructor" << std::endl;
 }

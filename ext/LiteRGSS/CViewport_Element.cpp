@@ -11,18 +11,17 @@ std::unique_ptr<sf::Sprite> CViewport_Element::render_sprite = nullptr;
 
 CViewport_Element::~CViewport_Element() 
 {
-    if(game_window == nullptr || !game_window->isOpen())
+    if(game_window == nullptr || !game_window->isOpen()) {
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
+	}
 
-	std::cout << "!!!Entering Viewport destructor" << std::endl;
+	std::cout << "Entering Viewport destructor" << std::endl;
 	CTone_Element* tone = getLinkedTone();
     if(tone != nullptr)
         tone->setElement(nullptr);
 	
-	/*VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    rb_ary_delete(table, self);*/
 	clearStack();
-	std::cout << "!!!Ending Viewport destructor" << std::endl;
+	std::cout << "Ending Viewport destructor, stack cleared" << std::endl;
 }
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
@@ -119,16 +118,18 @@ sf::Shader* CViewport_Element::getRenderStateShader() const {
 void CViewport_Element::bind(CDrawable_Element& sprite)
 {
     //stack.push_back(sprite);
-    sprite.setOriginStack(&stack);
+    sprite.setOriginStack(stack);
 }
 
 void CViewport_Element::clearStack() 
 {
 	for(auto& it : stack) {
 		it->overrideOrigineStack();
+	}
+	__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+	for(auto& it : stack) {
 		delete it;
 	}
-	//__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
 	stack.clear();
 	
 }

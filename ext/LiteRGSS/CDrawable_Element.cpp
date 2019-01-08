@@ -5,18 +5,28 @@
 extern ID rb_iElementTable;
 extern VALUE rb_mGraphics;
 extern std::vector<CDrawable_Element*> Graphics_stack;
+extern bool InsideGraphicsUpdate;
+extern VALUE rb_eRGSSError;
+
+void CDrawable_Element::resetOriginStack() {
+    setOriginStack(nullptr);
+}
+
+void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*>& o) {
+    setOriginStack(&o);
+}
 
 void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o) 
 {
+    
     /* Removing from the old stack */
     if(origin_stack != nullptr)
     {
         auto it = std::find(origin_stack->begin(), origin_stack->end(), this);
         if(it != origin_stack->end()) {
-            std::cout << "|C Drawable removed from " << (origin_stack == &Graphics_stack ? "GLOBAL " : "") << "graphic stack" << std::endl;
             origin_stack->erase(it);
         } else {
-            std::cout << "|C NOT FOUND in "<< (origin_stack == &Graphics_stack ? "GLOBAL " : "") << "graphic stack" << std::endl;
+            rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
         }
     }
     origin_stack = o;
@@ -30,30 +40,26 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)
 }
 
 CDrawable_Element::~CDrawable_Element() {
-    std::cout << "Entering Drawable destructor for " << self << std::endl;
+    RDATA(self)->data = nullptr;
+    //std::cout << "Entering Drawable destructor for " << self << " with graphics " << (InsideGraphicsUpdate ? "INSIDE" : "outside") << std::endl;
    
-    if(origin_stack != nullptr) {
-        std::cout << "|C stack = " << origin_stack->size() << std::endl;
+    const auto cppStackSize = origin_stack == nullptr ? 0 : origin_stack->size();
+    VALUE table = rb_ivar_get(NIL_P(rViewport) ? rb_mGraphics : rViewport, rb_iElementTable);
+    const auto sz = RARRAY_LEN(table);
+    if(cppStackSize != sz) {
+        rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
     }
 
-    setOriginStack(nullptr);
+    resetOriginStack();
     CRect_Element* rect = getLinkedRect();
     if(rect != nullptr) {
         rect->setElement(nullptr);
     }
 
     /* Suppression du drawable de ses stacks */
-	VALUE table = rb_ivar_get(NIL_P(rViewport) ? rb_mGraphics : rViewport, rb_iElementTable);
-    if(rb_ary_delete(table, self) != Qnil) {
-        std::cout << "|Ruby Deleted." << std::endl;
-    } else {
-        std::cout << "|Ruby NOT FOUND" << std::endl;
+    if(rb_ary_delete(table, self) == Qnil && !(cppStackSize == 0 && sz == 0)) {
+        rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
     }
-
-    const auto sz = RARRAY_LEN(table);
-    //TODO assert() ?
-    std::cout << "|Ruby stack = " << sz << std::endl;
-    RDATA(self)->data = nullptr;
 }
 
 unsigned long CDrawable_Element::getIndex()

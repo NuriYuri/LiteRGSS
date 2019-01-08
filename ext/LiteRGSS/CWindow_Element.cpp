@@ -4,35 +4,32 @@
 #include "CRect_Element.h"
 #include <iostream>
 
-void __Dispose_AllSprite(VALUE table)
+void __Dispose_AllSprite(VALUE table, bool shouldFree)
 {
 
 	rb_check_type(table, T_ARRAY);
-	const auto sz = RARRAY_LEN(table);
-	VALUE* ori = RARRAY_PTR(table);
-
-	std::cout << sz << std::endl;
-
-	for (std::size_t i = 0u; i < sz; i++)
-	{
-		if(RDATA(ori[i])->data != nullptr) {
-			if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
-				rb_Sprite_Dispose(ori[i]);
-			} else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue) {
-				rb_Text_Dispose(ori[i]);
-			} else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue) {
-				rb_Shape_Dispose(ori[i]);
-			} else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue) {
-				rb_Window_Dispose(ori[i]);
-			} else if (rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue) {
-				rb_Viewport_Dispose(ori[i]);
-			} else {
-				std::cout << "ERROR : no type for " << i << " th element of graphic stack" << std::endl;
+	if(shouldFree) {
+		const auto sz = RARRAY_LEN(table);
+		VALUE* ori = RARRAY_PTR(table);
+		for (auto i = 0u; i < sz; i++) {
+			if(RDATA(ori[i])->data != nullptr) {
+				if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
+					rb_Sprite_Dispose(ori[i]);
+				} else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue) {
+					rb_Text_Dispose(ori[i]);
+				} else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue) {
+					rb_Shape_Dispose(ori[i]);
+				} else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue) {
+					rb_Window_Dispose(ori[i]);
+				} else if (rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue) {
+					rb_Viewport_Dispose(ori[i]);
+				} else {
+					std::cout << "ERROR : no type for " << i << " th element of graphic stack" << std::endl;
+				}
 			}
 		}
 	}
 	rb_ary_clear(table);
-	std::cout << RARRAY_LEN(table) << std::endl;
 }
 
 CWindow_Element::CWindow_Element()
@@ -45,9 +42,7 @@ CWindow_Element::CWindow_Element()
 }
 
 CWindow_Element::~CWindow_Element() {
-	std::cout << "!!!Entering Window destructor" << std::endl;
 	clearStack();
-	std::cout << "!!!Ending Window destructor" << std::endl;
 }
 
 void CWindow_Element::draw(sf::RenderTarget& target) const
@@ -689,15 +684,17 @@ void CWindow_Element::resetCursorPosition(sf::IntRect * rect)
 
 void CWindow_Element::bind(CDrawable_Element* sprite)
 {
-	sprite->setOriginStack(&stack);
+	sprite->setOriginStack(stack);
 }
 
 void CWindow_Element::clearStack()
 {
 	for(auto& it : stack) {
 		it->overrideOrigineStack();
+	}
+	__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+	for(auto& it : stack) {
 		delete it;
 	}
-	//__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
 	stack.clear();
 }

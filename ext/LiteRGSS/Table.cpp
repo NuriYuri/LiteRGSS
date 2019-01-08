@@ -4,7 +4,7 @@ VALUE rb_cTable = Qnil;
 
 void rb_Table_Free(void* data)
 {
-	std::cout << "Entering Table destructor" << std::endl;
+	//std::cout << "Entering Table destructor" << std::endl;
     rb_Table_Struct* table = reinterpret_cast<rb_Table_Struct*>(data);
     if(table != nullptr)
     {

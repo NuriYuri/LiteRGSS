@@ -260,7 +260,7 @@ VALUE rb_Graphics_ReloadStack(VALUE self)
     for(auto& graphic : Graphics_stack) {
         graphic->overrideOrigineStack();
     }
-    Graphics_stack.clear();
+    Graphics_stack.clear();    
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
     for(long i = 0; i < sz; i++)
@@ -340,5 +340,5 @@ VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
 
 void global_Graphics_Bind(CDrawable_Element* element)
 {
-    element->setOriginStack(&Graphics_stack);
+    element->setOriginStack(Graphics_stack);
 }
