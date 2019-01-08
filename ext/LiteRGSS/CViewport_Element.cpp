@@ -20,7 +20,9 @@ CViewport_Element::~CViewport_Element()
     if(tone != nullptr)
         tone->setElement(nullptr);
 	
-	clearStack();
+	if(!isDisposedFromViewport()) {
+		clearStack();
+	}
 	std::cout << "Ending Viewport destructor, stack cleared" << std::endl;
 }
 
@@ -121,14 +123,16 @@ void CViewport_Element::bind(CDrawable_Element& sprite)
     sprite.setOriginStack(stack);
 }
 
-void CViewport_Element::clearStack() 
+void CViewport_Element::clearStack(bool cpponly) 
 {
-	for(auto& it : stack) {
-		it->overrideOrigineStack();
-	}
-	__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-	for(auto& it : stack) {
-		delete it;
+	if(!cpponly) {
+		for(auto& it : stack) {
+			it->overrideOrigineStack();
+		}
+		__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+		for(auto& it : stack) {
+			delete it;
+		}
 	}
 	stack.clear();
 	

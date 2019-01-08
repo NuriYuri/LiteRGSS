@@ -127,6 +127,8 @@ VALUE rb_Sprite_Dispose(VALUE self)
 
 VALUE rb_Sprite_DisposeFromViewport(VALUE self)
 {
+    auto& sprite = rb::Get<CSprite_Element>(self);
+	sprite.disposeFromViewport();
 	return rb::Dispose<CSprite_Element>(self);
 }
 

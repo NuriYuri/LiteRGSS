@@ -126,7 +126,7 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 
 	/* Sprite table creation */
 	rb_ivar_set(self, rb_iElementTable, rb_ary_new());
-	window.clearStack();
+	window.clearStack(true);
 
 	/* Rect definition */
 	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };
@@ -146,6 +146,8 @@ VALUE rb_Window_getViewport(VALUE self)
 
 VALUE rb_Window_DisposeFromViewport(VALUE self)
 {
+	auto& window = rb::Get<CWindow_Element>(self);
+	window.disposeFromViewport();
 	return rb::Dispose<CWindow_Element>(self);
 }
 

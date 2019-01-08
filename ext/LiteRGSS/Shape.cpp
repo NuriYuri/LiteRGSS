@@ -646,5 +646,7 @@ VALUE rb_Shape_Copy(VALUE self)
 
 VALUE rb_Shape_DisposeFromViewport(VALUE self)
 {
+	auto& shape = rb::Get<CShape_Element>(self);
+	shape.disposeFromViewport();
 	return rb::Dispose<CShape_Element>(self);
 }

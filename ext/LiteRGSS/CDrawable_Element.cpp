@@ -41,6 +41,9 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)
 
 CDrawable_Element::~CDrawable_Element() {
     RDATA(self)->data = nullptr;
+    if(disposeFromViewport_) {
+        return;
+    }
     //std::cout << "Entering Drawable destructor for " << self << " with graphics " << (InsideGraphicsUpdate ? "INSIDE" : "outside") << std::endl;
    
     const auto cppStackSize = origin_stack == nullptr ? 0 : origin_stack->size();

@@ -53,7 +53,7 @@ class CWindow_Element : public CDrawable_Element {
 		void resetPausePosition();
 		void resetCursorPosition(sf::IntRect* rect);
 		void bind(CDrawable_Element* sprite);
-		void clearStack();
+		void clearStack(bool cpponly = false);
 
         /* Instance variable for Ruby */
         VALUE rBitmap = Qnil;

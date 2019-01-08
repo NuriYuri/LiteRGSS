@@ -8,27 +8,25 @@ void __Dispose_AllSprite(VALUE table, bool shouldFree)
 {
 
 	rb_check_type(table, T_ARRAY);
-	if(shouldFree) {
+	//if(shouldFree) {
 		const auto sz = RARRAY_LEN(table);
 		VALUE* ori = RARRAY_PTR(table);
 		for (auto i = 0u; i < sz; i++) {
 			if(RDATA(ori[i])->data != nullptr) {
 				if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
-					rb_Sprite_Dispose(ori[i]);
+					rb_Sprite_DisposeFromViewport(ori[i]);
 				} else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue) {
-					rb_Text_Dispose(ori[i]);
+					rb_Text_DisposeFromViewport(ori[i]);
 				} else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue) {
-					rb_Shape_Dispose(ori[i]);
+					rb_Shape_DisposeFromViewport(ori[i]);
 				} else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue) {
-					rb_Window_Dispose(ori[i]);
-				} else if (rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue) {
-					rb_Viewport_Dispose(ori[i]);
+					rb_Window_DisposeFromViewport(ori[i]);
 				} else {
 					std::cout << "ERROR : no type for " << i << " th element of graphic stack" << std::endl;
 				}
 			}
 		}
-	}
+	//}
 	rb_ary_clear(table);
 }
 
@@ -42,7 +40,9 @@ CWindow_Element::CWindow_Element()
 }
 
 CWindow_Element::~CWindow_Element() {
-	clearStack();
+	if(!isDisposedFromViewport()) {
+		clearStack();
+	}
 }
 
 void CWindow_Element::draw(sf::RenderTarget& target) const
@@ -687,14 +687,16 @@ void CWindow_Element::bind(CDrawable_Element* sprite)
 	sprite->setOriginStack(stack);
 }
 
-void CWindow_Element::clearStack()
+void CWindow_Element::clearStack(bool cpponly)
 {
-	for(auto& it : stack) {
-		it->overrideOrigineStack();
-	}
-	__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-	for(auto& it : stack) {
-		delete it;
+	if(!cpponly) {
+		for(auto& it : stack) {
+			it->overrideOrigineStack();
+		}
+		__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+		for(auto& it : stack) {
+			delete it;
+		}
 	}
 	stack.clear();
 }

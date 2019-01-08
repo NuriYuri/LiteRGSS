@@ -104,7 +104,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     viewport.rRect = rc;
     viewport.rTone = Qnil;
     viewport.rColor = Qnil;
-    viewport.clearStack();
+    viewport.clearStack(true);
     return self;
 }
 
@@ -385,7 +385,10 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
     auto& viewport = rb::Get<CViewport_Element>(self);
     VALUE table = rb_ivar_get(self, rb_iElementTable);
     rb_check_type(table, T_ARRAY);
-    viewport.clearStack();
+    for(auto& drawables : viewport.getStack()) {
+        drawables->overrideOrigineStack();
+    }
+    viewport.clearStack(true);
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
     for(long i = 0; i < sz; i++)
