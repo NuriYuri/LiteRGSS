@@ -33,7 +33,7 @@ void rb::Mark<CShape_Element>(CShape_Element* shape)
 void Init_Shape()
 {
 	rb_cShape = rb_define_class_under(rb_mLiteRGSS, "Shape", rb_cObject);
-	rb_define_alloc_func(rb_cShape, rb::Alloc<CShape_Element>);
+	rb_define_alloc_func(rb_cShape, rb::AllocDrawable<CShape_Element>);
 
 	rb_iShapeCircle = rb_intern("circle");
 	rb_iShapeConvex = rb_intern("convex");
@@ -169,18 +169,7 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 
 VALUE rb_Shape_Dispose(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	/* Suppression du shape de ses stacks */
-	VALUE viewport = shape.rViewport;
-	VALUE table;
-	if (NIL_P(viewport))
-		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-	else
-		table = rb_ivar_get(viewport, rb_iElementTable);
-	rb_ary_delete(table, self);
-	delete &shape;
-	RDATA(self)->data = nullptr;
-	return self;
+	return rb::Dispose<CShape_Element>(self);
 }
 
 VALUE rb_Shape_Disposed(VALUE self)
@@ -657,10 +646,5 @@ VALUE rb_Shape_Copy(VALUE self)
 
 VALUE rb_Shape_DisposeFromViewport(VALUE self)
 {
-	if (RDATA(self)->data == nullptr)
-		return self;
-	auto& shape = rb::Get<CShape_Element>(self);
-	delete &shape;
-	RDATA(self)->data = nullptr;	
-	return self;
+	return rb::Dispose<CShape_Element>(self);
 }

@@ -34,3 +34,7 @@ void CShape_Element::setRenderState(sf::RenderStates * states)
 {
 	render_states = states;
 }
+
+CShape_Element::~CShape_Element() {
+	std::cout << "Entering Shape destructor" << std::endl;
+}

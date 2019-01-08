@@ -62,7 +62,6 @@ VALUE rb_Window_Dispose(VALUE self);
 VALUE rb_Window_Disposed(VALUE self);
 VALUE rb_Window_Copy(VALUE self);
 
-void __Window_Dispose_AllSprite(VALUE table);
 VALUE rb_Window_DisposeFromViewport(VALUE self);
 
 namespace rb {

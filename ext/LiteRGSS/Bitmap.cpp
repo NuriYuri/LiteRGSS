@@ -1,3 +1,4 @@
+#include <iostream>
 #include "LiteRGSS.h"
 #include "utils/rbAdapter.h"
 #include "CBitmap_Element.h"
@@ -113,12 +114,7 @@ VALUE rb_Bitmap_Initialize_Copy(VALUE self, VALUE other)
 
 VALUE rb_Bitmap_Dispose(VALUE self)
 {
-	if(RDATA(self)->data != nullptr) {
-		auto& bitmap = rb::Get<CBitmap_Element>(self);
-		delete &bitmap;
-		RDATA(self)->data = nullptr;
-	}
-    return self;
+	return rb::Dispose<CBitmap_Element>(self);
 }
 
 VALUE rb_Bitmap_Disposed(VALUE self)

@@ -1,3 +1,4 @@
+#include <iostream>
 #include "CBitmap_Element.h"
 
 sf::Texture& CBitmap_Element::getTexture() {
@@ -9,4 +10,8 @@ sf::Image& CBitmap_Element::getImage() {
         img = text.copyToImage();
     }
     return img;
+}
+
+CBitmap_Element::~CBitmap_Element() {
+    std::cout << "Entering Bitmap destructor" << std::endl;
 }

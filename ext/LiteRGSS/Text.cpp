@@ -21,7 +21,7 @@ void Init_Text()
 {
     rb_cText = rb_define_class_under(rb_mLiteRGSS, "Text", rb_cObject);
 
-    rb_define_alloc_func(rb_cText, rb::Alloc<CText_Element>);
+    rb_define_alloc_func(rb_cText, rb::AllocDrawable<CText_Element>);
 
     rb_define_method(rb_cText, "initialize", _rbf rb_Text_Initialize, -1);
     rb_define_method(rb_cText, "dispose", _rbf rb_Text_Dispose, 0);
@@ -155,30 +155,12 @@ VALUE rb_Text_Copy(VALUE self)
 
 VALUE rb_Text_Dispose(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-    
-    /* Suppression du sprite de ses stacks */
-    VALUE viewport = text.rViewport;
-    VALUE table;
-    if(NIL_P(viewport))
-        table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    else
-        table = rb_ivar_get(viewport, rb_iElementTable);
-    rb_ary_delete(table, self);
-    text.setOriginStack(nullptr); // Ensure the text is removed from the sprite stack
-    delete &text;
-    RDATA(self)->data = nullptr;
-    return self;
+	return rb::Dispose<CText_Element>(self);
 }
 
 VALUE rb_Text_DisposeFromViewport(VALUE self)
 {
-    if(RDATA(self)->data == nullptr)
-        return self;
-    auto& text = rb::Get<CText_Element>(self);
-    delete &text;
-    RDATA(self)->data = nullptr;
-    return self;
+	return rb::Dispose<CText_Element>(self);
 }
 
 VALUE rb_Text_Disposed(VALUE self)

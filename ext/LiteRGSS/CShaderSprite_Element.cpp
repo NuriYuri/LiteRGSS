@@ -31,3 +31,7 @@ void CShaderSprite_Element::setRenderState(sf::RenderStates * states)
 {
 	render_states = states;
 }
+
+CShaderSprite_Element::~CShaderSprite_Element() {
+	std::cout << "Entering ShaderSprite destructor" << std::endl;
+}

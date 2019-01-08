@@ -24,7 +24,7 @@ void rb::Mark<CSprite_Element>(CSprite_Element* sprite)
 
 void Init_Sprite() {
     rb_cSprite = rb_define_class_under(rb_mLiteRGSS, "Sprite", rb_cObject);
-    rb_define_alloc_func(rb_cSprite, rb::Alloc<CSprite_Element>);
+    rb_define_alloc_func(rb_cSprite, rb::AllocDrawable<CSprite_Element>);
 
     rb_define_method(rb_cSprite, "initialize", _rbf rb_Sprite_Initialize, -1);
     rb_define_method(rb_cSprite, "dispose", _rbf rb_Sprite_Dispose, 0);
@@ -122,29 +122,12 @@ VALUE rb_Sprite_Copy(VALUE self)
 
 VALUE rb_Sprite_Dispose(VALUE self)
 {
-    auto& sprite = rb::Get<CSprite_Element>(self);
-    /* Suppression du sprite de ses stacks */
-    VALUE viewport = sprite.rViewport;
-    VALUE table;
-    if(NIL_P(viewport))
-        table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    else
-        table = rb_ivar_get(viewport, rb_iElementTable);
-    rb_ary_delete(table, self);
-    sprite.setOriginStack(nullptr); // Ensure the sprite has been removed from the sprite stack
-    delete &sprite;
-    RDATA(self)->data = nullptr;
-    return self;
+	return rb::Dispose<CSprite_Element>(self);
 }
 
 VALUE rb_Sprite_DisposeFromViewport(VALUE self)
 {
-    if(RDATA(self)->data == nullptr)
-        return self;
-    auto& sprite = rb::Get<CSprite_Element>(self);
-    delete &sprite;
-    RDATA(self)->data = nullptr;
-    return self;
+	return rb::Dispose<CSprite_Element>(self);
 }
 
 VALUE rb_Sprite_Disposed(VALUE self)

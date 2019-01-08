@@ -16,7 +16,7 @@ class CDrawable_Element {
         CRect_Element* linkedRect = nullptr;
         unsigned long index = 0;
     public:
-        CDrawable_Element() = default;
+        CDrawable_Element() {};
         virtual ~CDrawable_Element();
         void setOriginStack(std::vector<CDrawable_Element*> *o);
         void overrideOrigineStack(std::vector<CDrawable_Element*> *o) {origin_stack = o;};
@@ -32,5 +32,6 @@ class CDrawable_Element {
 
         /* Instance variable for Ruby */
         VALUE rViewport = Qnil;
+        VALUE self = Qnil;
 };
 #endif

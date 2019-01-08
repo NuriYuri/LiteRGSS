@@ -16,7 +16,7 @@ void local_LoadSmoothScreenFromConfigs();
 void* local_Graphics_Update_Internal(void* data);
 VALUE local_Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message);
 void local_Graphics_Update_Process_Event(GraphicUpdateMessage*& message);
-void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>& stack);
+void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack);
 void local_Graphics_Take_Snapshot(sf::Texture& text);
 void local_Graphics_Clear_Stack();
 void local_Graphics_TransitionBasic(VALUE self, long time);

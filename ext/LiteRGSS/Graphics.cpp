@@ -60,7 +60,7 @@ void Init_Graphics()
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 	rb_iGraphicsShader = rb_intern("@__GraphicsShader");
-	/* Store the max texture size */
+    /* Store the max texture size */
 	rb_define_const(rb_mGraphics, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));
 }
 

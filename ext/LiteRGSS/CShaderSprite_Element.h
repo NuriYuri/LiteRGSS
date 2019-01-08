@@ -7,7 +7,7 @@ protected:
 	sf::RenderStates* render_states = nullptr;
 public:
 	CShaderSprite_Element();
-	virtual ~CShaderSprite_Element() = default;
+	virtual ~CShaderSprite_Element();
 
 	void draw(sf::RenderTarget& target) const override;
 	void drawFast(sf::RenderTarget& target) const override;

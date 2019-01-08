@@ -1,5 +1,6 @@
 #ifndef CRECT_ELEMENT_H
 #define CRECT_ELEMENT_H
+#include <iostream>
 #include <SFML/Graphics.hpp>
 #include "CDrawable_Element.h"
 #include "utils/metadata.h"
@@ -11,6 +12,7 @@ private:
 public:
     CRect_Element() = default;
     ~CRect_Element() {
+        std::cout << "Entering Rect destructor" << std::endl;
         if(target != nullptr) {
             target->setLinkedRect(nullptr);
         }

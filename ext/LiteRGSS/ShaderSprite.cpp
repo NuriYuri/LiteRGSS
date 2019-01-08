@@ -25,7 +25,7 @@ void rb::Mark<CShaderSprite_Element>(CShaderSprite_Element* sprite)
 
 void Init_ShaderSprite() {
 	rb_cShaderSprite = rb_define_class_under(rb_mLiteRGSS, "ShaderedSprite", rb_cSprite);
-    rb_define_alloc_func(rb_cShaderSprite, rb::Alloc<CShaderSprite_Element>);
+    rb_define_alloc_func(rb_cShaderSprite, rb::AllocDrawable<CShaderSprite_Element>);
 
 	rb_define_method(rb_cShaderSprite, "shader", _rbf rb_ShaderSprite_getShader, 0);
 	rb_define_method(rb_cShaderSprite, "shader=", _rbf rb_ShaderSprite_setShader, 1);

@@ -36,7 +36,7 @@ void rb::Mark<CWindow_Element>(CWindow_Element* window)
 void Init_Window()
 {
 	rb_cWindow = rb_define_class_under(rb_mLiteRGSS, "Window", rb_cObject);
-	rb_define_alloc_func(rb_cWindow, rb::Alloc<CWindow_Element>);
+	rb_define_alloc_func(rb_cWindow, rb::AllocDrawable<CWindow_Element>);
 
 	rb_define_method(rb_cWindow, "initialize", _rbf rb_Window_Initialize, -1);
 	rb_define_method(rb_cWindow, "dispose", _rbf rb_Window_Dispose, 0);
@@ -142,52 +142,16 @@ VALUE rb_Window_getViewport(VALUE self)
 	return window.rViewport;
 }
 
-void __Window_Dispose_AllSprite(VALUE table)
-{
-	rb_check_type(table, T_ARRAY);
-	long sz = RARRAY_LEN(table);
-	VALUE* ori = RARRAY_PTR(table);
-	for (long i = 0; i < sz; i++)
-	{
-		if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
-			rb_Sprite_DisposeFromViewport(ori[i]);
-		else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
-			rb_Text_DisposeFromViewport(ori[i]);
-		else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue)
-			rb_Shape_DisposeFromViewport(ori[i]);
-		else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
-			rb_Window_DisposeFromViewport(ori[i]);
-	}
-	rb_ary_clear(table);
-}
+
 
 VALUE rb_Window_DisposeFromViewport(VALUE self)
 {
-	if (RDATA(self)->data == nullptr)
-		return self;
-	auto& window = rb::Get<CWindow_Element>(self);
-	delete &window;
-	RDATA(self)->data = nullptr;
-	return self;
+	return rb::Dispose<CWindow_Element>(self);
 }
 
 VALUE rb_Window_Dispose(VALUE self)
 {
-	auto& window = rb::Get<CWindow_Element>(self);
-	/* Suppression de la fenêtre de ses stacks */
-	VALUE viewport = window.rViewport;
-	VALUE table;
-	if (NIL_P(viewport))
-		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-	else
-		table = rb_ivar_get(viewport, rb_iElementTable);
-	rb_ary_delete(table, self);
-	window.setOriginStack(nullptr);
-	window.clearStack();
-	__Window_Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-	delete &window;
-	RDATA(self)->data = nullptr;
-	return self;
+	return rb::Dispose<CWindow_Element>(self);
 }
 
 VALUE rb_Window_Disposed(VALUE self)

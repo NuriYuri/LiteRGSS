@@ -4,6 +4,27 @@
 #include "CRect_Element.h"
 #include <iostream>
 
+void __Window_Dispose_AllSprite(VALUE table)
+{
+	rb_check_type(table, T_ARRAY);
+	long sz = RARRAY_LEN(table);
+	VALUE* ori = RARRAY_PTR(table);
+	for (long i = 0; i < sz; i++)
+	{
+		if(RDATA(ori[i])->data != nullptr) {
+			if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
+				rb_Sprite_DisposeFromViewport(ori[i]);
+			else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
+				rb_Text_DisposeFromViewport(ori[i]);
+			else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue)
+				rb_Shape_DisposeFromViewport(ori[i]);
+			else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
+				rb_Window_DisposeFromViewport(ori[i]);
+		}
+	}
+	rb_ary_clear(table);
+}
+
 CWindow_Element::CWindow_Element()
 {
 	rX = rY = rZ = rOX = rOY = LONG2FIX(0);
@@ -11,6 +32,13 @@ CWindow_Element::CWindow_Element()
 	rBackOpacity = rContentOpacity = rOpacity = LONG2FIX(255);
 	rActive = rPause = Qfalse;
 	rStretch = Qfalse;
+}
+
+CWindow_Element::~CWindow_Element() {
+	std::cout << "!!!Entering Window destructor" << std::endl;
+	__Window_Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+	clearStack();
+	std::cout << "!!!Ending Window destructor" << std::endl;
 }
 
 void CWindow_Element::draw(sf::RenderTarget& target) const
