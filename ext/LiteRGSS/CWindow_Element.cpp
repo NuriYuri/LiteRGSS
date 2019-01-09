@@ -8,26 +8,21 @@ void Dispose_AllSprite(VALUE table)
 {
 
 	rb_check_type(table, T_ARRAY);
-	
-		const auto sz = RARRAY_LEN(table);
-		VALUE* ori = RARRAY_PTR(table);
-		for (auto i = 0u; i < sz; i++) {
-			if(RDATA(ori[i])->data != nullptr) {
-				if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
-					rb_Sprite_DisposeFromViewport(ori[i]);
-				} else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue) {
-					rb_Text_DisposeFromViewport(ori[i]);
-				} else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue) {
-					rb_Shape_DisposeFromViewport(ori[i]);
-				} else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue) {
-					rb_Window_DisposeFromViewport(ori[i]);
-				} else {
-					std::cout << "ERROR : no type for " << i << " th element of graphic stack" << std::endl;
-				}
-			} else {
-				std::cout << "ERROR : disposed element in ruby graphic table" << std::endl;
+	const auto sz = RARRAY_LEN(table);
+	VALUE* ori = RARRAY_PTR(table);
+	for (auto i = 0u; i < sz; i++) {
+		if(RDATA(ori[i])->data != nullptr) {
+			if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
+				rb_Sprite_DisposeFromViewport(ori[i]);
+			} else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue) {
+				rb_Text_DisposeFromViewport(ori[i]);
+			} else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue) {
+				rb_Shape_DisposeFromViewport(ori[i]);
+			} else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue) {
+				rb_Window_DisposeFromViewport(ori[i]);
 			}
 		}
+	}
 	
 	rb_ary_clear(table);
 }
@@ -42,9 +37,7 @@ CWindow_Element::CWindow_Element()
 }
 
 CWindow_Element::~CWindow_Element() {
-	std::cout << "> Entering Window destructor" << std::endl;
 	clearStack();	
-	std::cout << "< Ending Window destructor" << std::endl;
 }
 
 void CWindow_Element::draw(sf::RenderTarget& target) const

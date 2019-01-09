@@ -43,18 +43,13 @@ CDrawable_Element::~CDrawable_Element() {
     if(linkedRect != nullptr) {
         linkedRect->setElement(nullptr);
     }
-    //setLinkedRect(nullptr);
 
     resetOriginStack();
     if(!disposeFromViewport_) {
         VALUE table = rb_ivar_get(NIL_P(rViewport) ? rb_mGraphics : rViewport, rb_iElementTable);
         rb_check_type(table, T_ARRAY);
         /* Suppression du drawable de ses stacks */
-        if(rb_ary_delete(table, self) == Qnil) {
-            //rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
-        } else {
-            std::cout << "Disposed " << self << std::endl;
-        }
+        rb_ary_delete(table, self);
     }
 
     RDATA(self)->data = nullptr;

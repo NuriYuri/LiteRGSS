@@ -15,7 +15,6 @@ void CSprite_Element::drawFast(sf::RenderTarget& target) const
 }
 
 CSprite_Element::~CSprite_Element() {
-    //std::cout << "Entering Sprite destructor" << std::endl;
     sprite.setColor(sf::Color(255, 255, 255, 255));
     drawable = false;
     visible = false;

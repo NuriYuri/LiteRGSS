@@ -12,7 +12,6 @@ private:
 public:
     CRect_Element() = default;
     ~CRect_Element() {
-        //std::cout << "Entering Rect destructor" << std::endl;
         if(target != nullptr) {
             target->setLinkedRect(nullptr);
         }

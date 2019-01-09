@@ -11,7 +11,7 @@ protected:
 	sf::RenderStates* render_states = nullptr;
 public:
 	CShape_Element() = default;
-	virtual ~CShape_Element();
+	virtual ~CShape_Element() = default;
         
     void draw(sf::RenderTarget& target) const override;
     void drawFast(sf::RenderTarget& target) const override;

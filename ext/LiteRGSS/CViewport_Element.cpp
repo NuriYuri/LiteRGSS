@@ -15,14 +15,12 @@ CViewport_Element::~CViewport_Element()
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
 	}
 
-	std::cout << "> Entering Viewport destructor" << std::endl;
 	CTone_Element* tone = getLinkedTone();
     if(tone != nullptr) {
         tone->setElement(nullptr);
 	}
 	rViewport = Qnil;
 	clearStack();	
-	std::cout << "< Ending Viewport destructor, stack cleared" << std::endl;
 }
 
 void CViewport_Element::draw(sf::RenderTarget& target) const

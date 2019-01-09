@@ -10,7 +10,6 @@ class CTone_Element {
     public:
         CTone_Element() = default;
         ~CTone_Element() { 
-            //std::cout << "Entering Tone destructor" << std::endl;
             if(target != nullptr) {
                 target->setLinkedRect(nullptr);
             }

@@ -4,11 +4,9 @@ VALUE rb_cTable = Qnil;
 
 void rb_Table_Free(void* data)
 {
-	//std::cout << "Entering Table destructor" << std::endl;
     rb_Table_Struct* table = reinterpret_cast<rb_Table_Struct*>(data);
     if(table != nullptr)
     {
-        //std::cout << "TH : " << table->heap << std::endl;
         if(table->heap != nullptr)
             delete[] table->heap;
         table->heap = nullptr;

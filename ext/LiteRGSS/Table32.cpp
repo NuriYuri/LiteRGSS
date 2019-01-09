@@ -4,11 +4,9 @@ VALUE rb_cTable32 = Qnil;
 
 void rb_Table32_Free(void* data)
 {
-    //std::cout << "Entering Table32 destructor" << std::endl;
     rb_Table32_Struct* table = reinterpret_cast<rb_Table32_Struct*>(data);
     if(table != nullptr)
     {
-        //std::cout << "TH : " << table->heap << std::endl;
         if(table->heap != nullptr)
             delete[] table->heap;
         table->heap = nullptr;

@@ -10,7 +10,3 @@ void CText_Element::drawFast(sf::RenderTarget& target) const
     if(visible)
         target.draw(text);
 }
-
-CText_Element::~CText_Element() {
-    std::cout << "Entering Text destructor" << std::endl;
-}

@@ -13,7 +13,7 @@ namespace rb {
             auto errorMessage = std::string { "Disposed "}; 
             errorMessage += meta::Log<T>::classname;
             errorMessage += ".";
-            //rb_raise(rb_eRGSSError, "%s", errorMessage.c_str());
+            rb_raise(rb_eRGSSError, "%s", errorMessage.c_str());
             throw std::runtime_error(errorMessage);
         }
     }
@@ -46,9 +46,7 @@ namespace rb {
 
     template <class T>
     void Free(void* data) {
-        std::cout << "    Freeing a " << meta::Log<T>::classname << std::endl;
         delete reinterpret_cast<T*>(data);
-        std::cout << "    Freed a " << meta::Log<T>::classname << std::endl;
     }
 
     template <class T>
