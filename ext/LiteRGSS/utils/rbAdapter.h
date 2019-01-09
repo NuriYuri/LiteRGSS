@@ -46,7 +46,9 @@ namespace rb {
 
     template <class T>
     void Free(void* data) {
+        std::cout << "    Freeing a " << meta::Log<T>::classname << std::endl;
         delete reinterpret_cast<T*>(data);
+        std::cout << "    Freed a " << meta::Log<T>::classname << std::endl;
     }
 
     template <class T>

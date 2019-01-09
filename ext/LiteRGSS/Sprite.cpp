@@ -382,8 +382,14 @@ VALUE rb_Sprite_getRect(VALUE self)
     const sf::IntRect rectorigin = sprite.getSprite().getTextureRect();
     rect_copy(&rect->getRect(), &rectorigin);
     /* Linking Rect */
-    rect->setElement(&sprite);
-    sprite.setLinkedRect(rect);
+	if(rect->getElement() != nullptr) {
+		rect->getElement()->setLinkedRect(nullptr);
+	}
+	rect->setElement(&sprite);
+	if(sprite.getLinkedRect() != nullptr) {
+		sprite.getLinkedRect()->setElement(nullptr);	
+	}
+	sprite.setLinkedRect(rect);
     sprite.rRect = rc;
     return rc;
 }

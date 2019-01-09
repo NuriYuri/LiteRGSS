@@ -352,12 +352,14 @@ VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE
 
 void local_Graphics_Clear_Stack()
 {
-    std::cout << "> Graphics clearing stack..." << std::endl;
-    __Dispose_AllSprite(rb_ivar_get(rb_mGraphics, rb_iElementTable), true);
-    std::cout << "< Graphics stack cleared." << std::endl;
+    std::cout << "> Disposing graphics stack..." << std::endl;
+    Dispose_AllSprite(rb_ivar_get(rb_mGraphics, rb_iElementTable));
+    std::cout << "< Graphics disposed." << std::endl;
     /* Disposing each Bitmap */
     auto objectSpace = rb_const_get(rb_cObject, rb_intern("ObjectSpace"));
     rb_block_call(objectSpace, rb_intern("each_object"), 1, &rb_cBitmap, (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);
-    //std::cout << "< Graphics disposing end." << std::endl;
+    std::cout << "< Bitmaps disposing end." << std::endl;
+    std::cout << "!!GC START!!" << std::endl;
     rb_gc_start();
+    std::cout << "!!GC OK!!" << std::endl;
 }

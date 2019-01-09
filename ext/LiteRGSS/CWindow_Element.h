@@ -79,7 +79,7 @@ class CWindow_Element : public CDrawable_Element {
 		VALUE rStretch = Qnil;
 };
 
-void __Dispose_AllSprite(VALUE table, bool shouldFree = false);
+void Dispose_AllSprite(VALUE table);
 
 namespace meta {
     template<>

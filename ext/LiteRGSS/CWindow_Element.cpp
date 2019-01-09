@@ -4,11 +4,11 @@
 #include "CRect_Element.h"
 #include <iostream>
 
-void __Dispose_AllSprite(VALUE table, bool shouldFree)
+void Dispose_AllSprite(VALUE table)
 {
 
 	rb_check_type(table, T_ARRAY);
-	//if(shouldFree) {
+	
 		const auto sz = RARRAY_LEN(table);
 		VALUE* ori = RARRAY_PTR(table);
 		for (auto i = 0u; i < sz; i++) {
@@ -24,9 +24,11 @@ void __Dispose_AllSprite(VALUE table, bool shouldFree)
 				} else {
 					std::cout << "ERROR : no type for " << i << " th element of graphic stack" << std::endl;
 				}
+			} else {
+				std::cout << "ERROR : disposed element in ruby graphic table" << std::endl;
 			}
 		}
-	//}
+	
 	rb_ary_clear(table);
 }
 
@@ -40,9 +42,9 @@ CWindow_Element::CWindow_Element()
 }
 
 CWindow_Element::~CWindow_Element() {
-	if(!isDisposedFromViewport()) {
-		clearStack();
-	}
+	std::cout << "> Entering Window destructor" << std::endl;
+	clearStack();	
+	std::cout << "< Ending Window destructor" << std::endl;
 }
 
 void CWindow_Element::draw(sf::RenderTarget& target) const
@@ -687,16 +689,12 @@ void CWindow_Element::bind(CDrawable_Element* sprite)
 	sprite->setOriginStack(stack);
 }
 
-void CWindow_Element::clearStack(bool cpponly)
-{
-	if(!cpponly) {
-		for(auto& it : stack) {
-			it->overrideOrigineStack();
-		}
-		__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-		for(auto& it : stack) {
-			delete it;
-		}
+void CWindow_Element::clearStack(bool cpponly) {
+	for(auto& it : stack) {
+		it->overrideOrigineStack();
 	}
 	stack.clear();
+	if(!cpponly) {
+		Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+	}
 }

@@ -2,7 +2,7 @@
 
 CShaderSprite_Element::CShaderSprite_Element() {
 	getSprite().setColor(sf::Color(255, 255, 255, 255));
-    setLinkedRect(nullptr);
+    //setLinkedRect(nullptr);
 	rRenderStates = Qnil;
 }
 

@@ -15,15 +15,14 @@ CViewport_Element::~CViewport_Element()
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
 	}
 
-	std::cout << "Entering Viewport destructor" << std::endl;
+	std::cout << "> Entering Viewport destructor" << std::endl;
 	CTone_Element* tone = getLinkedTone();
-    if(tone != nullptr)
+    if(tone != nullptr) {
         tone->setElement(nullptr);
-	
-	if(!isDisposedFromViewport()) {
-		clearStack();
 	}
-	std::cout << "Ending Viewport destructor, stack cleared" << std::endl;
+	rViewport = Qnil;
+	clearStack();	
+	std::cout << "< Ending Viewport destructor, stack cleared" << std::endl;
 }
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
@@ -123,19 +122,14 @@ void CViewport_Element::bind(CDrawable_Element& sprite)
     sprite.setOriginStack(stack);
 }
 
-void CViewport_Element::clearStack(bool cpponly) 
-{
-	if(!cpponly) {
-		for(auto& it : stack) {
-			it->overrideOrigineStack();
-		}
-		__Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-		for(auto& it : stack) {
-			delete it;
-		}
+void CViewport_Element::clearStack(bool cpponly)  {
+	for(auto& it : stack) {
+		it->overrideOrigineStack();
 	}
 	stack.clear();
-	
+	if(!cpponly) {
+		Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+	}
 }
 
 sf::Glsl::Vec4* CViewport_Element::getTone() 

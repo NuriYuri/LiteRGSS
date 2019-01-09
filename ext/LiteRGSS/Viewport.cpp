@@ -99,8 +99,14 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     /* Fetching data */
     CRect_Element* rect;
     Data_Get_Struct(rc, CRect_Element, rect);
-    rect->setElement(&viewport);
-    viewport.setLinkedRect(rect);
+    if(rect->getElement() != nullptr) {
+		rect->getElement()->setLinkedRect(nullptr);
+	}
+	rect->setElement(&viewport);
+	if(viewport.getLinkedRect() != nullptr) {
+		viewport.getLinkedRect()->setElement(nullptr);	
+	}
+	viewport.setLinkedRect(rect);
     viewport.rRect = rc;
     viewport.rTone = Qnil;
     viewport.rColor = Qnil;
@@ -204,7 +210,13 @@ VALUE rb_Viewport_getTone(VALUE self)
     tn = rb_class_new_instance(4, argv, rb_cTone);
     CTone_Element* tone;
     Data_Get_Struct(tn, CTone_Element, tone);
+    if(tone->getElement() != nullptr) {
+        tone->getElement()->setLinkedTone(nullptr);
+    }
     tone->setElement(&viewport);
+    if(viewport.getLinkedTone() != nullptr) {
+        viewport.getLinkedTone()->setElement(nullptr);
+    }
     viewport.setLinkedTone(tone);
     viewport.rTone = tn;
     viewport.create_render();
