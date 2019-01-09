@@ -1,5 +1,6 @@
 #ifndef CRECT_ELEMENT_H
 #define CRECT_ELEMENT_H
+#include <iostream>
 #include <SFML/Graphics.hpp>
 #include "CDrawable_Element.h"
 #include "utils/metadata.h"

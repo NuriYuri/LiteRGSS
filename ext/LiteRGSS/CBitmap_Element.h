@@ -17,6 +17,7 @@ public:
     sf::Texture& getTexture();
     sf::Image& getImage();
     bool has_image() { return img.getSize().x != 0; };
+
 private:
     CBitmap_Element(const CBitmap_Element&) = default;
     sf::Texture text;

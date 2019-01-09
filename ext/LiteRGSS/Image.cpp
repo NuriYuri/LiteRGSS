@@ -86,10 +86,7 @@ VALUE rb_Image_Initialize_Copy(VALUE self, VALUE other)
 
 VALUE rb_Image_Dispose(VALUE self)
 {
-    auto& img = rb::Get<sf::Image>(self);
-    delete &img;
-    RDATA(self)->data = nullptr;
-    return self;
+	return rb::Dispose<sf::Image>(self);
 }
 
 VALUE rb_Image_Disposed(VALUE self)

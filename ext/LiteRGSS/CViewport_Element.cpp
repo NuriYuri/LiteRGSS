@@ -4,18 +4,23 @@
 #include "CRect_Element.h"
 #include "Graphics.local.h"
 #include "CTone_Element.h"
+#include "CWindow_Element.h"
 
 std::unique_ptr<sf::RenderTexture> CViewport_Element::render = nullptr;
 std::unique_ptr<sf::Sprite> CViewport_Element::render_sprite = nullptr;
 
 CViewport_Element::~CViewport_Element() 
 {
-    if(game_window == nullptr || !game_window->isOpen())
+    if(game_window == nullptr || !game_window->isOpen()) {
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
+	}
 
 	CTone_Element* tone = getLinkedTone();
-    if(tone != nullptr)
+    if(tone != nullptr) {
         tone->setElement(nullptr);
+	}
+	rViewport = Qnil;
+	clearStack();	
 }
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
@@ -112,12 +117,17 @@ sf::Shader* CViewport_Element::getRenderStateShader() const {
 void CViewport_Element::bind(CDrawable_Element& sprite)
 {
     //stack.push_back(sprite);
-    sprite.setOriginStack(&stack);
+    sprite.setOriginStack(stack);
 }
 
-void CViewport_Element::clearStack() 
-{
-    stack.clear();
+void CViewport_Element::clearStack(bool cpponly)  {
+	for(auto& it : stack) {
+		it->overrideOrigineStack();
+	}
+	stack.clear();
+	if(!cpponly) {
+		Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+	}
 }
 
 sf::Glsl::Vec4* CViewport_Element::getTone() 

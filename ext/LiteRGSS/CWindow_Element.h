@@ -24,7 +24,7 @@ class CWindow_Element : public CDrawable_Element {
 		void calculateVerticesStretch(long x, long y, long line, long cell, sf::Vector2i &s, sf::Vector2i &a, sf::IntRect &rect);
     public:
 		CWindow_Element();
-		virtual ~CWindow_Element() = default;
+		virtual ~CWindow_Element();
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
 		void drawCalculateView(sf::RenderTarget& target, sf::View& targetView) const;
@@ -53,7 +53,7 @@ class CWindow_Element : public CDrawable_Element {
 		void resetPausePosition();
 		void resetCursorPosition(sf::IntRect* rect);
 		void bind(CDrawable_Element* sprite);
-		void clearStack();
+		void clearStack(bool cpponly = false);
 
         /* Instance variable for Ruby */
         VALUE rBitmap = Qnil;
@@ -78,6 +78,9 @@ class CWindow_Element : public CDrawable_Element {
 		VALUE rActive = Qnil;
 		VALUE rStretch = Qnil;
 };
+
+void Dispose_AllSprite(VALUE table);
+
 namespace meta {
     template<>
     struct Log<CWindow_Element> {

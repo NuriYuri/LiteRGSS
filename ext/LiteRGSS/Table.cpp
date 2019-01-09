@@ -7,7 +7,6 @@ void rb_Table_Free(void* data)
     rb_Table_Struct* table = reinterpret_cast<rb_Table_Struct*>(data);
     if(table != nullptr)
     {
-        //std::cout << "TH : " << table->heap << std::endl;
         if(table->heap != nullptr)
             delete[] table->heap;
         table->heap = nullptr;

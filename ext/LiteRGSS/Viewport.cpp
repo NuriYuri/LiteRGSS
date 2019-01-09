@@ -23,7 +23,7 @@ void Init_Viewport()
 {
     rb_cViewport = rb_define_class_under(rb_mLiteRGSS, "Viewport", rb_cObject);
 
-    rb_define_alloc_func(rb_cViewport, rb::Alloc<CViewport_Element>);
+    rb_define_alloc_func(rb_cViewport, rb::AllocDrawable<CViewport_Element>);
 
     rb_define_method(rb_cViewport, "initialize", _rbf rb_Viewport_Initialize, -1);
     rb_define_method(rb_cViewport, "ox", _rbf rb_Viewport_getOX, 0);
@@ -99,44 +99,25 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     /* Fetching data */
     CRect_Element* rect;
     Data_Get_Struct(rc, CRect_Element, rect);
-    rect->setElement(&viewport);
-    viewport.setLinkedRect(rect);
+    if(rect->getElement() != nullptr) {
+		rect->getElement()->setLinkedRect(nullptr);
+	}
+	rect->setElement(&viewport);
+	if(viewport.getLinkedRect() != nullptr) {
+		viewport.getLinkedRect()->setElement(nullptr);	
+	}
+	viewport.setLinkedRect(rect);
     viewport.rRect = rc;
     viewport.rTone = Qnil;
     viewport.rColor = Qnil;
-    viewport.clearStack();
+    viewport.clearStack(true);
     return self;
 }
 
-void __Viewport_Dispose_AllSprite(VALUE table)
-{
-    rb_check_type(table, T_ARRAY);
-    long sz = RARRAY_LEN(table);
-    VALUE* ori = RARRAY_PTR(table);
-    for(long i = 0; i < sz; i++)
-    {
-        if(rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue)
-            rb_Sprite_DisposeFromViewport(ori[i]);
-		else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue)
-			rb_Text_DisposeFromViewport(ori[i]);
-		else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue)
-			rb_Shape_DisposeFromViewport(ori[i]);
-		else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
-			rb_Window_DisposeFromViewport(ori[i]);
-    }
-    rb_ary_clear(table);
-}
 
 VALUE rb_Viewport_Dispose(VALUE self)
 {
-    auto& viewport = rb::Get<CViewport_Element>(self);
-    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    rb_ary_delete(table, self);
-    viewport.clearStack();
-    __Viewport_Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-    delete &viewport;
-    RDATA(self)->data = nullptr;
-    return self;
+	return rb::Dispose<CViewport_Element>(self);
 }
 
 VALUE rb_Viewport_Disposed(VALUE self)
@@ -229,7 +210,13 @@ VALUE rb_Viewport_getTone(VALUE self)
     tn = rb_class_new_instance(4, argv, rb_cTone);
     CTone_Element* tone;
     Data_Get_Struct(tn, CTone_Element, tone);
+    if(tone->getElement() != nullptr) {
+        tone->getElement()->setLinkedTone(nullptr);
+    }
     tone->setElement(&viewport);
+    if(viewport.getLinkedTone() != nullptr) {
+        viewport.getLinkedTone()->setElement(nullptr);
+    }
     viewport.setLinkedTone(tone);
     viewport.rTone = tn;
     viewport.create_render();
@@ -411,9 +398,9 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
     VALUE table = rb_ivar_get(self, rb_iElementTable);
     rb_check_type(table, T_ARRAY);
     for(auto& drawables : viewport.getStack()) {
-        drawables->overrideOrigineStack(nullptr);
+        drawables->overrideOrigineStack();
     }
-    viewport.clearStack();
+    viewport.clearStack(true);
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
     for(long i = 0; i < sz; i++)

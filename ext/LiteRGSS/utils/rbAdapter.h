@@ -19,9 +19,14 @@ namespace rb {
     }
 
     template <class T>
+    auto* GetPtr(VALUE self) {
+        return reinterpret_cast<T*>(rb_data_object_get(self));
+    }
+
+    template <class T>
     auto& Get(VALUE self) {
         Protect<T>(self);
-        return *reinterpret_cast<T*>(rb_data_object_get(self));
+        return *GetPtr<T>(self);
     }
 
     template <class T>
@@ -48,9 +53,26 @@ namespace rb {
     void Mark(T* data) {}
 
     template <class T>
+    VALUE AllocDrawable(VALUE klass) {
+        auto value = new T();
+        auto self = Data_Wrap_Struct(klass, Mark<T>, Free<T>, value);
+        value->self = self;
+        return self;
+    }
+
+    template <class T>
     VALUE Alloc(VALUE klass) {
         return Data_Wrap_Struct(klass, Mark<T>, Free<T>, new T());
     }
 
+    template <class T>
+    VALUE Dispose(VALUE self) {
+        if (RDATA(self)->data == nullptr) {
+            return Qnil;
+        }
+        delete GetPtr<T>(self);
+        RDATA(self)->data = nullptr;
+        return Qnil;
+    }
 }
 #endif

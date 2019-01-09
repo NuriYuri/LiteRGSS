@@ -60,7 +60,7 @@ void Init_Graphics()
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 	rb_iGraphicsShader = rb_intern("@__GraphicsShader");
-	/* Store the max texture size */
+    /* Store the max texture size */
 	rb_define_const(rb_mGraphics, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));
 }
 
@@ -258,9 +258,9 @@ VALUE rb_Graphics_ReloadStack(VALUE self)
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_check_type(table, T_ARRAY);
     for(auto& graphic : Graphics_stack) {
-        graphic->overrideOrigineStack(nullptr);
+        graphic->overrideOrigineStack();
     }
-    Graphics_stack.clear();
+    Graphics_stack.clear();    
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
     for(long i = 0; i < sz; i++)
@@ -340,5 +340,5 @@ VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
 
 void global_Graphics_Bind(CDrawable_Element* element)
 {
-    element->setOriginStack(&Graphics_stack);
+    element->setOriginStack(Graphics_stack);
 }

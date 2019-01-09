@@ -1,3 +1,4 @@
+#include <iostream>
 #include "CBitmap_Element.h"
 
 sf::Texture& CBitmap_Element::getTexture() {

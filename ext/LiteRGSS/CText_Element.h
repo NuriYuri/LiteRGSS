@@ -11,7 +11,7 @@ class CText_Element : public CDrawable_Element {
     public:
         CText_Element() : 
             rAlign(LONG2FIX(0)), 
-            rZ(LONG2FIX(0)) {
+            rZ(LONG2FIX(0)){
         }
         virtual ~CText_Element() = default;
         void draw(sf::RenderTarget& target) const override;
@@ -24,7 +24,6 @@ class CText_Element : public CDrawable_Element {
         bool getVisible() { return visible; };
         
         /* Instance variable for Ruby */
-        VALUE rViewport = Qnil;
         VALUE rX = Qnil;
         VALUE rY = Qnil;
         VALUE rZ = Qnil;

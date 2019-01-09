@@ -34,7 +34,7 @@ class CViewport_Element : public CDrawable_Element {
         void setOx(long nox) {ox = nox;};
         void setOy(long noy) {oy = noy;};
         void bind(CDrawable_Element& sprite);
-        void clearStack();
+        void clearStack(bool cpponly = false);
         sf::Glsl::Vec4* getTone();
 	void updatetone();
 	void setLinkedTone(CTone_Element* _tone);
