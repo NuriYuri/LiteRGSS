@@ -178,7 +178,7 @@ VALUE rb_Tone_Save(VALUE self, VALUE limit)
 
 void __Tone_Check_LinkedObject(CTone_Element& tone)
 {
-    CViewport_Element* view = tone.getElement();
+    CViewport_Element* view = tone.getViewport();
     if(view == nullptr)
         return;
     tone_copy(view->getTone(), tone.getTone());

@@ -388,14 +388,7 @@ VALUE rb_Window_getCursorRect(VALUE self)
 	/* Fetching data */
 	auto& rect = rb::GetSafe<CRect_Element>(rc, rb_cRect);
 	/* Linking Rect */
-	if(rect.getElement() != nullptr) {
-        rect.getElement()->setLinkedRect(nullptr);
-    }
-    rect.setElement(&window);
-    if(window.getLinkedRect() != nullptr) {
-        window.getLinkedRect()->setElement(nullptr);
-    }
-    window.setLinkedRect(&rect);
+    window.bindRect(&rect);
 	window.rCursorRect = rc;
 	return rc;
 }

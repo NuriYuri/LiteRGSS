@@ -196,15 +196,8 @@ VALUE rb_Shape_setBitmap(VALUE self, VALUE bitmap)
 		if (!NIL_P(shape.rRect))
 		{
 			auto& rect = rb::GetSafe<CRect_Element>(shape.rRect, rb_cRect);
-			if(rect.getElement() != nullptr) {
-            	rect.getElement()->setLinkedRect(nullptr);
-        	}
-			rect.setElement(nullptr);
-			auto* shapeRect = shape.getLinkedRect();
-			if(shapeRect != nullptr) {
-				shapeRect->setElement(nullptr);
-			}
-			shape.setLinkedRect(nullptr);
+			rect.bindElement(nullptr);
+			shape.bindRect(nullptr);
 			shape.rRect = Qnil;
 		}
 		return self;
@@ -239,14 +232,7 @@ VALUE rb_Shape_getRect(VALUE self)
 	const sf::IntRect rectorigin = shape.getShape()->getTextureRect();
 	rect_copy(&rect.getRect(), &rectorigin);
 	/* Linking Rect */
-	if(rect.getElement() != nullptr) {
-		rect.getElement()->setLinkedRect(nullptr);
-	}
-	rect.setElement(&shape);
-	if(shape.getLinkedRect() != nullptr) {
-		shape.getLinkedRect()->setElement(nullptr);	
-	}
-	shape.setLinkedRect(&rect);
+	rect.bindElement(&shape);
 	shape.rRect = rc;
 	return rc;
 }

@@ -66,10 +66,7 @@ VALUE rb_Rect_initialize(int argc, VALUE* argv, VALUE self)
     srect.width = rb_num2long(width);
     srect.height = rb_num2long(height);
     /* Pointed element nullification */
-    if(rect.getElement() != nullptr) {
-        rect.getElement()->setLinkedRect(nullptr);
-    }
-    rect.setElement(nullptr);
+    rect.bindElement(nullptr);
     return self;
 }
 
@@ -80,10 +77,7 @@ VALUE rb_Rect_initialize_copy(VALUE self, VALUE other)
     Data_Get_Struct(other, CRect_Element, rect2);
     if(RDATA(other)->data == nullptr) { return Qnil; }
     rect_copy(&rect.getRect(), &rect2->getRect());
-    if(rect.getElement() != nullptr) {
-        rect.getElement()->setLinkedRect(nullptr);
-    }
-    rect.setElement(nullptr);
+    rect.bindElement(nullptr);
     return self;
 }
 /*

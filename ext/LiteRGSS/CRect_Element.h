@@ -8,18 +8,30 @@
 class CRect_Element {
 private:
     sf::IntRect rect;
-    CDrawable_Element* target = nullptr;
+    CDrawable_Element* target_ = nullptr;
 public:
     CRect_Element() = default;
     ~CRect_Element() {
-        if(target != nullptr) {
-            target->setLinkedRect(nullptr);
+        if(target_ != nullptr) {
+            target_->bindRect(nullptr);
         }
     }
     
     sf::IntRect& getRect() { return rect; };
-    void setElement(CDrawable_Element* _target) {target = _target;};
-    CDrawable_Element* getElement() { return target; };
+    void bindElement(CDrawable_Element* target) { 
+        if(target != target_) {
+            auto lastLinkedElement = target_;
+            target_ = nullptr;
+            if(lastLinkedElement != nullptr) {
+                lastLinkedElement->bindRect(nullptr);
+            }
+            target_ = target;
+            if(target_ != nullptr) {
+                target_->bindRect(this);
+            }
+        }
+    }
+    CDrawable_Element* getElement() { return target_; }
 };
 
 namespace meta {

@@ -16,6 +16,20 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*>& o) {
     setOriginStack(&o);
 }
 
+void CDrawable_Element::bindRect(CRect_Element* rect) {
+    if(rect != linkedRect) {
+        auto lastLinkedRect = linkedRect;
+        linkedRect = nullptr;
+        if(lastLinkedRect != nullptr) {
+            lastLinkedRect->bindElement(nullptr);
+        }
+        linkedRect = rect;
+        if(linkedRect != nullptr) {
+            linkedRect->bindElement(this);
+        }
+    }
+}
+
 void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o) 
 {
     
@@ -40,9 +54,7 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)
 }
 
 CDrawable_Element::~CDrawable_Element() {    
-    if(linkedRect != nullptr) {
-        linkedRect->setElement(nullptr);
-    }
+    bindRect(nullptr);
 
     resetOriginStack();
     if(!disposeFromViewport_) {

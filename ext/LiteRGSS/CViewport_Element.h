@@ -37,8 +37,8 @@ class CViewport_Element : public CDrawable_Element {
         void clearStack(bool cpponly = false);
         sf::Glsl::Vec4* getTone();
 	void updatetone();
-	void setLinkedTone(CTone_Element* _tone);
-	CTone_Element* getLinkedTone();
+        void bindTone(CTone_Element* tone);
+	CTone_Element* getBoundTone();
         // void reset_render();
         void create_render();
 	void setVisible(bool value);

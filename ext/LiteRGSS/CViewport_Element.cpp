@@ -15,10 +15,7 @@ CViewport_Element::~CViewport_Element()
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
 	}
 
-	CTone_Element* tone = getLinkedTone();
-    if(tone != nullptr) {
-        tone->setElement(nullptr);
-	}
+	bindTone(nullptr);
 	rViewport = Qnil;
 	clearStack();	
 }
@@ -30,7 +27,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
     if(render_states)
     {
 		const sf::Color* col;
-		CRect_Element* rect = getLinkedRect();
+		CRect_Element* rect = getRect();
         // Loading Window View
        /* sf::View wview = view;
         wview.setRotation(0);
@@ -141,12 +138,21 @@ void CViewport_Element::updatetone()
 		getRenderStateShader()->setUniform("tone", tone);
 }
 
-void CViewport_Element::setLinkedTone(CTone_Element * _tone)
-{
-	linkedTone = _tone;
+void CViewport_Element::bindTone(CTone_Element * tone) {
+	if(tone != linkedTone) {
+		auto lastLinked = linkedTone;
+		linkedTone = nullptr;
+		if(lastLinked != nullptr) {
+			lastLinked->bindViewport(nullptr);
+		}
+		linkedTone = tone;
+		if(linkedTone != nullptr) {
+			linkedTone->bindViewport(this);
+		}
+	}
 }
 
-CTone_Element * CViewport_Element::getLinkedTone()
+CTone_Element* CViewport_Element::getBoundTone()
 {
 	return linkedTone;
 }

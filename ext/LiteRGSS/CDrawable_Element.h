@@ -31,8 +31,8 @@ class CDrawable_Element {
         virtual bool isPureSprite() const = 0;
 		virtual bool isShape() const = 0;
         void disposeFromViewport() { RDATA(self)->data = nullptr; disposeFromViewport_ = true;}
-        void setLinkedRect(CRect_Element* _rect) { linkedRect = _rect; };
-        CRect_Element* getLinkedRect() const { return linkedRect; };
+        void bindRect(CRect_Element* rect);
+        CRect_Element* getRect() const { return linkedRect; };
 
         /* Instance variable for Ruby */
         VALUE rViewport = Qnil;
