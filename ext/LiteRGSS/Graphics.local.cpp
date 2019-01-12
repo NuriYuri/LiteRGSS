@@ -1,4 +1,5 @@
 #include <cassert>
+#include "SpriteDisposer.h"
 #include "LiteRGSS.h"
 #include "CViewport_Element.h"
 #include "Graphics.local.h"
@@ -352,7 +353,7 @@ VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE
 
 void local_Graphics_Clear_Stack()
 {
-    Dispose_AllSprite(rb_ivar_get(rb_mGraphics, rb_iElementTable));
+    DisposeAllSprites(rb_ivar_get(rb_mGraphics, rb_iElementTable));
     /* Disposing each Bitmap */
     auto objectSpace = rb_const_get(rb_cObject, rb_intern("ObjectSpace"));
     rb_block_call(objectSpace, rb_intern("each_object"), 1, &rb_cBitmap, (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);

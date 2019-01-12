@@ -84,7 +84,7 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
 	else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cWindow) == Qtrue)
 	{
 		auto& window = rb::GetSafe<CWindow_Element>(argv[0], rb_cWindow);
-		window.bind(&sprite);
+		window.bind(sprite);
 		table = rb_ivar_get(argv[0], rb_iElementTable);
 		sprite.rViewport = argv[0];
 		VALUE opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rBackOpacity) / 255);

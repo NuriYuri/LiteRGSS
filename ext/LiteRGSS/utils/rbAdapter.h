@@ -1,8 +1,9 @@
 #ifndef L_RBADAPTER_HEADER
 #define L_RBADAPTER_HEADER
 #include <string>
+#include <stdexcept>
+#include <ruby.h>
 #include "utils/metadata.h"
-#include "ruby.h"
 
 extern VALUE rb_eRGSSError;
 

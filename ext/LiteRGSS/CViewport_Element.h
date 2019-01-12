@@ -1,16 +1,15 @@
 #ifndef CViewport_Element_H
 #define CViewport_Element_H
 #include <memory>
-#include "CDrawable_Element.h"
+#include "CView_Element.h"
 #include "CSprite_Element.h"
 #include "utils/rbAdapter.h"
 
-class CViewport_Element : public CDrawable_Element {
-    protected:
+class CViewport_Element : public CView_Element {
+    private:
         long ox = 0;
         long oy = 0;
         sf::View view;
-        std::vector<CDrawable_Element*> stack;
         sf::Glsl::Vec4 tone;
         CTone_Element* linkedTone = nullptr;
 	std::unique_ptr<sf::Color> color_copy;
@@ -23,7 +22,6 @@ class CViewport_Element : public CDrawable_Element {
 	CViewport_Element() = default;
         virtual ~CViewport_Element();
         void draw(sf::RenderTarget& target) const override;
-        void drawFast(sf::RenderTarget& target) const override;
 	bool isViewport() const override;
 	bool isPureSprite() const override;
 	bool isShape() const override;
@@ -33,8 +31,6 @@ class CViewport_Element : public CDrawable_Element {
         long getOy() {return oy;};
         void setOx(long nox) {ox = nox;};
         void setOy(long noy) {oy = noy;};
-        void bind(CDrawable_Element& sprite);
-        void clearStack(bool cpponly = false);
         sf::Glsl::Vec4* getTone();
 	void updatetone();
         void bindTone(CTone_Element* tone);
@@ -43,7 +39,6 @@ class CViewport_Element : public CDrawable_Element {
         void create_render();
 	void setVisible(bool value);
         bool getVisible() { return visible; };
-	const std::vector<CDrawable_Element*>& getStack() const;
         /* Ruby Ivar */
         VALUE rRect = Qnil;
         VALUE rTone = Qnil;

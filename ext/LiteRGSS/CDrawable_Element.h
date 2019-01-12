@@ -14,13 +14,13 @@ class CDrawable_Element {
     private:
         void resetOriginStack();
         void setOriginStack(std::vector<CDrawable_Element*> *o);
-    protected:
+        
         std::vector<CDrawable_Element*> *origin_stack = nullptr;
         CRect_Element* linkedRect = nullptr;
         unsigned long index = 0;
         bool disposeFromViewport_ = false;
     public:
-        CDrawable_Element() {};
+        CDrawable_Element() = default;
         virtual ~CDrawable_Element();
         void setOriginStack(std::vector<CDrawable_Element*>& o);
         void overrideOrigineStack() {origin_stack = nullptr;};

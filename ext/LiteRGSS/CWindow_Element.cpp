@@ -4,29 +4,6 @@
 #include "CRect_Element.h"
 #include <iostream>
 
-void Dispose_AllSprite(VALUE table)
-{
-
-	rb_check_type(table, T_ARRAY);
-	const auto sz = RARRAY_LEN(table);
-	VALUE* ori = RARRAY_PTR(table);
-	for (auto i = 0u; i < sz; i++) {
-		if(RDATA(ori[i])->data != nullptr) {
-			if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
-				rb_Sprite_DisposeFromViewport(ori[i]);
-			} else if (rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue) {
-				rb_Text_DisposeFromViewport(ori[i]);
-			} else if (rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue) {
-				rb_Shape_DisposeFromViewport(ori[i]);
-			} else if (rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue) {
-				rb_Window_DisposeFromViewport(ori[i]);
-			}
-		}
-	}
-	
-	rb_ary_clear(table);
-}
-
 CWindow_Element::CWindow_Element()
 {
 	rX = rY = rZ = rOX = rOY = LONG2FIX(0);
@@ -36,12 +13,7 @@ CWindow_Element::CWindow_Element()
 	rStretch = Qfalse;
 }
 
-CWindow_Element::~CWindow_Element() {
-	clearStack();	
-}
-
-void CWindow_Element::draw(sf::RenderTarget& target) const
-{
+void CWindow_Element::draw(sf::RenderTarget& target) const {
 	CWindow_Element::drawFast(target);
 }
 
@@ -58,10 +30,7 @@ void CWindow_Element::drawFast(sf::RenderTarget& target) const
 		if (!NIL_P(rViewport))
 			drawCalculateView(target, targetView);
 		target.setView(targetView);
-		for (auto sp = stack.begin(); sp != stack.end(); sp++)
-		{
-			(*sp)->drawFast(target);
-		}
+		CView_Element::drawFast(target);
 
 		/* Draw cursor & reset view */
 		if(RTEST(rActive) && rCursorSkin != Qnil)
@@ -564,35 +533,6 @@ void CWindow_Element::updateBackOpacity()
 	updateCursorSprite();
 }
 
-void CWindow_Element::updateContentsOpacity()
-{	
-	long opacity = NUM2LONG(rOpacity) * NUM2LONG(rContentOpacity) / 255;
-	for (auto& sp : stack)
-	{
-		CText_Element* text = dynamic_cast<CText_Element*>(sp);
-		if (text != nullptr)
-		{
-			auto& text2 = text->getText();
-			sf::Color col = sf::Color(text2.getFillColor());
-			col.a = opacity;
-			text2.setFillColor(col);
-			col = sf::Color(text2.getOutlineColor());
-			col.a = opacity;
-			text2.setOutlineColor(col);
-		}
-		else
-		{
-			CSprite_Element* sprite = dynamic_cast<CSprite_Element*>(sp);
-			if (sprite != nullptr)
-			{
-				sf::Color col = sf::Color(sprite->getSprite().getColor());
-				col.a = opacity;
-				sprite->getSprite().setColor(col);
-			}
-		}
-	}
-}
-
 void CWindow_Element::updateView()
 {
 	if (NIL_P(rWindowBuilder))
@@ -676,18 +616,25 @@ void CWindow_Element::resetCursorPosition(sf::IntRect * rect)
 	cursor_sprite.setPosition(sf::Vector2f(rect->left, rect->top));
 }
 
-
-void CWindow_Element::bind(CDrawable_Element* sprite)
-{
-	sprite->setOriginStack(stack);
-}
-
-void CWindow_Element::clearStack(bool cpponly) {
-	for(auto& it : stack) {
-		it->overrideOrigineStack();
-	}
-	stack.clear();
-	if(!cpponly) {
-		Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
+void CWindow_Element::updateContentsOpacity() {
+	long opacity = NUM2LONG(rOpacity) * NUM2LONG(rContentOpacity) / 255;
+	for (auto& sp : getStack()) {
+		CText_Element* text = dynamic_cast<CText_Element*>(sp);
+		if (text != nullptr) {
+			auto& text2 = text->getText();
+			sf::Color col = sf::Color(text2.getFillColor());
+			col.a = opacity;
+			text2.setFillColor(col);
+			col = sf::Color(text2.getOutlineColor());
+			col.a = opacity;
+			text2.setOutlineColor(col);
+		} else {
+			CSprite_Element* sprite = dynamic_cast<CSprite_Element*>(sp);
+			if (sprite != nullptr) {
+				sf::Color col = sf::Color(sprite->getSprite().getColor());
+				col.a = opacity;
+				sprite->getSprite().setColor(col);
+			}
+		}
 	}
 }

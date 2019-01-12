@@ -17,7 +17,6 @@ CViewport_Element::~CViewport_Element()
 
 	bindTone(nullptr);
 	rViewport = Qnil;
-	clearStack();	
 }
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
@@ -46,8 +45,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 			col = &sf::Color::Transparent;
         render->clear(*col);
         // Drawing sprites
-        for(auto sp = stack.begin();sp != stack.end();sp++)
-            (*sp)->drawFast(*render);
+        CView_Element::drawFast(*render);
         render->display();
 		// Update internal texture & draw result to Window
 		render_sprite->setTexture(render->getTexture());
@@ -65,14 +63,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
     else
     {
         target.setView(view);
-        drawFast(target);
-    }
-}
-
-void CViewport_Element::drawFast(sf::RenderTarget& target) const 
-{
-    for(auto& sp: stack) {
-        sp->drawFast(target);
+        CView_Element::drawFast(target);
     }
 }
 
@@ -109,22 +100,6 @@ sf::Shader* CViewport_Element::getRenderStateShader() const {
 		return default_render_states_shader.get();
 	} 
 	return render_states_shader;
-}
-
-void CViewport_Element::bind(CDrawable_Element& sprite)
-{
-    //stack.push_back(sprite);
-    sprite.setOriginStack(stack);
-}
-
-void CViewport_Element::clearStack(bool cpponly)  {
-	for(auto& it : stack) {
-		it->overrideOrigineStack();
-	}
-	stack.clear();
-	if(!cpponly) {
-		Dispose_AllSprite(rb_ivar_get(self, rb_iElementTable));
-	}
 }
 
 sf::Glsl::Vec4* CViewport_Element::getTone() 
@@ -235,6 +210,3 @@ void CViewport_Element::setVisible(bool value)
 	visible = value;
 }
 
-const std::vector<CDrawable_Element*>& CViewport_Element::getStack() const {
-	return stack;
-}

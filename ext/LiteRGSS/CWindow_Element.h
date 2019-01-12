@@ -1,14 +1,13 @@
 #ifndef CWindow_Element_H
 #define CWindow_Element_H
 #include "ruby.h"
-#include "CDrawable_Element.h"
+#include "CView_Element.h"
 
-class CWindow_Element : public CDrawable_Element {
-    protected:
+class CWindow_Element : public CView_Element {
+    private:
 		std::vector<sf::VertexArray> vertices;
 		sf::Texture* texture = nullptr;
 		sf::View view;
-		std::vector<CDrawable_Element*> stack;
         bool visible = true;
 		unsigned long num_vertices_line = 0;
 		long counter = 0;
@@ -24,7 +23,7 @@ class CWindow_Element : public CDrawable_Element {
 		void calculateVerticesStretch(long x, long y, long line, long cell, sf::Vector2i &s, sf::Vector2i &a, sf::IntRect &rect);
     public:
 		CWindow_Element();
-		virtual ~CWindow_Element();
+		virtual ~CWindow_Element() = default;
         void draw(sf::RenderTarget& target) const override;
         void drawFast(sf::RenderTarget& target) const override;
 		void drawCalculateView(sf::RenderTarget& target, sf::View& targetView) const;
@@ -52,8 +51,6 @@ class CWindow_Element : public CDrawable_Element {
 		sf::Sprite& getCursorSprite();
 		void resetPausePosition();
 		void resetCursorPosition(sf::IntRect* rect);
-		void bind(CDrawable_Element* sprite);
-		void clearStack(bool cpponly = false);
 
         /* Instance variable for Ruby */
         VALUE rBitmap = Qnil;

@@ -126,7 +126,7 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 
 	/* Sprite table creation */
 	rb_ivar_set(self, rb_iElementTable, rb_ary_new());
-	window.clearStack(true);
+	window.detachSprites();
 
 	/* Rect definition */
 	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };
