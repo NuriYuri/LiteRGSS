@@ -52,7 +52,7 @@ class CViewport_Element : public CView_Element {
 	static std::unique_ptr<sf::Sprite> render_sprite;
 private:
 	sf::Color* check_up_color() const;
-        sf::RenderStates* getRenderState();
+        sf::RenderStates* getRenderState() const;
         sf::Shader* getRenderStateShader() const;
 };
 namespace meta {
