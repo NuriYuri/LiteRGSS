@@ -15,18 +15,20 @@ long ScreenHeight = 480;
 unsigned long frame_count = 0;
 unsigned long frame_rate = 60;
 
-sf::RenderWindow* game_window = nullptr;
+std::unique_ptr<sf::RenderWindow> game_window = nullptr;
 bool InsideGraphicsUpdate = false;
 std::vector<CDrawable_Element*> Graphics_stack;
 
-sf::Texture* Graphics_freeze_texture = nullptr;
-sf::Sprite* Graphics_freeze_sprite = nullptr;
-sf::Shader* Graphics_freeze_shader = nullptr;
+std::unique_ptr<sf::Texture> Graphics_freeze_texture = nullptr;
+std::unique_ptr<sf::Sprite> Graphics_freeze_sprite = nullptr;
+std::unique_ptr<sf::Shader> Graphics_freeze_shader = nullptr;
 
-/* Macro Definition */
-#define GRAPHICS_PROTECT if(game_window == nullptr) { \
-    rb_raise(rb_eStoppedGraphics, "Graphics is not started, window closed thus no Graphics operation allowed. Please call Graphics.start before using other Graphics functions."); \
-    return self; \
+void GraphicProtect()  {
+    if(game_window == nullptr) {
+        constexpr auto rawErrorMessage = "Graphics is not started, window closed thus no Graphics operation allowed. Please call Graphics.start before using other Graphics functions.";
+        rb_raise(rb_eStoppedGraphics, rawErrorMessage);
+        throw std::runtime_error(rawErrorMessage);
+    }
 }
 
 void Init_Graphics()
@@ -58,7 +60,7 @@ void Init_Graphics()
     /* creating the element table */
     rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 	rb_iGraphicsShader = rb_intern("@__GraphicsShader");
-	/* Store the max texture size */
+    /* Store the max texture size */
 	rb_define_const(rb_mGraphics, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));
 }
 
@@ -77,7 +79,7 @@ VALUE rb_Graphics_start(VALUE self)
     sf::Uint32 style = sf::Style::Close | sf::Style::Titlebar; // sf::Style::Resize = text issues !
     if(local_LoadFullScreenFromConfigs())
         style = sf::Style::Fullscreen;
-    game_window = new sf::RenderWindow(vmode, local_LoadTitleFromConfigs(), style);
+    game_window = std::make_unique<sf::RenderWindow>(vmode, local_LoadTitleFromConfigs(), style);
     game_window->setMouseCursorVisible(false);
 	framerate = local_LoadFrameRateFromConfigs();
 	/* VSYNC choice */
@@ -100,33 +102,31 @@ VALUE rb_Graphics_start(VALUE self)
 
 VALUE rb_Graphics_stop(VALUE self)
 {
-    GRAPHICS_PROTECT
-    if(InsideGraphicsUpdate) // Prevent a Thread from calling stop during the Graphics.update process
+    GraphicProtect();
+
+    // Prevent a Thread from calling stop during the Graphics.update process
+    if(InsideGraphicsUpdate) 
         return self;
+
     /* Clear the stack */
     local_Graphics_Clear_Stack();
+
+    GraphicProtect();
+
     /* Close the window */
     game_window->close();
-    delete game_window;
     game_window = nullptr;
-    /* Unfreezing Graphics */
-    if(Graphics_freeze_texture != nullptr)
-    {
-        delete Graphics_freeze_sprite;
-        Graphics_freeze_sprite = nullptr;
-        delete Graphics_freeze_texture;
-        Graphics_freeze_texture = nullptr;
-    }
-	if (Graphics_freeze_shader != nullptr)
-	{
-		delete Graphics_freeze_shader;
-		Graphics_freeze_shader = nullptr;
-	}
+
+    /* Unfreezing Graphics */    
+    Graphics_freeze_sprite = nullptr;    
+    Graphics_freeze_texture = nullptr;
+    Graphics_freeze_shader = nullptr;
+    return self;
 }
 
 VALUE rb_Graphics_snap_to_bitmap(VALUE self)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
     if(InsideGraphicsUpdate)
         return Qnil;
     VALUE bmp = rb_obj_alloc(rb_cBitmap);
@@ -134,27 +134,27 @@ VALUE rb_Graphics_snap_to_bitmap(VALUE self)
     Data_Get_Struct(bmp, CBitmap_Element, bitmap);
     if(bitmap == nullptr)
         return Qnil;
-    sf::Texture* text = bitmap->getTexture();
+    sf::Texture& text = bitmap->getTexture();
     local_Graphics_Take_Snapshot(text);
     return bmp;
 }
 
 VALUE rb_Graphics_freeze(VALUE self)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
     if(Graphics_freeze_texture != nullptr)
         return self;
     rb_Graphics_update(self);
-    Graphics_freeze_texture = new sf::Texture();
-    local_Graphics_Take_Snapshot(Graphics_freeze_texture);
-    Graphics_freeze_sprite = new sf::Sprite(*Graphics_freeze_texture);
+    Graphics_freeze_texture = std::make_unique<sf::Texture>();
+    local_Graphics_Take_Snapshot(*Graphics_freeze_texture);
+    Graphics_freeze_sprite = std::make_unique<sf::Sprite>(*Graphics_freeze_texture);
     Graphics_freeze_sprite->setScale(1.0f / Graphics_Scale, 1.0f / Graphics_Scale);
     return self;
 }
 
 VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
     if(Graphics_freeze_sprite == nullptr)
         return self;
 	long time = 8; //< RGSS doc
@@ -165,9 +165,8 @@ VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self)
 		local_Graphics_TransitionBasic(self, time);
 	else
 		local_Graphics_TransitionRGSS(self, time, argv[1]);
-    delete Graphics_freeze_sprite;
+    
     Graphics_freeze_sprite = nullptr;
-    delete Graphics_freeze_texture;
     Graphics_freeze_texture = nullptr;
     return self;
 }
@@ -187,13 +186,13 @@ VALUE rb_Graphics_list_res(VALUE self)
 
 VALUE rb_Graphics_update(VALUE self)
 {
-    GRAPHICS_PROTECT
+    GraphicProtect();
     if(InsideGraphicsUpdate) // Prevent a Thread from calling Graphics.update during Graphics.update process
         return self;
     InsideGraphicsUpdate = true;
     /* Graphics.update real process */
     GraphicUpdateMessage* message = 
-        reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, (void*)&Graphics_stack, NULL, NULL));
+        reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, static_cast<void*>(&Graphics_stack), NULL, NULL));
     /* Message Processing */
     local_Graphics_Update_Process_Event(message);
     if(message != nullptr)
@@ -207,13 +206,13 @@ VALUE rb_Graphics_update(VALUE self)
 
 VALUE rb_Graphics_update_no_input_count(VALUE self)
 {
-	GRAPHICS_PROTECT
+	GraphicProtect();
 		if (InsideGraphicsUpdate) // Prevent a Thread from calling Graphics.update during Graphics.update process
 			return self;
 	InsideGraphicsUpdate = true;
 	/* Graphics.update real process */
 	GraphicUpdateMessage* message =
-		reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, (void*)&Graphics_stack, NULL, NULL));
+		reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(local_Graphics_Update_Internal, static_cast<void*>(&Graphics_stack), NULL, NULL));
 	if (message != nullptr)
 		return local_Graphics_Update_RaiseError(self, message);
 	/* End of Graphics.update process */
@@ -223,7 +222,7 @@ VALUE rb_Graphics_update_no_input_count(VALUE self)
 
 VALUE rb_Graphics_update_only_input(VALUE self)
 {
-	GRAPHICS_PROTECT
+	GraphicProtect();
 	InsideGraphicsUpdate = true;
 	GraphicUpdateMessage* message = nullptr;
 	local_Graphics_Update_Process_Event(message);
@@ -258,11 +257,10 @@ VALUE rb_Graphics_ReloadStack(VALUE self)
 {
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_check_type(table, T_ARRAY);
-    for(auto it = Graphics_stack.begin(); it != Graphics_stack.end(); it++)
-    {
-        (*it)->overrideOrigineStack(nullptr);
+    for(auto& graphic : Graphics_stack) {
+        graphic->overrideOrigineStack();
     }
-    Graphics_stack.clear();
+    Graphics_stack.clear();    
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
     for(long i = 0; i < sz; i++)
@@ -299,7 +297,7 @@ VALUE rb_Graphics_getShader(VALUE self)
 
 VALUE rb_Graphics_setShader(VALUE self, VALUE shader)
 {
-	GRAPHICS_PROTECT;
+	GraphicProtect();
 	sf::RenderStates* render_state;
 	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue)
 	{
@@ -308,10 +306,12 @@ VALUE rb_Graphics_setShader(VALUE self, VALUE shader)
 		Graphics_States = render_state;
 		local_Graphics_initRender();
 	}
+    return self;
 }
 
 VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
 {
+    GraphicProtect();
 	ID swidth = rb_intern("ScreenWidth");
 	ID sheight = rb_intern("ScreenHeight");
 	/* Adjust screen resolution */
@@ -321,13 +321,15 @@ VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
 		rb_const_remove(rb_mConfig, sheight);
 	rb_const_set(rb_mConfig, swidth, INT2NUM(NUM2INT(width)));
 	rb_const_set(rb_mConfig, sheight, INT2NUM(NUM2INT(height)));
-	/* Close the window */
-	game_window->close();
-	delete game_window;
-	game_window = nullptr;
-	/* Restart Graphics */
+	
+    /* Close the window */
+    game_window->close();
+    game_window = nullptr;
+	
+    /* Restart Graphics */
 	rb_Graphics_start(self);
-	/* Reset viewport render */
+	
+    /* Reset viewport render */
 	if (CViewport_Element::render)
 	{
 		CViewport_Element::render->create(NUM2INT(width), NUM2INT(height));
@@ -338,5 +340,5 @@ VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
 
 void global_Graphics_Bind(CDrawable_Element* element)
 {
-    element->setOriginStack(&Graphics_stack);
+    element->setOriginStack(Graphics_stack);
 }

@@ -1,45 +1,33 @@
+#include <cassert>
 #include "LiteRGSS.h"
 #include "CViewport_Element.h"
 #include "CRect_Element.h"
 #include "Graphics.local.h"
+#include "CTone_Element.h"
+#include "CWindow_Element.h"
 
-sf::RenderTexture* CViewport_Element::render = nullptr;
-sf::Sprite* CViewport_Element::render_sprite = nullptr;
-
-CViewport_Element::CViewport_Element() : CDrawable_Element() 
-{
-	linkedTone = nullptr;
-	render_states = nullptr;
-	color_copy = nullptr;
-	rRenderState = Qnil;
-}
+std::unique_ptr<sf::RenderTexture> CViewport_Element::render = nullptr;
+std::unique_ptr<sf::Sprite> CViewport_Element::render_sprite = nullptr;
 
 CViewport_Element::~CViewport_Element() 
 {
-    if(!game_window || !game_window->isOpen())
+    if(game_window == nullptr || !game_window->isOpen()) {
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
-	if (rRenderState == Qnil && render_states)
-	{
-		if (render_states->shader)
-		{
-			delete render_states->shader;
-			render_states->shader = nullptr;
-		}
-		delete render_states;
 	}
-	if(color_copy)
-		delete color_copy;
-};
+
+	bindTone(nullptr);
+	rViewport = Qnil;
+}
 
 void CViewport_Element::draw(sf::RenderTarget& target) const
 {
+	auto* render_states = getRenderState();
 	if (!visible)
 		return;
     if(render_states)
     {
-		sf::Color* col;
-		CRect_Element* rect = getLinkedRect();
-		sf::IntRect* intrect = rect ? rect->getRect() : nullptr;
+		const sf::Color* col;
+		CRect_Element* rect = getRect();
         // Loading Window View
        /* sf::View wview = view;
         wview.setRotation(0);
@@ -55,18 +43,17 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 		if (render_states->shader)
 			col = check_up_color();
 		else
-			col = const_cast<sf::Color*>(&sf::Color::Transparent);
+			col = &sf::Color::Transparent;
         render->clear(*col);
         // Drawing sprites
-        for(auto sp = stack.begin();sp != stack.end();sp++)
-            (*sp)->drawFast(*render);
+        CView_Element::drawFast(*render);
         render->display();
 		// Update internal texture & draw result to Window
 		render_sprite->setTexture(render->getTexture());
 		if (rect)
 		{
-			render_sprite->setTextureRect(*intrect);
-			render_sprite->setPosition(intrect->left, intrect->top);
+			render_sprite->setTextureRect(rect->getRect());
+			render_sprite->setPosition(rect->getRect().left, rect->getRect().top);
 		}
 		//render_sprite->setTextureRect(sf::IntRect(0, 0, static_cast<int>(view_size.x), static_cast<int>(view_size.y)));
 		target.draw(*render_sprite, *render_states);
@@ -77,15 +64,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
     else
     {
         target.setView(view);
-        drawFast(target);
-    }
-}
-
-void CViewport_Element::drawFast(sf::RenderTarget& target) const 
-{
-    for(auto sp = stack.begin();sp != stack.end();sp++)
-    {
-        (*sp)->drawFast(target);
+        CView_Element::drawFast(target);
     }
 }
 
@@ -104,33 +83,24 @@ bool CViewport_Element::isShape() const
 	return false;
 }
 
-sf::RenderStates * CViewport_Element::getRenderStates()
+void CViewport_Element::setRenderStates(sf::RenderStates* states)
 {
+	render_states = states;
+	render_states_shader = const_cast<sf::Shader*>(states->shader);
+}
+
+sf::RenderStates* CViewport_Element::getRenderState() const {
+	if(render_states == nullptr) {
+		return default_render_states.get();
+	} 
 	return render_states;
 }
 
-void CViewport_Element::setRenderStates(sf::RenderStates * states)
-{
-	if (rRenderState == Qnil && render_states)
-	{
-		if (render_states->shader)
-		{
-			delete render_states->shader;
-			render_states->shader = nullptr;
-		}
-	}
-	render_states = states;
-}
-
-void CViewport_Element::bind(CDrawable_Element* sprite)
-{
-    //stack.push_back(sprite);
-    sprite->setOriginStack(&stack);
-}
-
-void CViewport_Element::clearStack() 
-{
-    stack.clear();
+sf::Shader* CViewport_Element::getRenderStateShader() const {
+	if(render_states_shader == nullptr) {
+		return default_render_states_shader.get();
+	} 
+	return render_states_shader;
 }
 
 sf::Glsl::Vec4* CViewport_Element::getTone() 
@@ -140,16 +110,25 @@ sf::Glsl::Vec4* CViewport_Element::getTone()
 
 void CViewport_Element::updatetone()
 {
-	if(render_states && render_states->shader)
-		const_cast<sf::Shader*>(render_states->shader)->setUniform("tone", tone);
+	if(getRenderStateShader())
+		getRenderStateShader()->setUniform("tone", tone);
 }
 
-void CViewport_Element::setLinkedTone(CTone_Element * _tone)
-{
-	linkedTone = _tone;
+void CViewport_Element::bindTone(CTone_Element * tone) {
+	if(tone != linkedTone) {
+		auto lastLinked = linkedTone;
+		linkedTone = nullptr;
+		if(lastLinked != nullptr) {
+			lastLinked->bindViewport(nullptr);
+		}
+		linkedTone = tone;
+		if(linkedTone != nullptr) {
+			linkedTone->bindViewport(this);
+		}
+	}
 }
 
-CTone_Element * CViewport_Element::getLinkedTone()
+CTone_Element* CViewport_Element::getBoundTone()
 {
 	return linkedTone;
 }
@@ -160,7 +139,7 @@ sf::Color* CViewport_Element::check_up_color() const
 	if (*col != *color_copy)
 	{
 		sf::Glsl::Vec4 color(col->r / 255.0f, col->g / 255.0f, col->b / 255.0f, col->a / 255.0f);
-		const_cast<sf::Shader*>(render_states->shader)->setUniform("color", color);
+		getRenderStateShader()->setUniform("color", color);
 		color_copy->r = col->r;
 		color_copy->g = col->g;
 		color_copy->b = col->b;
@@ -205,25 +184,26 @@ void CViewport_Element::create_render()
 	// If the global viewport render doesn't exist, we create it
 	if (!render)
 	{
-		render = new sf::RenderTexture();
+		render = std::make_unique<sf::RenderTexture>();
 		render->create(ScreenWidth, ScreenHeight);
 		render->setSmooth(SmoothScreen);
-		render_sprite = new sf::Sprite();
+		render_sprite = std::make_unique<sf::Sprite>();
 	}
 	// Return if the render texture (internal_texture) is already created
-    if(render_states != nullptr)
+    if(default_render_states != nullptr)
         return;
 	// Creation of the render states
-	render_states = new sf::RenderStates(new sf::Shader());
+	default_render_states_shader = std::make_unique<sf::Shader>();
 	// Shader initialialization
-	sf::Shader* shader = const_cast<sf::Shader*>(render_states->shader);
-	if (shader->loadFromMemory(ViewportGlobalFragmentShader, sf::Shader::Fragment))
+	sf::Shader& shader = *default_render_states_shader;
+	if (shader.loadFromMemory(ViewportGlobalFragmentShader, sf::Shader::Fragment))
 	{
-		shader->setUniform("texture", sf::Shader::CurrentTexture);
-		shader->setUniform("tone", __Viewport_reset_tone);
-		shader->setUniform("color", __Viewport_reset_tone);
+		shader.setUniform("texture", sf::Shader::CurrentTexture);
+		shader.setUniform("tone", __Viewport_reset_tone);
+		shader.setUniform("color", __Viewport_reset_tone);
 	}
-	color_copy = new sf::Color(0, 0, 0, 0);
+	default_render_states = std::make_unique<sf::RenderStates>(default_render_states_shader.get());
+	color_copy = std::make_unique<sf::Color>(0, 0, 0, 0);
 }
 
 void CViewport_Element::setVisible(bool value)
@@ -231,7 +211,3 @@ void CViewport_Element::setVisible(bool value)
 	visible = value;
 }
 
-const std::vector<CDrawable_Element*>* CViewport_Element::getStack()
-{
-	return &stack;
-}

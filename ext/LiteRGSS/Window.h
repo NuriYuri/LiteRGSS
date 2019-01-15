@@ -57,16 +57,15 @@ VALUE rb_Window_lock(VALUE self);
 VALUE rb_Window_unlock(VALUE self);
 VALUE rb_Window_locked(VALUE self);
 
-
-
 VALUE rb_Window_getIndex(VALUE self);
 VALUE rb_Window_Dispose(VALUE self);
 VALUE rb_Window_Disposed(VALUE self);
 VALUE rb_Window_Copy(VALUE self);
-CWindow_Element* rb_Window_get_window(VALUE self);
-void rb_Window_test_window(VALUE self);
 
-void __Window_Dispose_AllSprite(VALUE table);
 VALUE rb_Window_DisposeFromViewport(VALUE self);
 
+namespace rb {
+    template<>
+    void Mark<CWindow_Element>(CWindow_Element* window);
+}
 #endif // !L_WINDOW_HEADER

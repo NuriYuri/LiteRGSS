@@ -1,5 +1,6 @@
 #ifndef L_VIEWPORT_H
 #define L_VIEWPORT_H
+#include "utils/rbAdapter.h"
 
 VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Viewport_Copy(VALUE self);
@@ -29,5 +30,10 @@ VALUE rb_Viewport_setRenderState(VALUE self, VALUE val);
 VALUE rb_Viewport_ReloadStack(VALUE self);
 VALUE rb_Viewport_Index(VALUE self);
 
-void Viewport_SetView(CViewport_Element* viewport, long x, long y, long width, long height);
+void Viewport_SetView(CViewport_Element& viewport, long x, long y, long width, long height);
+
+namespace rb {
+    template<>
+    void Mark<CViewport_Element>(CViewport_Element* viewport);
+}
 #endif

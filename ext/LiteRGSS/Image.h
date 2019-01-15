@@ -24,9 +24,14 @@ VALUE rb_Image_get_pixel_alpha(VALUE self, VALUE x, VALUE y);
 VALUE rb_Image_stretch_blt(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect);
 VALUE rb_Image_stretch_blt_fast(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect);
 VALUE rb_Image_create_mask(VALUE self, VALUE color, VALUE alpha);
-bool rb_Image_LoadLodePNG(sf::Image* img, char* str, long from_memory_size);
 
-sf::Image* rb_Image_get_image(VALUE self);
-void rb_Image_test_image(VALUE self);
+bool rb_Image_LoadLodePNG(sf::Image& img, char* str, long from_memory_size);
+
+namespace meta {
+    template<>
+    struct Log<sf::Image> {
+        static constexpr auto classname = "Image";
+    };
+}
 
 #endif
