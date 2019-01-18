@@ -48,6 +48,13 @@ void CWindow_Element::drawCalculateView(sf::RenderTarget & target, sf::View & ta
 	sf::FloatRect targetViewport = sf::FloatRect(targetView.getViewport());
 	sf::Vector2f targetCenter = sf::Vector2f(targetView.getCenter());
 	sf::Vector2f targetSize = sf::Vector2f(targetView.getSize());
+	// Zoom adjustment
+	float zoom = NUM2DBL(rb::Get<CViewport_Element>(rViewport).rZoom);
+	targetViewport.left /= zoom;
+	targetViewport.top /= zoom;
+	targetViewport.width /= zoom;
+	targetViewport.height /= zoom;
+	// ---
 	targetViewport.left += originViewport.left;
 	targetViewport.top += originViewport.top;
 	float dx = targetViewport.left + targetViewport.width - (originViewport.left + originViewport.width);
