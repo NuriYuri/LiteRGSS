@@ -93,6 +93,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     viewport.setOy(0);
 	viewport.rAngle = LONG2FIX(0);
 	viewport.rZoom = LONG2FIX(1);
+	viewport.rZ = LONG2FIX(0);
     Viewport_SetView(viewport, rb_num2long(x), rb_num2long(y), rb_num2long(width), rb_num2long(height));
     /* Creating rect */
     VALUE rc = rb_class_new_instance(argc, argv, rb_cRect);
