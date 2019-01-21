@@ -86,7 +86,10 @@ bool CViewport_Element::isShape() const
 void CViewport_Element::setRenderStates(sf::RenderStates* states)
 {
 	render_states = states;
-	render_states_shader = const_cast<sf::Shader*>(states->shader);
+	if (states == nullptr)
+		render_states_shader = nullptr;
+	else
+		render_states_shader = const_cast<sf::Shader*>(states->shader);
 }
 
 sf::RenderStates* CViewport_Element::getRenderState() const {
