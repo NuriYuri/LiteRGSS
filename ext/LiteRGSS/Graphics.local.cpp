@@ -124,40 +124,47 @@ VALUE local_Graphics_Update_RaiseError(VALUE self, GraphicUpdateMessage* message
     return self;
 }
 
-void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
+//
+// This function retreive the right render to perform the draw operations
+// It also resets the default view and transmit it to the right render
+//
+sf::RenderTarget* local_Graphics_Update_Draw_PreProc(sf::View& defview)
 {
-    bool was_viewport = false;
-    sf::View defview = game_window->getDefaultView();
+	// Getting the basic render target
 	sf::RenderTarget* render_target = game_window.get();
 	// Setting the default view parameters
-    defview.setSize(ScreenWidth, ScreenHeight);
-    defview.setCenter(round(ScreenWidth / 2.0f), round(ScreenHeight / 2.0f));
-	// Appying the default view to final renders
-    game_window->setView(defview);
+	defview.setSize(ScreenWidth, ScreenHeight);
+	defview.setCenter(round(ScreenWidth / 2.0f), round(ScreenHeight / 2.0f));
+	// Appying the default view to the Window (used in local_Graphics_Update_Draw_PostProc)
+	game_window->setView(defview);
+	// If the Graphics_Render is defined, we use it instead of the game_window (shader processing)
 	if (Graphics_Render)
 	{
+		// Set the default view
 		Graphics_Render->setView(defview);
+		// It's not cleard so we perform the clear operation
 		Graphics_Render->clear();
 		render_target = Graphics_Render.get();
 	}
-	// Rendering stuff
-    for(auto& element : (*stack))
-    {
-        if(was_viewport && !element->isViewport()) {
-			render_target->setView(defview);
-        }
-        was_viewport = element->isViewport();
-        element->draw(*render_target);
-    }
+	return render_target;
+}
+
+//
+// This function perform the PostProc operation of the graphic UpdateDraw :
+// - Draw the render to the Window if it's defined
+// - Draw the transition sprite
+//
+void local_Graphics_Update_Draw_PostProc()
+{
 	// Drawing render to window if finished
 	if (Graphics_Render)
 	{
 		Graphics_Render->display();
 		sf::Sprite sp(Graphics_Render->getTexture());
-        if(Graphics_States == nullptr) {
-            throw std::runtime_error("Internal error : Graphics_States is null");
-        }
-		game_window->draw(sp, *Graphics_States);
+		if (Graphics_States == nullptr)
+			game_window->draw(sp);
+		else
+			game_window->draw(sp, *Graphics_States);
 	}
 	// Display transition sprite
 	if (Graphics_freeze_sprite != nullptr)
@@ -167,6 +174,24 @@ void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
 		else
 			game_window->draw(*Graphics_freeze_sprite);
 	}
+}
+
+void local_Graphics_Update_Draw(std::vector<CDrawable_Element*>* stack)
+{
+    bool was_viewport = false;
+    sf::View defview = game_window->getDefaultView();
+	sf::RenderTarget* render_target = local_Graphics_Update_Draw_PreProc(defview);
+	// Rendering stuff
+    for(auto& element : (*stack))
+    {
+        if(was_viewport && !element->isViewport()) {
+			render_target->setView(defview);
+        }
+        was_viewport = element->isViewport();
+        element->draw(*render_target);
+    }
+	// Perform the post proc
+	local_Graphics_Update_Draw_PostProc();
 	// Update the brightness (applied to game_window)
 	if (Graphics_Brightness != 255)
 		local_Graphics_DrawBrightness();
@@ -338,7 +363,7 @@ void local_Graphics_initRender()
 {
 	if (Graphics_Render == nullptr && Graphics_States != nullptr)
 	{
-		Graphics_Render = std::unique_ptr<sf::RenderTexture>();
+		Graphics_Render = std::make_unique<sf::RenderTexture>();
 		Graphics_Render->create(ScreenWidth, ScreenHeight);
 	}
 }

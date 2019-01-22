@@ -97,6 +97,9 @@ VALUE rb_Graphics_start(VALUE self)
 	frame_rate = framerate;
 	/* Shader loading */
 	local_Graphics_LoadShader();
+	/* Render resize */
+	if (Graphics_Render != nullptr)
+		Graphics_Render->create(ScreenWidth, ScreenHeight);
     return self;
 }
 
@@ -305,6 +308,10 @@ VALUE rb_Graphics_setShader(VALUE self, VALUE shader)
 		Data_Get_Struct(shader, sf::RenderStates, render_state);
 		Graphics_States = render_state;
 		local_Graphics_initRender();
+	}
+	else if (shader == Qnil)
+	{
+		Graphics_States = nullptr;
 	}
     return self;
 }
