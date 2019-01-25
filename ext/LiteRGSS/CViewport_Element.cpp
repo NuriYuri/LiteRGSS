@@ -87,9 +87,16 @@ void CViewport_Element::setRenderStates(sf::RenderStates* states)
 {
 	render_states = states;
 	if (states == nullptr)
+	{
 		render_states_shader = nullptr;
+		default_render_states = nullptr;
+		default_render_states_shader = nullptr;
+		color_copy = nullptr;
+	}
 	else
+	{
 		render_states_shader = const_cast<sf::Shader*>(states->shader);
+	}
 }
 
 sf::RenderStates* CViewport_Element::getRenderState() const {
@@ -113,8 +120,10 @@ sf::Glsl::Vec4* CViewport_Element::getTone()
 
 void CViewport_Element::updatetone()
 {
-	if(getRenderStateShader())
+	if (getRenderStateShader())
+	{
 		getRenderStateShader()->setUniform("tone", tone);
+	}
 }
 
 void CViewport_Element::bindTone(CTone_Element * tone) {
@@ -193,7 +202,7 @@ void CViewport_Element::create_render()
 		render_sprite = std::make_unique<sf::Sprite>();
 	}
 	// Return if the render texture (internal_texture) is already created
-    if(default_render_states != nullptr)
+    if(default_render_states.get() != nullptr)
         return;
 	// Creation of the render states
 	default_render_states_shader = std::make_unique<sf::Shader>();
