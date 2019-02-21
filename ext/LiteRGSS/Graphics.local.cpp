@@ -376,11 +376,20 @@ VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE
     return Qnil;
 }
 
+VALUE local_Graphics_call_gc_start(VALUE ignored)
+{
+  rb_gc_start();
+  return Qnil;
+}
+
 void local_Graphics_Clear_Stack()
 {
     DisposeAllSprites(rb_ivar_get(rb_mGraphics, rb_iElementTable));
     /* Disposing each Bitmap */
     auto objectSpace = rb_const_get(rb_cObject, rb_intern("ObjectSpace"));
+
     rb_block_call(objectSpace, rb_intern("each_object"), 1, &rb_cBitmap, (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);
-    rb_gc_start();
+
+    int state;
+    rb_protect(local_Graphics_call_gc_start, Qnil, &state);
 }
