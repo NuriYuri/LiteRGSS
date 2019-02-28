@@ -1,5 +1,7 @@
 #include "LiteRGSS.h"
 
+void rb_Text_Load_Font(CText_Element &text, VALUE self, VALUE fontid, VALUE colorid, VALUE sizeid);
+
 VALUE rb_cText = Qnil;
 
 template<>
@@ -75,9 +77,9 @@ void Init_Text()
 VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
 {
     auto& text = rb::Get<CText_Element>(self);
-    VALUE fontid, viewport, x, y, width, height, str, align, outlinesize, table;
+    VALUE fontid, viewport, x, y, width, height, str, align, outlinesize, table, colorid, sizeid;
 	VALUE opacity = LONG2NUM(255);
-    rb_scan_args(argc, argv,"72", &fontid, &viewport, &x, &y, &width, &height, &str, &align, &outlinesize);
+    rb_scan_args(argc, argv,"74", &fontid, &viewport, &x, &y, &width, &height, &str, &align, &outlinesize, &colorid, &sizeid);
     /* Viewport */
     if(rb_obj_is_kind_of(viewport, rb_cViewport) == Qtrue)
     {
@@ -126,25 +128,42 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
         text.getText().setOutlineThickness(static_cast<float>(rb_num2dbl(outlinesize)));
     }
     /* Font */
-    VALUE fcol = rb_Fonts_get_fill_color(rb_mFonts, fontid);
-    if(rb_obj_is_kind_of(fcol, rb_cColor) == Qtrue)
-        rb_Text_set_fill_color(self, fcol);
-    VALUE ocol;
-    if(text.getText().getOutlineThickness() < 1.0f)
-        ocol = rb_Fonts_get_shadow_color(rb_mFonts, fontid);
-    else
-        ocol = rb_Fonts_get_outline_color(rb_mFonts, fontid);
-    if(rb_obj_is_kind_of(ocol, rb_cColor) == Qtrue)
-        rb_Text_set_outline_color(self, ocol);
-    text.getText().setFont(rb_Fonts_get_font(rb_num2long(fontid)));
-    /* Size */
-    VALUE size = rb_Fonts_get_default_size(rb_mFonts, fontid);
-    if(!NIL_P(size))
-        text.getText().setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(size), 1, 0xFFFF)));
+    rb_Text_Load_Font(text, self, fontid, colorid, sizeid);
     /* Text */
     rb_Text_set_Text(self, str); /* Invokes rb_Text_UpdateI */
 	rb_Text_setOpacity(self, opacity);
     return self;
+}
+
+void rb_Text_Load_Font(CText_Element &text, VALUE self, VALUE fontid, VALUE colorid, VALUE sizeid)
+{
+    VALUE fcol;
+    VALUE ocol;
+    // Load the default parameter
+    if(NIL_P(colorid))
+        colorid = fontid;
+    if(NIL_P(sizeid))
+        sizeid = fontid;
+    // Load the fill color
+    fcol = rb_Fonts_get_fill_color(rb_mFonts, colorid);
+    if(rb_obj_is_kind_of(fcol, rb_cColor) == Qtrue)
+        rb_Text_set_fill_color(self, fcol);
+
+    // Load the outline color
+    if(text.getText().getOutlineThickness() < 1.0f) // Loading the shadow color
+        ocol = rb_Fonts_get_shadow_color(rb_mFonts, colorid);
+    else
+        ocol = rb_Fonts_get_outline_color(rb_mFonts, colorid);
+    if(rb_obj_is_kind_of(ocol, rb_cColor) == Qtrue)
+        rb_Text_set_outline_color(self, ocol);
+    
+    // Load the font
+    text.getText().setFont(rb_Fonts_get_font(rb_num2long(fontid)));
+    
+    // Load the size
+    VALUE size = rb_Fonts_get_default_size(rb_mFonts, sizeid);
+    if(!NIL_P(size))
+        text.getText().setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(size), 1, 0xFFFF)));
 }
 
 VALUE rb_Text_Copy(VALUE self)
