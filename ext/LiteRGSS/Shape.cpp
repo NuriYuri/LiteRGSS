@@ -124,6 +124,8 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 	Data_Get_Struct(viewport, CViewport_Element, viewport_el);
 	viewport_el->bind(*shape);
 	shape->rViewport = viewport;
+    VALUE table = rb_ivar_get(viewport, rb_iElementTable);
+    rb_ary_push(table, self);
 
 	// Shape initialization
 	itype = SYM2ID(type);

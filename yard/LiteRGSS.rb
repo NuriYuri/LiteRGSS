@@ -253,20 +253,26 @@ module LiteRGSS
     def self._load(str)
     end
   end
+  # Class of all the element that can be disposed
+  class Disposable
+    # Dispose the element (and free its memory)
+    # @return [self]
+    def dispose
+    end
+    # Tell if the element was disposed
+    # @return [Boolean]
+    def disposed?
+    end
+  end
+  # Class of all the element that can be drawn in a Viewport or the Graphic display
+  class Drawable < Disposable
+  end
   # Class that stores an image loaded from file or memory
-  class Bitmap
+  class Bitmap < Disposable
     # Create a new bitmap
     # @param filename_or_memory [String]
     # @param from_memory [Boolean]
     def initialize(filename_or_memory, from_memory = false)
-    end
-    # Free the bitmap
-    # @return [self]
-    def dispose
-    end
-    # Indicate if the bitmap is freed or not
-    # @return [Boolean]
-    def disposed?
     end
     # Returns the width of the Bitmap
     # @return [Integer]
@@ -316,19 +322,11 @@ module LiteRGSS
     end
   end
   # Class that is dedicated to perform Image operation in Memory before displaying those operations inside a Bitmap
-  class Image
+  class Image < Disposable
     # Create a new image
     # @param filename_or_memory [String]
     # @param from_memory [Boolean]
     def initialize(filename_or_memory, from_memory = false)
-    end
-    # Free the image
-    # @return [self]
-    def dispose
-    end
-    # Indicate if the image is freed or not
-    # @return [Boolean]
-    def disposed?
     end
     # Returns the width of the image
     # @return [Integer]
@@ -423,7 +421,7 @@ module LiteRGSS
     end
   end
   # Class that describes a surface of the screen where texts and sprites are shown (with some global effect)
-  class Viewport
+  class Viewport < Disposable
     # The surface of the viewport on the screen
     # @return [Rect]
     attr_accessor :rect
@@ -465,14 +463,6 @@ module LiteRGSS
     # @overload new(x, y, width, height)
     def initialize(x, y, width, height)
     end
-    # Dispose the viewport (and all its sprites/texts)
-    # @return [self]
-    def dispose
-    end
-    # Indicate if the viewport is disposed or not
-    # @return [Boolean]
-    def disposed?
-    end
     # Reload the viewport sprite stack
     # Used for Z processing
     # @return [self]
@@ -488,18 +478,10 @@ module LiteRGSS
   end
   # Class that describe a sprite shown on the screen or inside a viewport
   # @note Sprites cannot be saved, loaded from file nor cloned in the memory
-  class Sprite
+  class Sprite < Drawable
     # Create a new Sprite
     # @param viewport [Viewport, Window, nil] the viewport in which the sprite is shown, can be a Window
     def initialize(viewport = nil)
-    end
-    # Dispose the sprite
-    # @return [self]
-    def dispose
-    end
-    # Indicate if the sprite is disposed or not
-    # @return [Boolean]
-    def disposed?
     end
     # Define the position of the sprite
     # @param x [Numeric]
@@ -572,7 +554,7 @@ module LiteRGSS
   end
   # Class that describes a text shown on the screen or inside a viewport
   # @note Text cannot be saved, loaded from file nor cloned in the memory
-  class Text
+  class Text < Drawable
     # Create a new Text
     # @param font_id [Integer] the id of the font to use to draw the text (loads the size and default colors from that)
     # @param viewport [Viewport, Window, nil] the viewport in which the text is shown, can be a Window
@@ -586,14 +568,6 @@ module LiteRGSS
     # @param color_id [Integer, nil] ID of the color took from Fonts
     # @param size_id [Integer, nil] ID of the size took from Fonts
     def initialize(font_id, viewport, x, y, width, height, str, align = 0, outlinesize = nil, color_id = nil, size_id = nil)
-    end
-    # Dispose the text
-    # @return [self]
-    def dispose
-    end
-    # Indicate if the text is disposed or not
-    # @return [Boolean]
-    def disposed?
     end
     # Define the position of the text
     # @param x [Numeric]
@@ -681,17 +655,10 @@ module LiteRGSS
   # Class used to show a Window object on screen.
   #
   # A Window is an object that has a frame (built from #window_builder and #windowskin) and some contents that can be Sprites or Texts.
-  class Window
+  class Window < Drawable
     # Create a new Window
     # @param viewport [Viewport, nil]
     def initialize(viewport)
-    end
-    # Dispose the window and all the sprites/texts inside the window
-    def dispose
-    end
-    # Tells if the window is disposed or not
-    # @return [Boolean]
-    def disposed?
     end
     # Update the iner Window Animation (pause sprite & cursor sprite)
     # @return [self]
@@ -780,7 +747,7 @@ module LiteRGSS
     attr_reader :__index__
   end
   # Class allowing to draw Shapes in a viewport
-  class Shape
+  class Shape < Drawable
     # Constant telling the shape to draw a circle
     CIRCLE = :circle
     # Constant telling the shape to draw a convex shape
@@ -866,13 +833,6 @@ module LiteRGSS
     attr_accessor :outline_thickness
     # @return [Integer] internal index of the shape in the viewport when it was created
     attr_reader :__index__
-    # If the shape is disposed
-    # @return [Boolean]
-    def disposed?
-    end
-    # Dispose the shape
-    def dispose
-    end
     # @return [Numeric] radius of a circle shape (-1 if not a circle shape)
     attr_accessor :radius
     # @return [Symbol] type of the shape (:circle, :convex or :rectangle)
@@ -885,6 +845,50 @@ module LiteRGSS
     attr_accessor :shader
     # @return [BlendMode, nil] blend mode used to draw the shape
     attr_accessor :blendmode
+  end
+  # Class that allow to draw tiles on a row
+  class SpriteMap < Drawable
+    # Create a new SpriteMap
+    # @param viewport [Viewport] viewport used to draw the row
+    # @param tile_width [Integer] width of a tile
+    # @param tile_count [Integer] number of tile to draw in the row
+    def initialize(viewport, tile_width, tile_count)
+    end
+    # Set the position of the SpriteMap
+    # @param x [Numeric]
+    # @param y [Numeric]
+    # @return [self]
+    def set_position(x, y)
+    end
+    # Set the origin of the textures of the SpriteMap
+    # @param ox [Numeric]
+    # @param oy [Numeric]
+    # @return [self]
+    def set_origin(ox, oy)
+    end
+    # Clear the SpriteMap
+    def reset
+    end
+    # Set the tile to draw at a certain position in the row
+    # @param index [Integer] Index of the tile in the row
+    # @param bitmap [Bitmap] Bitmap to use in order to draw the tile
+    # @param rect [Rect] surface of the bitmap to draw in the tile
+    def set(index, bitmap, rect)
+    end
+    # @return [Viewport] viewport used to draw the row
+    attr_reader :viewport
+    # @return [Numeric] X position
+    attr_accessor :x
+    # @return [Numeric] Y position
+    attr_accessor :y
+    # @return [Integer] Z index
+    attr_accessor :z
+    # @return [Numeric] origin X
+    attr_accessor :ox
+    # @return [Numeric] origin Y
+    attr_accessor :oy
+    # @return [Numeric] scale of each tiles in the SpriteMap
+    attr_accessor :tile_scale
   end
   # Module that holds information about text fonts.
   #

@@ -33,5 +33,6 @@ extern "C" {
 	  Init_YukiGifReader();
 	  Init_Shape();
 	  Init_Window();
+    Init_SpriteMap();
   }
 }

@@ -28,6 +28,7 @@
 #include "Shape.h"
 #include "Yuki_Gif.h"
 #include "Window.h"
+#include "SpriteMap.h"
 
 #define _rbf (VALUE (*)(...))
 
@@ -61,6 +62,7 @@ extern VALUE rb_cShader;
 extern VALUE rb_cShaderSprite;
 extern VALUE rb_cShape;
 extern VALUE rb_cWindow;
+extern VALUE rb_cSpriteMap;
 
 extern VALUE rb_eRGSSError;
 extern VALUE rb_eStoppedGraphics;
@@ -90,6 +92,7 @@ void Init_YukiGifReader();
 void Init_BlendMode();
 void Init_Shape();
 void Init_Window();
+void Init_SpriteMap();
 
 inline long normalize_long(long value, long min, long max) {
     if(value < min)
