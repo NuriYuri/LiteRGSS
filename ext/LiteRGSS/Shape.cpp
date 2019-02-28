@@ -32,7 +32,7 @@ void rb::Mark<CShape_Element>(CShape_Element* shape)
 
 void Init_Shape()
 {
-	rb_cShape = rb_define_class_under(rb_mLiteRGSS, "Shape", rb_cObject);
+	rb_cShape = rb_define_class_under(rb_mLiteRGSS, "Shape", rb_cDrawable);
 	rb_define_alloc_func(rb_cShape, rb::AllocDrawable<CShape_Element>);
 
 	rb_iShapeCircle = rb_intern("circle");
@@ -77,7 +77,6 @@ void Init_Shape()
 	rb_define_method(rb_cShape, "outline_thickness", _rbf rb_Shape_getOutlineThickness, 0);
 	rb_define_method(rb_cShape, "outline_thickness=", _rbf rb_Shape_setOutlineThickness, 1);
 	rb_define_method(rb_cShape, "__index__", _rbf rb_Shape_getIndex, 0);
-	rb_define_method(rb_cShape, "disposed?", _rbf rb_Shape_Disposed, 0);
 	rb_define_method(rb_cShape, "dispose", _rbf rb_Shape_Dispose, 0);
 	rb_define_method(rb_cShape, "radius", _rbf rb_Shape_getRadius, 0);
 	rb_define_method(rb_cShape, "radius=", _rbf rb_Shape_setRadius, 1);
@@ -170,12 +169,6 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 VALUE rb_Shape_Dispose(VALUE self)
 {
 	return rb::Dispose<CShape_Element>(self);
-}
-
-VALUE rb_Shape_Disposed(VALUE self)
-{
-	Check_Type(self, T_DATA);
-	return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
 }
 
 VALUE rb_Shape_getBitmap(VALUE self)

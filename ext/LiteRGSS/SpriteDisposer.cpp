@@ -6,17 +6,26 @@
 #include "CWindow_Element.h"
 #include "CViewport_Element.h"
 
-extern VALUE rb_cSprite;
+extern VALUE rb_cDrawable;
+/*extern VALUE rb_cSprite;
 extern VALUE rb_cText;
 extern VALUE rb_cShape;
 extern VALUE rb_cWindow;
-extern VALUE rb_cViewport;
+extern VALUE rb_cViewport;*/
 
 void DisposeAllSprites(VALUE table) {
     rb_check_type(table, T_ARRAY);
 	const auto sz = RARRAY_LEN(table);
 	VALUE* ori = RARRAY_PTR(table);
+	ID dispose_method = rb_intern("dispose");
 	for (auto i = 0u; i < sz; i++) {
+		if(rb_obj_is_kind_of(ori[i], rb_cDrawable) == Qtrue)
+		{
+			if(RDATA(ori[i])->data != nullptr)
+				rb_funcallv(ori[i], dispose_method, 0, NULL);
+		}
+/*
+// OLD Version (in case of the new version isn't good enough)
 		if(RDATA(ori[i])->data != nullptr) {
 			if (rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue) {
                 DisposeAs<CSprite_Element>(ori[i]);
@@ -30,6 +39,7 @@ void DisposeAllSprites(VALUE table) {
 				DisposeAs<CViewport_Element>(ori[i]);
             }
 		}
+*/
 	}
 	
 	rb_ary_clear(table);

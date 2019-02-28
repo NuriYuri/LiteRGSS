@@ -12,6 +12,7 @@ extern "C" {
     rb_eRGSSError = rb_define_class_under(rb_mLiteRGSS, "Error",rb_eStandardError);
     rb_iElementTable = rb_intern("@__elementtable");
 
+    Init_DrawableDisposable();
     Init_Graphics();
     Init_Bitmap();
     Init_Image();

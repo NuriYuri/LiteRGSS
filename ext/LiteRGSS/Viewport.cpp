@@ -21,7 +21,7 @@ void rb::Mark<CViewport_Element>(CViewport_Element* viewport)
 
 void Init_Viewport()
 {
-    rb_cViewport = rb_define_class_under(rb_mLiteRGSS, "Viewport", rb_cObject);
+    rb_cViewport = rb_define_class_under(rb_mLiteRGSS, "Viewport", rb_cDisposable);
 
     rb_define_alloc_func(rb_cViewport, rb::AllocDrawable<CViewport_Element>);
 
@@ -33,7 +33,6 @@ void Init_Viewport()
     rb_define_method(rb_cViewport, "rect", _rbf rb_Viewport_getRect, 0);
     rb_define_method(rb_cViewport, "rect=", _rbf rb_Viewport_setRect, 1);
     rb_define_method(rb_cViewport, "dispose", _rbf rb_Viewport_Dispose, 0);
-    rb_define_method(rb_cViewport, "disposed?", _rbf rb_Viewport_Disposed, 0);
     rb_define_method(rb_cViewport, "tone", _rbf rb_Viewport_getTone, 0);
     rb_define_method(rb_cViewport, "tone=", _rbf rb_Viewport_setTone, 1);
     rb_define_method(rb_cViewport, "color", _rbf rb_Viewport_getColor, 0);
@@ -112,12 +111,6 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
 VALUE rb_Viewport_Dispose(VALUE self)
 {
 	return rb::Dispose<CViewport_Element>(self);
-}
-
-VALUE rb_Viewport_Disposed(VALUE self)
-{
-    rb_check_type(self, T_DATA);
-    return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
 }
 
 void Viewport_AdjustOXY(CViewport_Element& viewport, VALUE rect)

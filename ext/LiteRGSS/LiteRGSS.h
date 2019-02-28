@@ -7,6 +7,7 @@
 #include "ruby.h" // Windows Patch
 #include "Texture.hpp"
 #include <SFML/Graphics.hpp>
+#include "Drawable_Disposable.h"
 #include "Graphics.h"
 #include "Color.h"
 #include "Tone.h"
@@ -36,6 +37,8 @@ extern unsigned long frame_count;
 extern unsigned long frame_rate;
 extern bool SmoothScreen;
 extern VALUE rb_mLiteRGSS;
+extern VALUE rb_cDisposable;
+extern VALUE rb_cDrawable;
 extern VALUE rb_mGraphics;
 extern VALUE rb_mConfig;
 extern VALUE rb_cBitmap;
@@ -65,6 +68,7 @@ extern VALUE rb_eClosedWindow;
 
 extern ID rb_iElementTable;
 
+void Init_DrawableDisposable();
 void Init_Graphics();
 
 void Init_Bitmap();

@@ -21,13 +21,12 @@ void rb::Mark<CText_Element>(CText_Element* text)
 
 void Init_Text()
 {
-    rb_cText = rb_define_class_under(rb_mLiteRGSS, "Text", rb_cObject);
+    rb_cText = rb_define_class_under(rb_mLiteRGSS, "Text", rb_cDrawable);
 
     rb_define_alloc_func(rb_cText, rb::AllocDrawable<CText_Element>);
 
     rb_define_method(rb_cText, "initialize", _rbf rb_Text_Initialize, -1);
     rb_define_method(rb_cText, "dispose", _rbf rb_Text_Dispose, 0);
-    rb_define_method(rb_cText, "disposed?", _rbf rb_Text_Disposed, 0);
     rb_define_method(rb_cText, "set_position", _rbf rb_Text_setPosition, 2);
     rb_define_method(rb_cText, "x", _rbf rb_Text_get_x, 0);
     rb_define_method(rb_cText, "x=", _rbf rb_Text_set_x, 1);
@@ -182,12 +181,6 @@ VALUE rb_Text_DisposeFromViewport(VALUE self)
     auto& text = rb::Get<CText_Element>(self);
 	text.disposeFromViewport();
 	return rb::Dispose<CText_Element>(self);
-}
-
-VALUE rb_Text_Disposed(VALUE self)
-{
-    rb_check_type(self, T_DATA);
-    return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
 }
 
 

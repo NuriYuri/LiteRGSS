@@ -5,7 +5,6 @@
 
 VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Shape_Dispose(VALUE self);
-VALUE rb_Shape_Disposed(VALUE self);
 VALUE rb_Shape_getBitmap(VALUE self);
 VALUE rb_Shape_setBitmap(VALUE self, VALUE bitmap);
 VALUE rb_Shape_getRect(VALUE self);

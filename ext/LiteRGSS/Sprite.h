@@ -6,7 +6,6 @@
 VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Sprite_Copy(VALUE self);
 VALUE rb_Sprite_Dispose(VALUE self);
-VALUE rb_Sprite_Disposed(VALUE self);
 VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap);
 VALUE rb_Sprite_getBitmap(VALUE self);
 VALUE rb_Sprite_setX(VALUE self, VALUE val);

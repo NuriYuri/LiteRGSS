@@ -23,7 +23,7 @@ void rb::Mark<CSprite_Element>(CSprite_Element* sprite)
 }
 
 void Init_Sprite() {
-    rb_cSprite = rb_define_class_under(rb_mLiteRGSS, "Sprite", rb_cObject);
+    rb_cSprite = rb_define_class_under(rb_mLiteRGSS, "Sprite", rb_cDrawable);
     rb_define_alloc_func(rb_cSprite, rb::AllocDrawable<CSprite_Element>);
 
     rb_define_method(rb_cSprite, "initialize", _rbf rb_Sprite_Initialize, -1);
@@ -55,7 +55,6 @@ void Init_Sprite() {
     rb_define_method(rb_cSprite, "opacity=", _rbf rb_Sprite_setOpacity, 1);
     rb_define_method(rb_cSprite, "src_rect", _rbf rb_Sprite_getRect, 0);
     rb_define_method(rb_cSprite, "src_rect=", _rbf rb_Sprite_setRect, 1);
-    rb_define_method(rb_cSprite, "disposed?", _rbf rb_Sprite_Disposed, 0);
     rb_define_method(rb_cSprite, "viewport", _rbf rb_Sprite_Viewport, 0);
 	rb_define_method(rb_cSprite, "mirror", _rbf rb_Sprite_getMirror, 0);
 	rb_define_method(rb_cSprite, "mirror=", _rbf rb_Sprite_setMirror, 1);
@@ -130,12 +129,6 @@ VALUE rb_Sprite_DisposeFromViewport(VALUE self)
     auto& sprite = rb::Get<CSprite_Element>(self);
 	sprite.disposeFromViewport();
 	return rb::Dispose<CSprite_Element>(self);
-}
-
-VALUE rb_Sprite_Disposed(VALUE self)
-{
-    rb_check_type(self, T_DATA);
-    return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
 }
 
 VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)

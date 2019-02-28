@@ -7,7 +7,6 @@
 VALUE rb_Image_Initialize(int argc, VALUE *argv, VALUE self);
 VALUE rb_Image_Initialize_Copy(VALUE self, VALUE other);
 VALUE rb_Image_Dispose(VALUE self);
-VALUE rb_Image_Disposed(VALUE self);
 VALUE rb_Image_Width(VALUE self);
 VALUE rb_Image_Height(VALUE self);
 VALUE rb_Image_Rect(VALUE self);

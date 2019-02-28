@@ -59,7 +59,6 @@ VALUE rb_Window_locked(VALUE self);
 
 VALUE rb_Window_getIndex(VALUE self);
 VALUE rb_Window_Dispose(VALUE self);
-VALUE rb_Window_Disposed(VALUE self);
 VALUE rb_Window_Copy(VALUE self);
 
 VALUE rb_Window_DisposeFromViewport(VALUE self);

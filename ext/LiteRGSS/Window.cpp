@@ -35,12 +35,11 @@ void rb::Mark<CWindow_Element>(CWindow_Element* window)
 
 void Init_Window()
 {
-	rb_cWindow = rb_define_class_under(rb_mLiteRGSS, "Window", rb_cObject);
+	rb_cWindow = rb_define_class_under(rb_mLiteRGSS, "Window", rb_cDrawable);
 	rb_define_alloc_func(rb_cWindow, rb::AllocDrawable<CWindow_Element>);
 
 	rb_define_method(rb_cWindow, "initialize", _rbf rb_Window_Initialize, -1);
 	rb_define_method(rb_cWindow, "dispose", _rbf rb_Window_Dispose, 0);
-	rb_define_method(rb_cWindow, "disposed?", _rbf rb_Window_Disposed, 0);
 	rb_define_method(rb_cWindow, "update", _rbf rb_Window_update, 0);
 	rb_define_method(rb_cWindow, "windowskin=", _rbf rb_Window_setWindowSkin, 1);
 	rb_define_method(rb_cWindow, "windowskin", _rbf rb_Window_getWindowSkin, 0);
@@ -155,13 +154,6 @@ VALUE rb_Window_Dispose(VALUE self)
 {
 	return rb::Dispose<CWindow_Element>(self);
 }
-
-VALUE rb_Window_Disposed(VALUE self)
-{
-	Check_Type(self, T_DATA);
-	return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
-}
-
 
 VALUE rb_Window_setWindowSkin(VALUE self, VALUE val)
 {

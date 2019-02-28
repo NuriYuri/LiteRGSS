@@ -105,7 +105,7 @@ void CWindow_Element::updateVertices()
 		return;
 	if (texture == nullptr)
 		return;
-	if (rb_Bitmap_Disposed(rBitmap) == Qtrue)
+	if (rb_DrawableDisposable_disposed(rBitmap) == Qtrue)
 		return;
 	if (NIL_P(rWindowBuilder))
 		return;

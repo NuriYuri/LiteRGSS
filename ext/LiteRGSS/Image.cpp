@@ -6,12 +6,11 @@ VALUE rb_cImage = Qnil;
 
 void Init_Image()
 {
-    rb_cImage = rb_define_class_under(rb_mLiteRGSS, "Image", rb_cObject);
+    rb_cImage = rb_define_class_under(rb_mLiteRGSS, "Image", rb_cDisposable);
     rb_define_alloc_func(rb_cImage, rb::Alloc<sf::Image>);
     rb_define_method(rb_cImage, "initialize", _rbf rb_Image_Initialize, -1);
     rb_define_method(rb_cImage, "initialize_copy", _rbf rb_Image_Initialize_Copy, 1);
     rb_define_method(rb_cImage, "dispose", _rbf rb_Image_Dispose, 0);
-    rb_define_method(rb_cImage, "disposed?", _rbf rb_Image_Disposed, 0);
     rb_define_method(rb_cImage, "width", _rbf rb_Image_Width, 0);
     rb_define_method(rb_cImage, "height", _rbf rb_Image_Height, 0);
     rb_define_method(rb_cImage, "rect", _rbf rb_Image_Rect, 0);
@@ -87,12 +86,6 @@ VALUE rb_Image_Initialize_Copy(VALUE self, VALUE other)
 VALUE rb_Image_Dispose(VALUE self)
 {
 	return rb::Dispose<sf::Image>(self);
-}
-
-VALUE rb_Image_Disposed(VALUE self)
-{
-    rb_check_type(self, T_DATA);
-    return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
 }
 
 VALUE rb_Image_Width(VALUE self)
