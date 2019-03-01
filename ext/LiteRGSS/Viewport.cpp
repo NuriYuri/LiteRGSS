@@ -382,11 +382,7 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
     VALUE* ori = RARRAY_PTR(table);
     for(long i = 0; i < sz; i++)
     {
-        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue ||
-            rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue ||
-            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue ||
-			rb_obj_is_kind_of(ori[i], rb_cShape) == Qtrue ||
-			rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
+        if(rb_obj_is_kind_of(ori[i], rb_cDrawable) == Qtrue)
         {
             if(RDATA(ori[i])->data != nullptr)
             {

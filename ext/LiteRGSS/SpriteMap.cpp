@@ -42,6 +42,8 @@ void Init_SpriteMap()
     rb_define_method(rb_cSpriteMap, "set_origin", _rbf rb_SpriteMap_SetOrigin, 2);
     rb_define_method(rb_cSpriteMap, "reset", _rbf rb_SpriteMap_Reset, 0);
     rb_define_method(rb_cSpriteMap, "set", _rbf rb_SpriteMap_Set, -1);
+    rb_define_method(rb_cSpriteMap, "set_rect", _rbf rb_SpriteMap_SetRect, -1);
+    rb_define_method(rb_cSpriteMap, "__index__", _rbf rb_SpriteMap_index, 0);
 
     rb_define_method(rb_cSprite, "clone", _rbf rb_SpriteMap_Copy, 0);
     rb_define_method(rb_cSprite, "dup", _rbf rb_SpriteMap_Copy, 0);
@@ -181,11 +183,32 @@ VALUE rb_SpriteMap_Set(int argc, VALUE* argv, VALUE self)
     auto& texture = rb_Bitmap_getTexture(bitmap);
     // Retreiving Rect
     if(rb_obj_is_kind_of(rect, rb_cRect) != Qtrue)
-        rb_raise(rb_eRGSSError, "Expected Rect got %s", RSTRING_PTR(rb_class_name(CLASS_OF(self))));
+        rb_raise(rb_eRGSSError, "Expected Rect got %s", RSTRING_PTR(rb_class_name(CLASS_OF(rect))));
     auto& rect_el = rb::Get<CRect_Element>(rect);
 
     sprite.setTile(NUM2LONG(index), rect_el.getRect(), texture);
 
+    return self;
+}
+
+VALUE rb_SpriteMap_SetRect(int argc, VALUE* argv, VALUE self)
+{
+    auto& sprite = rb::Get<CSpriteMap_Element>(self);
+    VALUE index, x, y, width, height;
+    rb_scan_args(argc, argv, "23", &index, &x, &y, &width, &height);
+
+    if(NIL_P(y)) // We used a rect
+    {
+            if(rb_obj_is_kind_of(x, rb_cRect) != Qtrue)
+                rb_raise(rb_eRGSSError, "Expected Rect got %s", RSTRING_PTR(rb_class_name(CLASS_OF(x))));
+            auto& rect_el = rb::Get<CRect_Element>(x);
+            sprite.setTileRect(NUM2LONG(index), rect_el.getRect());
+    }
+    else
+    {
+        sf::IntRect rect = sf::IntRect(NUM2INT(x), NUM2INT(y), NUM2INT(width), NUM2INT(height));
+        sprite.setTileRect(NUM2LONG(index), rect);
+    }
     return self;
 }
 
@@ -201,6 +224,12 @@ VALUE rb_SpriteMap_TileScaleSet(VALUE self, VALUE val)
     sprite.setTileScale(NUM2DBL(val));
     sprite.rScale = val;
     return self;
+}
+
+VALUE rb_SpriteMap_index(VALUE self)
+{
+    auto& sprite = rb::Get<CSpriteMap_Element>(self);
+    return LONG2NUM(sprite.getIndex());
 }
 
 

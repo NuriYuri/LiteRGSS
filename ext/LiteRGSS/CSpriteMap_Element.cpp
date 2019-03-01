@@ -42,6 +42,13 @@ void CSpriteMap_Element::setTile(long index, sf::IntRect& tile, sf::Texture& tex
     active_sprites[index] = true;
 }
 
+void CSpriteMap_Element::setTileRect(long index, sf::IntRect& tile)
+{
+    if(index < 0 || index >= tile_count)
+        return;
+    sprites[index].setTextureRect(tile);
+}
+
 void CSpriteMap_Element::reset()
 {
     for(long i = 0; i < tile_count; i++)

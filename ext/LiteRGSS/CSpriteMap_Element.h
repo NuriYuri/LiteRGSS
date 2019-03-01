@@ -31,6 +31,7 @@ public:
     void define_map(unsigned long tileWidth, unsigned long tileCount);
     void reset();
     void setTile(long index, sf::IntRect& tile, sf::Texture& texture);
+    void setTileRect(long index, sf::IntRect& tile);
     void setPosition(float x, float y);
     void setOrigin(float ox, float oy);
     void setTileScale(float scale);

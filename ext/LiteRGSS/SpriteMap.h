@@ -20,8 +20,10 @@ VALUE rb_SpriteMap_SetOY(VALUE self, VALUE val);
 VALUE rb_SpriteMap_SetOrigin(VALUE self, VALUE x, VALUE y);
 VALUE rb_SpriteMap_Reset(VALUE self);
 VALUE rb_SpriteMap_Set(int argc, VALUE* argv, VALUE self);
+VALUE rb_SpriteMap_SetRect(int argc, VALUE* argv, VALUE self);
 VALUE rb_SpriteMap_TileScale(VALUE self);
 VALUE rb_SpriteMap_TileScaleSet(VALUE self, VALUE val);
+VALUE rb_SpriteMap_index(VALUE self);
 
 VALUE rb_SpriteMap_Copy(VALUE self);
 

@@ -875,6 +875,17 @@ module LiteRGSS
     # @param rect [Rect] surface of the bitmap to draw in the tile
     def set(index, bitmap, rect)
     end
+    # @overload set_rect(index, rect)
+    #   @param index [Integer] Index of the tile in the row
+    #   @param rect [Rect] surface of the bitmap to draw in the tile
+    # @overload set_rect(index, x, y, width, height)
+    #   @param index [Integer] Index of the tile in the row
+    #   @param x [Integer] x coordinate of the surface in the bitmap
+    #   @param y [Integer] y coordinate of the surface in the bitmap
+    #   @param width [Integer] width of the surface in the bitmap
+    #   @param height [Integer] height of the surface in the bitmap
+    def set_rect(*)
+    end
     # @return [Viewport] viewport used to draw the row
     attr_reader :viewport
     # @return [Numeric] X position
@@ -889,6 +900,10 @@ module LiteRGSS
     attr_accessor :oy
     # @return [Numeric] scale of each tiles in the SpriteMap
     attr_accessor :tile_scale
+    # Return the SpriteMap "index"
+    # @return [Integer]
+    def __index__
+    end
   end
   # Module that holds information about text fonts.
   #
