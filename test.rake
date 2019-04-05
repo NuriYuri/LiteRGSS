@@ -15,7 +15,6 @@ namespace :test do
 
     namespace :test do
     desc "run #{COMMAND} under gdb"
-    COMMAND = ENV['cmd']
     task :gdb do
         system "gdb --args ruby #{COMMAND}"
     end
