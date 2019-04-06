@@ -438,6 +438,7 @@ bool CGraphics::clearStack() {
 
 void CGraphics::stop() {
     protect();
+    Graphics_stack = nullptr;
     if(!clearStack()) {
         return;
     }
