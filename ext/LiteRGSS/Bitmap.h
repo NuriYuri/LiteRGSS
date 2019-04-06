@@ -2,7 +2,6 @@
 #define L_BITMAP_HEADER
 #include "ruby.h"
 #include <SFML/Graphics.hpp>
-#include "lodepng.h"
 
 VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self);
 VALUE rb_Bitmap_Initialize_Copy(VALUE self, VALUE other);

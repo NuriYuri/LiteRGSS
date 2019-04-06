@@ -100,7 +100,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
 	}
     else
     {
-        global_Graphics_Bind(&text);
+        global_Graphics_Bind(text);
         table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
         text.rViewport = Qnil;
     }

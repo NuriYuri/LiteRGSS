@@ -57,7 +57,7 @@ namespace rb {
     VALUE AllocDrawable(VALUE klass) {
         auto value = new T();
         auto self = Data_Wrap_Struct(klass, Mark<T>, Free<T>, value);
-        value->self = self;
+        value->setSelf(self);
         return self;
     }
 

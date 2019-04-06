@@ -1,4 +1,5 @@
 #include "LiteRGSS.h"
+#include "CGraphics.h"
 #include "CViewport_Element.h"
 #include "CRect_Element.h"
 #include "CTone_Element.h"
@@ -85,7 +86,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     rb_ivar_set(self, rb_iElementTable, rb_ary_new());
     /* Viewport setting */
     auto& viewport = rb::Get<CViewport_Element>(self);
-    global_Graphics_Bind(&viewport);
+    global_Graphics_Bind(viewport);
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_ary_push(table, self);
     viewport.setOx(0);
@@ -304,8 +305,8 @@ void Viewport_AdjustZoomAngle(CViewport_Element& viewport, VALUE rect)
 	view.setSize(static_cast<float>(width), static_cast<float>(height));
 	view.setRotation(-NUM2DBL(viewport.rAngle));
 	view.zoom(NUM2DBL(viewport.rZoom));
-	float sw = static_cast<float>(ScreenWidth);
-	float sh = static_cast<float>(ScreenHeight);
+	float sw = static_cast<float>(CGraphics::Get().screenWidth());
+	float sh = static_cast<float>(CGraphics::Get().screenHeight());
 	sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
 	view.setViewport(frect);
 }
@@ -412,8 +413,8 @@ void Viewport_SetView(CViewport_Element& viewport, long x, long y, long width, l
     view.setSize(static_cast<float>(width), static_cast<float>(height));
 	view.setRotation(-NUM2DBL(viewport.rAngle));
 	view.zoom(NUM2DBL(viewport.rZoom));
-    float sw = static_cast<float>(ScreenWidth);
-    float sh = static_cast<float>(ScreenHeight);
+    float sw = static_cast<float>(CGraphics::Get().screenWidth());
+    float sh = static_cast<float>(CGraphics::Get().screenHeight());
     sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
     view.setViewport(frect);
     // viewport.reset_render();

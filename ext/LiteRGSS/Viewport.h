@@ -2,6 +2,7 @@
 #define L_VIEWPORT_H
 #include "utils/rbAdapter.h"
 
+class CViewport_Element;
 VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Viewport_Copy(VALUE self);
 VALUE rb_Viewport_getOX(VALUE self);

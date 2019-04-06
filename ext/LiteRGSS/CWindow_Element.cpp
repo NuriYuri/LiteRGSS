@@ -1,6 +1,8 @@
 #include "LiteRGSS.h"
+#include "Bitmap.h"
 #include "CViewport_Element.h"
 #include "CWindow_Element.h"
+#include "CGraphics.h"
 #include "CRect_Element.h"
 #include <iostream>
 
@@ -564,8 +566,8 @@ void CWindow_Element::updateView()
 	view.setCenter(static_cast<float>(NUM2LONG(rOX) + width / 2),
 		static_cast<float>(NUM2LONG(rOY) + height / 2));
 	view.setSize(static_cast<float>(width), static_cast<float>(height));
-	float sw = static_cast<float>(ScreenWidth);
-	float sh = static_cast<float>(ScreenHeight);
+	float sw = static_cast<float>(CGraphics::Get().screenWidth());
+	float sh = static_cast<float>(CGraphics::Get().screenHeight());
 	sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
 	view.setViewport(frect);
 }
@@ -625,23 +627,6 @@ void CWindow_Element::resetCursorPosition(sf::IntRect * rect)
 
 void CWindow_Element::updateContentsOpacity() {
 	long opacity = NUM2LONG(rOpacity) * NUM2LONG(rContentOpacity) / 255;
-	for (auto& sp : getStack()) {
-		CText_Element* text = dynamic_cast<CText_Element*>(sp);
-		if (text != nullptr) {
-			auto& text2 = text->getText();
-			sf::Color col = sf::Color(text2.getFillColor());
-			col.a = opacity;
-			text2.setFillColor(col);
-			col = sf::Color(text2.getOutlineColor());
-			col.a = opacity;
-			text2.setOutlineColor(col);
-		} else {
-			CSprite_Element* sprite = dynamic_cast<CSprite_Element*>(sp);
-			if (sprite != nullptr) {
-				sf::Color col = sf::Color(sprite->getSprite().getColor());
-				col.a = opacity;
-				sprite->getSprite().setColor(col);
-			}
-		}
-	}
+	
+	CView_Element::updateContentsOpacity(opacity);
 }

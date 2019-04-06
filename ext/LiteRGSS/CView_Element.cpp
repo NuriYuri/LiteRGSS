@@ -1,30 +1,17 @@
 #include "CView_Element.h"
 
-#include "SpriteDisposer.h"
-
-extern ID rb_iElementTable;
-
-CView_Element::~CView_Element() {
-    clearStack();
-}
-
 void CView_Element::detachSprites() {
-    for(auto& it : stack) {
-		it->overrideOrigineStack();
-	}
-	stack.clear();
-}
-
-void CView_Element::clearStack()  {
-	DisposeAllSprites(rb_ivar_get(self, rb_iElementTable));
+    stack->detachSprites();
 }
 
 void CView_Element::bind(CDrawable_Element& drawable) {
-	drawable.setOriginStack(stack);
+	stack->bind(drawable);
 }
 
 void CView_Element::drawFast(sf::RenderTarget& target) const  {
-    for(auto& sp: stack) {
-        sp->drawFast(target);
-    }
+    stack->drawFast(target);
+}
+
+void CView_Element::updateContentsOpacity(long opacity) {
+    stack->updateContentsOpacity(opacity);
 }

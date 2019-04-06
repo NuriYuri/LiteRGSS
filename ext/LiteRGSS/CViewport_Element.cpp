@@ -1,6 +1,7 @@
 #include <cassert>
 #include "LiteRGSS.h"
 #include "CViewport_Element.h"
+#include "CGraphics.h"
 #include "CRect_Element.h"
 #include "Graphics.local.h"
 #include "CTone_Element.h"
@@ -11,7 +12,7 @@ std::unique_ptr<sf::Sprite> CViewport_Element::render_sprite = nullptr;
 
 CViewport_Element::~CViewport_Element() 
 {
-    if(game_window == nullptr || !game_window->isOpen()) {
+    if(!CGraphics::Get().isGameWindowOpen()) {
         std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
 	}
 
@@ -196,9 +197,10 @@ void CViewport_Element::create_render()
 	// If the global viewport render doesn't exist, we create it
 	if (!render)
 	{
+		const auto& graphics = CGraphics::Get();
 		render = std::make_unique<sf::RenderTexture>();
-		render->create(ScreenWidth, ScreenHeight);
-		render->setSmooth(SmoothScreen);
+		render->create(graphics.screenWidth(), graphics.screenHeight());
+		render->setSmooth(graphics.smoothScreen());
 		render_sprite = std::make_unique<sf::Sprite>();
 	}
 	// Return if the render texture (internal_texture) is already created

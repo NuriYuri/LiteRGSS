@@ -1,11 +1,9 @@
+#include <iostream>
 #include "CDrawable_Element.h"
 #include "CRect_Element.h"
-#include <iostream>
 
 extern ID rb_iElementTable;
 extern VALUE rb_mGraphics;
-extern std::vector<CDrawable_Element*> Graphics_stack;
-extern bool InsideGraphicsUpdate;
 extern VALUE rb_eRGSSError;
 
 void CDrawable_Element::resetOriginStack() {
@@ -30,16 +28,26 @@ void CDrawable_Element::bindRect(CRect_Element* rect) {
     }
 }
 
-void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o) 
-{
-    
+template <typename S, typename Checker>
+inline bool erase_if(S & container, Checker&& checker) {
+    auto it = std::begin(container);
+    auto last = std::end(container);
+    while(it != last) {
+		if(Checker(checker)(*it)) {
+			it = container.erase(it);
+            return true;
+		} else {
+			it++;
+        }
+	}
+    return false;
+}
+
+void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)  {
     /* Removing from the old stack */
     if(origin_stack != nullptr)
     {
-        auto it = std::find(origin_stack->begin(), origin_stack->end(), this);
-        if(it != origin_stack->end()) {
-            origin_stack->erase(it);
-        } else {
+        if(!erase_if(*origin_stack, [&](const CDrawable_Element* drawable) { return drawable == this; })) {
             rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
         }
     }
@@ -53,7 +61,7 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)
     }
 }
 
-CDrawable_Element::~CDrawable_Element() {    
+CDrawable_Element::~CDrawable_Element() {  
     bindRect(nullptr);
 
     resetOriginStack();
@@ -67,7 +75,6 @@ CDrawable_Element::~CDrawable_Element() {
     RDATA(self)->data = nullptr;
 }
 
-unsigned long CDrawable_Element::getIndex()
-{
+unsigned long CDrawable_Element::getIndex() {
     return index;
 }

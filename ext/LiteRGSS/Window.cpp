@@ -1,4 +1,5 @@
 #include "LiteRGSS.h"
+#include "Bitmap.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
 
@@ -117,7 +118,7 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 	/* Otherwise */
 	else
 	{
-		global_Graphics_Bind(&window);
+		global_Graphics_Bind(window);
 		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
 		window.rViewport = Qnil;
 	}

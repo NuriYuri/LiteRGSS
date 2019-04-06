@@ -1,5 +1,10 @@
 #include <iostream>
-#include "LiteRGSS.h"
+#include "utils/ruby_common.h"
+#include "utils/common.h"
+#include "lodepng.h"
+#include "Bitmap.h"
+#include "CViewport_Element.h"
+#include "CGraphics.h"
 #include "utils/rbAdapter.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
@@ -88,7 +93,7 @@ VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self) {
         }
         //rb_raise(rb_eRGSSError, "Bitmap no longer allow drawing, thus Bitmap.new(width, height) is not allowed.");
     }
-    text.setSmooth(SmoothScreen);
+    text.setSmooth(CGraphics::Get().smoothScreen());
     return self;
 }
 

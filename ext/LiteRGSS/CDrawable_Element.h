@@ -19,6 +19,9 @@ class CDrawable_Element {
         CRect_Element* linkedRect = nullptr;
         unsigned long index = 0;
         bool disposeFromViewport_ = false;
+    protected:
+        VALUE self = Qnil;
+
     public:
         CDrawable_Element() = default;
         virtual ~CDrawable_Element();
@@ -30,12 +33,17 @@ class CDrawable_Element {
         virtual bool isViewport() const = 0;
         virtual bool isPureSprite() const = 0;
 		virtual bool isShape() const = 0;
+        void setSelf(VALUE self) {
+            this->self = self;
+            onSelfSetted();
+        }
+        virtual void onSelfSetted() {}
         void disposeFromViewport() { RDATA(self)->data = nullptr; disposeFromViewport_ = true;}
         void bindRect(CRect_Element* rect);
         CRect_Element* getRect() const { return linkedRect; };
 
         /* Instance variable for Ruby */
         VALUE rViewport = Qnil;
-        VALUE self = Qnil;
+        
 };
 #endif

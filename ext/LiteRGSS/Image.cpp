@@ -1,4 +1,5 @@
 #include "LiteRGSS.h"
+#include "Bitmap.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
 

@@ -1,5 +1,6 @@
 #include "LiteRGSS.h"
 #include "CTone_Element.h"
+#include "Bitmap.h"
 
 VALUE rb_cShader = Qnil;
 
