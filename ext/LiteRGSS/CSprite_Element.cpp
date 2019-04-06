@@ -1,4 +1,3 @@
-#include <iostream>
 #include "CViewport_Element.h"
 
 void CSprite_Element::draw(sf::RenderTarget& target) const 

@@ -3,7 +3,6 @@
 #include "ruby.h" // Windows Build Patch
 #include <SFML/Graphics.hpp>
 #include "sf_Text2.hpp"
-#include <iostream>
 #include <vector>
 #include <algorithm>
 

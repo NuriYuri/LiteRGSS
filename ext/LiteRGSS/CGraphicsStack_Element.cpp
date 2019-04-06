@@ -1,5 +1,5 @@
-#include <iostream>
 #include <cassert>
+#include "utils/ruby_common.h"
 #include "CGraphicsStack_Element.h"
 #include "CDrawable_Element.h"
 #include "SpriteDisposer.h"
@@ -12,7 +12,6 @@ extern ID rb_iElementTable;
 CGraphicsStack_Element::CGraphicsStack_Element(VALUE& self) : 
     self_(self) {
 	assert(isSelfValid());
-	std::cout << "CREATING A GRAPHICS STACK" << std::endl;
 }
 
 CGraphicsStack_Element::~CGraphicsStack_Element() {
@@ -47,7 +46,6 @@ void CGraphicsStack_Element::draw(sf::View& defview, sf::RenderTarget& target) c
 void CGraphicsStack_Element::clearStack()  {
 	const auto array = rb_ivar_get(self_, rb_iElementTable);
 	if(array != Qnil) {
-		std::cout << "DELETING A GRAPHICS STACK" << std::endl;
 		DisposeAllSprites(array);
 	}	
 }
