@@ -144,7 +144,6 @@ VALUE rb_Graphics_setShader(VALUE self, VALUE shader)
 		rb_ivar_set(self, rb_iGraphicsShader, shader);
 		Data_Get_Struct(shader, sf::RenderStates, render_state);
 		CGraphics::Get().setShader(render_state);
-		CGraphics::Get().initRender();
 	}
 	else if (shader == Qnil)
 	{
