@@ -11,7 +11,7 @@ extern ID rb_iElementTable;
 
 CGraphicsStack_Element::CGraphicsStack_Element(VALUE& self) : 
     self_(self) {
-	assert(isSelfValid());
+	assert(self_ != Qnil);
 }
 
 CGraphicsStack_Element::~CGraphicsStack_Element() {

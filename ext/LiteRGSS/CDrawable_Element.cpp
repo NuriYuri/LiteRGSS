@@ -10,7 +10,7 @@ void CDrawable_Element::resetOriginStack() {
     setOriginStack(nullptr);
 }
 
-void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*>& o) {
+void CDrawable_Element::setOriginStack(vector_tracker<CDrawable_Element*>& o) {
     setOriginStack(&o);
 }
 
@@ -28,26 +28,16 @@ void CDrawable_Element::bindRect(CRect_Element* rect) {
     }
 }
 
-template <typename S, typename Checker>
-inline bool erase_if(S & container, Checker&& checker) {
-    auto it = std::begin(container);
-    auto last = std::end(container);
-    while(it != last) {
-		if(Checker(checker)(*it)) {
-			it = container.erase(it);
-            return true;
-		} else {
-			it++;
-        }
-	}
-    return false;
-}
-
-void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)  {
+void CDrawable_Element::setOriginStack(vector_tracker<CDrawable_Element*> *o)  {
+    /* if the stack is already setted, nothing to be done */
+    if(origin_stack == o) {
+        return;
+    }
+    
     /* Removing from the old stack */
     if(origin_stack != nullptr)
     {
-        if(!erase_if(*origin_stack, [&](const CDrawable_Element* drawable) { return drawable == this; })) {
+        if(!origin_stack->remove(this)) {
             rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
         }
     }
@@ -55,8 +45,8 @@ void CDrawable_Element::setOriginStack(std::vector<CDrawable_Element*> *o)  {
     if(o != nullptr)
     {
         origin_stack->push_back(this);
-        if(index == 0) {
-            index = origin_stack->size();
+        if(drawPriority == 0) {
+            drawPriority = origin_stack->size();
         }
     }
 }
@@ -76,5 +66,5 @@ CDrawable_Element::~CDrawable_Element() {
 }
 
 unsigned long CDrawable_Element::getIndex() {
-    return index;
+    return drawPriority;
 }

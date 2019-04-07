@@ -1,8 +1,8 @@
 #ifndef CGraphicsStack_Element_H
 #define CGraphicsStack_Element_H
 
-#include <vector>
 #include <SFML/Graphics.hpp>
+#include "utils/container/vector_tracker.h"
 #include "ruby.h"
 
 class CDrawable_Element;
@@ -18,11 +18,8 @@ public:
     void updateContentsOpacity(long opacity);
 private:
     void clearStack();
-    bool isSelfValid() const {
-        return self_ != Qnil;
-    }
 
     VALUE self_ = Qnil;
-    std::vector<CDrawable_Element*> stack;
+    vector_tracker<CDrawable_Element*> stack;
 };
 #endif
