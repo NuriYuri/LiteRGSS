@@ -3,6 +3,7 @@
 #include <memory>
 #include "ruby.h"
 #include "CGraphicsStack_Element.h"
+#include "CGraphicsConfig.h"
 
 struct GraphicUpdateMessage {
     VALUE errorObject;
@@ -75,27 +76,10 @@ private:
     CGraphics();
 
     void takeSnapshotOn(sf::Texture& text) const;
-    void loadVideoModeFromConfigs();
-    void loadSmoothScreenFromConfigs();
-    const sf::String loadTitleFromConfigs();
-    
     void drawBrightness();
-    
-    void loadVideoModeFromConfigs(sf::VideoMode& vmode);
-    unsigned int loadFrameRateFromConfigs();
-    bool loadVSYNCFromConfigs();
-    bool loadFullScreenFromConfigs();
 
     void transitionBasic(VALUE self, long time);
     void transitionRGSS(VALUE self, long time, VALUE bitmap);
-
-    void setScreenWidth(long screenWidth) {
-        ScreenWidth = screenWidth;
-    }
-
-    void setScreenHeight(long screenHeight) {
-        ScreenHeight = screenHeight;
-    }
 
     void setSmoothScreen(bool smoothScreen) {
         SmoothScreen = smoothScreen;
@@ -106,14 +90,13 @@ private:
     }
 
     VALUE updateRaiseError(VALUE self, const GraphicUpdateMessage& message);
-    sf::RenderTarget* updateDrawPreProc(sf::View& defview);
+    sf::RenderTarget& updateDrawPreProc(sf::View& defview);
     void updateDrawPostProc();
     void updateProcessEvent(GraphicUpdateMessage& message);
     
     bool clearStack();
     void protect();
 
-    //Config only : TODO : move from here to another class
     bool SmoothScreen = false;
     long ScreenWidth = 640;
     long ScreenHeight = 480;
@@ -121,7 +104,6 @@ private:
     unsigned char Graphics_Brightness = 255;
     unsigned long frame_count = 0;
     unsigned long frame_rate = 60;
-    //End config
 
     bool InsideGraphicsUpdate = false;
 
@@ -135,6 +117,8 @@ private:
     bool RGSSTransition = false;
     std::unique_ptr<sf::RenderTexture> Graphics_Render = nullptr;
     sf::RenderStates* Graphics_States = nullptr;
+
+    CGraphicsConfigLoader m_configLoader;
 };
 
 #endif

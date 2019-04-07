@@ -14,55 +14,11 @@
 
 CGraphics::CGraphics() {}
 
-void CGraphics::loadVideoModeFromConfigs(sf::VideoMode& vmode) {
-    ID swidth = rb_intern("ScreenWidth");
-    ID sheight = rb_intern("ScreenHeight");
-    ID sscale = rb_intern("ScreenScale");
-    long max_width, max_height = 0xFFFFFF;
-    double scale = 1;
-    std::vector<sf::VideoMode> modes = sf::VideoMode::getFullscreenModes();
-    /* If there's a fullscreen mode */
-    if(modes.size() > 0)
-    {
-        max_width = modes[0].width;
-        max_height = modes[0].height;
-        vmode.bitsPerPixel = modes[0].bitsPerPixel;
-    }
-    /* Adjust Width */
-    if(rb_const_defined(rb_mConfig, swidth))
-        vmode.width = normalize_long(rb_num2long(rb_const_get(rb_mConfig, swidth)), 160, max_width);
-    /* Adjust Height */
-    if(rb_const_defined(rb_mConfig, sheight))
-        vmode.height = normalize_long(rb_num2long(rb_const_get(rb_mConfig, sheight)), 144, max_height);
-    /* Adjust Scale */
-    if(rb_const_defined(rb_mConfig, sscale))
-        scale = normalize_double(NUM2DBL(rb_const_get(rb_mConfig, sscale)), 0.1, 10);
-    setScreenWidth(vmode.width);
-    setScreenHeight(vmode.height);
-    vmode.width *= scale;
-    vmode.height *= scale;
-    Graphics_Scale = scale;
-}
-
-void CGraphics::loadSmoothScreenFromConfigs() {
-    ID fsc = rb_intern("SmoothScreen");
-    setSmoothScreen(rb_const_defined(rb_mConfig, fsc) && RTEST(rb_const_get(rb_mConfig, fsc)));
-}
-
-const sf::String CGraphics::loadTitleFromConfigs() {
-    ID title = rb_intern("Title");
-    if(rb_const_defined(rb_mConfig, title))
-    {
-        VALUE str_title = rb_const_get(rb_mConfig, title);
-        rb_check_type(str_title, T_STRING);
-        std::string str(RSTRING_PTR(str_title));
-        return sf::String::fromUtf8(str.begin(), str.end());
-    }
-    return sf::String("LiteRGSS");
-}
 
 VALUE CGraphics::init(VALUE self) {
     setSelf(self);
+
+    std::cout << "init !" << std::endl;
 
     if(game_window != nullptr) {
         return Qnil;
@@ -71,27 +27,28 @@ VALUE CGraphics::init(VALUE self) {
     if (!sf::Shader::isAvailable()) {
         rb_raise(rb_eRGSSError, "Shaders are not available :(");
     }
+    
     /* Window Loading */
-    sf::VideoMode vmode(640, 480, 32);
-    loadVideoModeFromConfigs(vmode);
-    loadSmoothScreenFromConfigs();
-    auto title = loadTitleFromConfigs();
-    
-    sf::Uint32 style = sf::Style::Close | sf::Style::Titlebar; // sf::Style::Resize = text issues !
-    if(loadFullScreenFromConfigs())
-        style = sf::Style::Fullscreen;
-    game_window = std::make_unique<sf::RenderWindow>(vmode, std::move(title), style);
-    game_window->setMouseCursorVisible(false);
-    
-	frame_rate = loadFrameRateFromConfigs();
+    auto config = m_configLoader.load();
+    SmoothScreen = config.smoothScreen;
+    ScreenWidth = config.video.width;
+    ScreenHeight = config.video.height;
+    Graphics_Scale = config.video.scale;
+    frame_rate = config.frameRate;
     frame_count = 0;
 
+    std::cout << ScreenWidth << "x" << ScreenHeight << " " << Graphics_Scale << std::endl;
+
+    sf::Uint32 style = sf::Style::Close | sf::Style::Titlebar; // sf::Style::Resize = text issues !
+    if(config.fullscreen) {
+        style = sf::Style::Fullscreen;
+    }
+    game_window = std::make_unique<sf::RenderWindow>(config.video.vmode, std::move(config.title), style);
+    game_window->setMouseCursorVisible(false);
+
 	/* VSYNC choice */
-	if(loadVSYNCFromConfigs())
-		game_window->setVerticalSyncEnabled(true);
-	else
-	{
-		game_window->setVerticalSyncEnabled(false);
+    game_window->setVerticalSyncEnabled(config.vSync);
+	if(!config.vSync) {
 		game_window->setFramerateLimit(frame_rate);
 	}
 
@@ -103,9 +60,37 @@ VALUE CGraphics::init(VALUE self) {
 	loadShader();
 
 	/* Render resize */
-	if (Graphics_Render != nullptr)
-		Graphics_Render->create(screenWidth(), screenHeight());
+	if (Graphics_Render != nullptr) {
+		Graphics_Render->create(ScreenWidth, ScreenHeight);
+    }
     return self;
+}
+
+void CGraphics::resizeScreen(VALUE self, VALUE width, VALUE height) {
+    protect();
+    ID swidth = rb_intern("ScreenWidth");
+	ID sheight = rb_intern("ScreenHeight");
+	/* Adjust screen resolution */
+	if (rb_const_defined(rb_mConfig, swidth))
+		rb_const_remove(rb_mConfig, swidth);
+	if (rb_const_defined(rb_mConfig, sheight))
+		rb_const_remove(rb_mConfig, sheight);
+	rb_const_set(rb_mConfig, swidth, INT2NUM(NUM2INT(width)));
+	rb_const_set(rb_mConfig, sheight, INT2NUM(NUM2INT(height)));
+	
+    /* Close the window */
+    game_window->close();
+    game_window = nullptr;
+	
+    /* Restart Graphics */
+    init(self);
+	
+    /* Reset viewport render */
+	if (CViewport_Element::render)
+	{
+		CViewport_Element::render->create(NUM2INT(width), NUM2INT(height));
+		CViewport_Element::render->setSmooth(SmoothScreen);
+	}
 }
 
 void CGraphics::drawBrightness()
@@ -118,70 +103,6 @@ void CGraphics::drawBrightness()
 	vertices[3].position = sf::Vector2f(size.x, size.y);
 	vertices[0].color = vertices[1].color = vertices[2].color = vertices[3].color = sf::Color(0, 0, 0, 255 - Graphics_Brightness);
 	game_window->draw(vertices, 4, sf::PrimitiveType::TriangleStrip);
-}
-
-unsigned int CGraphics::loadFrameRateFromConfigs()
-{
-    ID framerate = rb_intern("FrameRate");
-    if(rb_const_defined(rb_mConfig, framerate))
-        return normalize_long(rb_num2long(rb_const_get(rb_mConfig, framerate)), 1, 120);
-    return 60;
-}
-
-bool CGraphics::loadVSYNCFromConfigs()
-{
-    ID vsync = rb_intern("Vsync");
-    if(rb_const_defined(rb_mConfig, vsync))
-        return RTEST(rb_const_get(rb_mConfig, vsync));
-    return true;
-}
-
-bool CGraphics::loadFullScreenFromConfigs()
-{
-    ID fsc = rb_intern("FullScreen");
-    if(rb_const_defined(rb_mConfig, fsc))
-        return RTEST(rb_const_get(rb_mConfig, fsc));
-    return false;
-}
-
-void CGraphics::transitionBasic(VALUE self, long time)
-{
-	RGSSTransition = false;
-	sf::Color freeze_color(255, 255, 225, 255);
-	for (long i = 1; i <= time; i++)
-	{
-		freeze_color.a = 255 * (time - i) / time;
-		Graphics_freeze_sprite->setColor(freeze_color);
-		update(self);
-	}
-}
-
-void CGraphics::transitionRGSS(VALUE self, long time, VALUE bitmap)
-{
-	Graphics_freeze_sprite->setColor(sf::Color(255, 255, 255, 255));
-	RGSSTransition = true;
-    if(Graphics_freeze_shader != nullptr) {
-        auto& bitmap_ = rb::GetSafe<CBitmap_Element>(bitmap, rb_cBitmap);
-        Graphics_freeze_shader->setUniform("transition", bitmap_.getTexture());
-        for (long i = 1; i <= time; i++) {
-            Graphics_freeze_shader->setUniform("param", static_cast<float>(i) / time);
-            update(self);
-        }
-    }
-}
-
-void* Graphics_Update_Internal(void* data) {
-    auto& self = *reinterpret_cast<CGraphics*>(data);
-    
-    if(self.isGameWindowOpen()) {       
-        self.updateDraw();
-        return nullptr;
-    }
-
-    auto message = std::make_unique<GraphicUpdateMessage>();
-    message->errorObject = rb_eStoppedGraphics;
-    message->message = "Game Window was closed during Graphics.update by a unknow cause...";
-    return message.release();
 }
 
 VALUE CGraphics::updateRaiseError(VALUE self, const GraphicUpdateMessage& message) {
@@ -219,15 +140,11 @@ VALUE CGraphics::updateRaiseError(VALUE self, const GraphicUpdateMessage& messag
 // This function retreive the right render to perform the draw operations
 // It also resets the default view and transmit it to the right render
 //
-sf::RenderTarget* CGraphics::updateDrawPreProc(sf::View& defview)
+sf::RenderTarget& CGraphics::updateDrawPreProc(sf::View& defview)
 {
-	// Getting the basic render target
-	sf::RenderTarget* render_target = game_window.get();
 	// Setting the default view parameters
-    auto screenWidth = CGraphics::Get().screenWidth();
-    auto screenHeight = CGraphics::Get().screenHeight();
-	defview.setSize(screenWidth, screenHeight);
-	defview.setCenter(round(screenWidth / 2.0f), round(screenHeight / 2.0f));
+	defview.setSize(ScreenWidth, ScreenHeight);
+	defview.setCenter(round(ScreenWidth / 2.0f), round(ScreenHeight / 2.0f));
 	// Appying the default view to the Window (used in updateDrawPostProc)
 	game_window->setView(defview);
 	// If the Graphics_Render is defined, we use it instead of the game_window (shader processing)
@@ -237,9 +154,9 @@ sf::RenderTarget* CGraphics::updateDrawPreProc(sf::View& defview)
 		Graphics_Render->setView(defview);
 		// It's not cleard so we perform the clear operation
 		Graphics_Render->clear();
-		render_target = Graphics_Render.get();
+		return *Graphics_Render.get();
 	}
-	return render_target;
+	return *game_window.get();
 }
 
 //
@@ -330,13 +247,14 @@ void CGraphics::updateDraw() {
     game_window->clear();
    
     sf::View defview = game_window->getDefaultView();
-	sf::RenderTarget* render_target = updateDrawPreProc(defview);
+	auto& render_target = updateDrawPreProc(defview);
 
 	// Rendering stuff
-    Graphics_stack->draw(defview, *render_target);
+    Graphics_stack->draw(defview, render_target);
 	
     // Perform the post proc
 	updateDrawPostProc();
+
 	// Update the brightness (applied to game_window)
 	if (Graphics_Brightness != 255) {
 		drawBrightness();
@@ -344,7 +262,6 @@ void CGraphics::updateDraw() {
 
     game_window->display();
 }
-
 
 
 const std::string GraphicsTransitionFragmentShader = \
@@ -391,14 +308,11 @@ VALUE CGraphics::takeSnapshot() {
     return bmp;
 }
 
-void CGraphics::initRender()
-{
+void CGraphics::initRender() {
     protect();
-    auto screenWidth = CGraphics::Get().screenWidth();
-    auto screenHeight = CGraphics::Get().screenHeight();
 	if (Graphics_Render == nullptr && Graphics_States != nullptr) {
 		Graphics_Render = std::make_unique<sf::RenderTexture>();
-		Graphics_Render->create(screenWidth, screenHeight);
+		Graphics_Render->create(ScreenWidth, ScreenHeight);
 	}
 }
 
@@ -422,7 +336,6 @@ bool CGraphics::clearStack() {
         return false;
     }
 
-    std::cout << "CLEARING Graphics Stack" << std::endl;
     DisposeAllSprites(rb_ivar_get(rb_mGraphics, rb_iElementTable));
 
     /* Disposing each Bitmap */
@@ -434,6 +347,31 @@ bool CGraphics::clearStack() {
     rb_protect(local_Graphics_call_gc_start, Qnil, &state);
 
     return true;
+}
+
+void CGraphics::reloadStack() {
+    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+    rb_check_type(table, T_ARRAY);
+    Graphics_stack->detachSprites();  
+    long sz = RARRAY_LEN(table);
+    VALUE* ori = RARRAY_PTR(table);
+    for(long i = 0; i < sz; i++)
+    {
+        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue ||
+            rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue ||
+            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue ||
+			rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
+        {
+            if(RDATA(ori[i])->data != nullptr)
+            {
+                Graphics_stack->bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
+            }
+        }
+    }
+}
+
+void CGraphics::bind(CDrawable_Element& element) {
+    Graphics_stack->bind(element);
 }
 
 void CGraphics::stop() {
@@ -490,6 +428,32 @@ void CGraphics::takeSnapshotOn(sf::Texture& text) const {
     text.update(*game_window, x, y);
 }
 
+void CGraphics::transitionBasic(VALUE self, long time)
+{
+	RGSSTransition = false;
+	sf::Color freeze_color(255, 255, 225, 255);
+	for (long i = 1; i <= time; i++)
+	{
+		freeze_color.a = 255 * (time - i) / time;
+		Graphics_freeze_sprite->setColor(freeze_color);
+		update(self);
+	}
+}
+
+void CGraphics::transitionRGSS(VALUE self, long time, VALUE bitmap)
+{
+	Graphics_freeze_sprite->setColor(sf::Color(255, 255, 255, 255));
+	RGSSTransition = true;
+    if(Graphics_freeze_shader != nullptr) {
+        auto& bitmap_ = rb::GetSafe<CBitmap_Element>(bitmap, rb_cBitmap);
+        Graphics_freeze_shader->setUniform("transition", bitmap_.getTexture());
+        for (long i = 1; i <= time; i++) {
+            Graphics_freeze_shader->setUniform("param", static_cast<float>(i) / time);
+            update(self);
+        }
+    }
+}
+
 void CGraphics::transition(VALUE self, int argc, VALUE* argv) {
     protect();
     if(Graphics_freeze_sprite == nullptr) {
@@ -507,6 +471,20 @@ void CGraphics::transition(VALUE self, int argc, VALUE* argv) {
     
     Graphics_freeze_sprite = nullptr;
     Graphics_freeze_texture = nullptr;
+}
+
+void* Graphics_Update_Internal(void* data) {
+    auto& self = *reinterpret_cast<CGraphics*>(data);
+    
+    if(self.isGameWindowOpen()) {       
+        self.updateDraw();
+        return nullptr;
+    }
+
+    auto message = std::make_unique<GraphicUpdateMessage>();
+    message->errorObject = rb_eStoppedGraphics;
+    message->message = "Game Window was closed during Graphics.update by a unknow cause...";
+    return message.release();
 }
 
 VALUE CGraphics::update(VALUE self) {
@@ -572,58 +550,6 @@ VALUE CGraphics::updateOnlyInput(VALUE self) {
     }
 	InsideGraphicsUpdate = false;
     return result;
-}
-
-void CGraphics::reloadStack() {
-    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    rb_check_type(table, T_ARRAY);
-    Graphics_stack->detachSprites();  
-    long sz = RARRAY_LEN(table);
-    VALUE* ori = RARRAY_PTR(table);
-    for(long i = 0; i < sz; i++)
-    {
-        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue ||
-            rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue ||
-            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue ||
-			rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
-        {
-            if(RDATA(ori[i])->data != nullptr)
-            {
-                bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
-            }
-        }
-    }
-}
-
-void CGraphics::bind(CDrawable_Element& element) {
-    Graphics_stack->bind(element);
-}
-
-void CGraphics::resizeScreen(VALUE self, VALUE width, VALUE height) {
-    protect();
-    ID swidth = rb_intern("ScreenWidth");
-	ID sheight = rb_intern("ScreenHeight");
-	/* Adjust screen resolution */
-	if (rb_const_defined(rb_mConfig, swidth))
-		rb_const_remove(rb_mConfig, swidth);
-	if (rb_const_defined(rb_mConfig, sheight))
-		rb_const_remove(rb_mConfig, sheight);
-	rb_const_set(rb_mConfig, swidth, INT2NUM(NUM2INT(width)));
-	rb_const_set(rb_mConfig, sheight, INT2NUM(NUM2INT(height)));
-	
-    /* Close the window */
-    game_window->close();
-    game_window = nullptr;
-	
-    /* Restart Graphics */
-    init(self);
-	
-    /* Reset viewport render */
-	if (CViewport_Element::render)
-	{
-		CViewport_Element::render->create(NUM2INT(width), NUM2INT(height));
-		CViewport_Element::render->setSmooth(CGraphics::Get().smoothScreen());
-	}
 }
 
 void CGraphics::protect()  {
