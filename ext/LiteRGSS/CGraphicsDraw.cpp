@@ -1,21 +1,20 @@
 #include <cassert>
 #include "utils/ruby_common.h"
 #include "utils/common.h"
-
+#include "ruby/thread.h"
+#include "SpriteDisposer.h"
 #include "CBitmap_Element.h"
 #include "CViewport_Element.h"
+
+#include "CGraphicsSnapshot.h"
 #include "CGraphicsDraw.h"
 #include "CGraphics.h"
 
-void CGraphicsDraw::protect()  {
-    if(game_window == nullptr) {
-        constexpr auto rawErrorMessage = "Graphics is not started, window closed thus no Graphics operation allowed. Please call Graphics.start before using other Graphics functions.";
-        rb_raise(rb_eStoppedGraphics, rawErrorMessage);
-        throw std::runtime_error(rawErrorMessage);
-    }
-}
+CGraphicsDraw::CGraphicsDraw(CGraphicsSnapshot& snapshot) : m_snapshot(snapshot) {}
 
-void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config) {      
+void CGraphicsDraw::init(VALUE self, sf::RenderWindow& window, const CGraphicsConfig& config) {      
+    Graphics_stack = std::make_unique<CGraphicsStack_Element>(self);
+
     game_window = &window;
     game_window->setMouseCursorVisible(false);
 
@@ -31,41 +30,14 @@ void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config
     Graphics_Scale = config.video.scale;
     frame_rate = config.frameRate;
     
-	/* Shader loading */
-	loadShader();
-
 	/* Render resize */
 	if (Graphics_Render != nullptr) {
 		Graphics_Render->create(ScreenWidth, ScreenHeight);
     }
 }
 
-void CGraphicsDraw::loadShader() {
-    static constexpr const char* GraphicsTransitionFragmentShader = \
-        "uniform float param;" \
-        "uniform sampler2D texture;" \
-        "uniform sampler2D transition;" \
-        "const float sensibilite = 0.05;" \
-        "const float scale = 1.0 + sensibilite;" \
-        "void main()" \
-        "{" \
-        "  vec4 frag = texture2D(texture, gl_TexCoord[0].xy);" \
-        "  vec4 tran = texture2D(transition, gl_TexCoord[0].xy);" \
-        "  float pixel = max(max(tran.r, tran.g), tran.b);" \
-        "  pixel -= (param * scale);" \
-        "  if(pixel < sensibilite)" \
-        "  {" \
-        "    frag.a = max(0.0, sensibilite + pixel / sensibilite);" \
-        "  }" \
-        "  gl_FragColor = frag;" \
-        "}";
-
-    Graphics_freeze_shader = std::make_unique<sf::Shader>();
-	Graphics_freeze_shader->loadFromMemory(GraphicsTransitionFragmentShader, sf::Shader::Type::Fragment);
-}
-
 void CGraphicsDraw::resizeScreen(VALUE self, VALUE width, VALUE height) {
-    protect();
+    CGraphics::Get().protect();
     ID swidth = rb_intern("ScreenWidth");
 	ID sheight = rb_intern("ScreenHeight");
 	/* Adjust screen resolution */
@@ -115,8 +87,7 @@ sf::RenderTarget& CGraphicsDraw::updateDrawPreProc(sf::View& defview)
 	// Appying the default view to the Window (used in updateDrawPostProc)
 	game_window->setView(defview);
 	// If the Graphics_Render is defined, we use it instead of the game_window (shader processing)
-	if (Graphics_Render)
-	{
+	if (Graphics_Render) {
 		// Set the default view
 		Graphics_Render->setView(defview);
 		// It's not cleard so we perform the clear operation
@@ -142,24 +113,39 @@ void CGraphicsDraw::updateDrawPostProc() {
 		else
 			game_window->draw(sp, *Graphics_States);
 	}
-	// Display transition sprite
-	if (Graphics_freeze_sprite != nullptr)
-	{
-		if (RGSSTransition)
-			game_window->draw(*Graphics_freeze_sprite, Graphics_freeze_shader.get());
-		else
-			game_window->draw(*Graphics_freeze_sprite);
-	}
+    m_snapshot.draw(*game_window);
 }
 
-void CGraphicsDraw::update(CGraphicsStack_Element& stack) {
+bool CGraphicsDraw::isGameWindowOpen() const {
+    return game_window != nullptr && game_window->isOpen();
+}
+
+void* GraphicsDraw_Update_Internal(void* dataPtr) {
+    auto& self = *reinterpret_cast<CGraphicsDraw*>(dataPtr);
+    if(self.isGameWindowOpen()) {       
+        self.updateInternal();
+        return nullptr;
+    }
+
+    auto message = std::make_unique<GraphicsUpdateMessage>();
+    message->errorObject = rb_eStoppedGraphics;
+    message->message = "Game Window was closed during Graphics.update by a unknow cause...";
+    return message.release();
+}
+
+std::unique_ptr<GraphicsUpdateMessage> CGraphicsDraw::update() {
+    const auto result = rb_thread_call_without_gvl(GraphicsDraw_Update_Internal, static_cast<void*>(this), NULL, NULL);
+    return std::unique_ptr<GraphicsUpdateMessage>(reinterpret_cast<GraphicsUpdateMessage*>(result));
+}
+
+void CGraphicsDraw::updateInternal() {
     game_window->clear();
    
     sf::View defview = game_window->getDefaultView();
 	auto& render_target = updateDrawPreProc(defview);
 
 	// Rendering stuff
-    stack.draw(defview, render_target);
+    Graphics_stack->draw(defview, render_target);
 	
     // Perform the post proc
 	updateDrawPostProc();
@@ -173,7 +159,7 @@ void CGraphicsDraw::update(CGraphicsStack_Element& stack) {
 }
 
 void CGraphicsDraw::initRender() {
-    protect();
+    CGraphics::Get().protect();
 	if (Graphics_Render == nullptr && Graphics_States != nullptr) {
 		Graphics_Render = std::make_unique<sf::RenderTexture>();
 		Graphics_Render->create(ScreenWidth, ScreenHeight);
@@ -187,108 +173,64 @@ void CGraphicsDraw::setShader(sf::RenderStates* shader) {
     }
 }
 
-VALUE CGraphicsDraw::freeze(VALUE self) {
-    protect();
-    if(Graphics_freeze_texture != nullptr) {
+extern "C" {
+    VALUE local_Graphics_call_gc_start(VALUE ignored) {
+        rb_gc_start();
         return Qnil;
     }
-    auto result = CGraphics::Get().update(self);
-    Graphics_freeze_texture = std::make_unique<sf::Texture>();
-    takeSnapshotOn(*Graphics_freeze_texture);
-    Graphics_freeze_sprite = std::make_unique<sf::Sprite>(*Graphics_freeze_texture);
-    Graphics_freeze_sprite->setScale(1.0f / Graphics_Scale, 1.0f / Graphics_Scale);
-    return self;
-}
 
-void CGraphicsDraw::takeSnapshotOn(sf::Texture& text) const {
-    sf::Vector2u sc_sz = game_window->getSize();
-    int x = 0;
-    int y = 0;
-    auto screenWidth = CGraphics::Get().screenWidth();
-    auto screenHeight = CGraphics::Get().screenHeight();
-    int sw = screenWidth * Graphics_Scale;
-    int sh = screenHeight * Graphics_Scale;
-    if(sc_sz.x < sw)
-    {
-        x = sw - sc_sz.x;
+    VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE* argv) {
+        if(RDATA(block_arg)->data != nullptr) {
+            rb::Dispose<CBitmap_Element>(block_arg);
+        }
+        return Qnil;
     }
-    else
-        sw = sc_sz.x;
-    if(sc_sz.y < sh)
-    {
-        y = sh - sc_sz.y;
-    }
-    else
-        sh = sc_sz.y;
-    text.create(sw, sh);
-    text.update(*game_window, x, y);
 }
 
-void CGraphicsDraw::transitionBasic(VALUE self, long time)
-{
-	RGSSTransition = false;
-	sf::Color freeze_color(255, 255, 225, 255);
-	for (long i = 1; i <= time; i++)
-	{
-		freeze_color.a = 255 * (time - i) / time;
-		Graphics_freeze_sprite->setColor(freeze_color);
-		CGraphics::Get().update(self);
-	}
+void CGraphicsDraw::clearRubyStack() {
+    DisposeAllSprites(rb_ivar_get(rb_mGraphics, rb_iElementTable));
+
+    /* Disposing each Bitmap */
+    auto objectSpace = rb_const_get(rb_cObject, rb_intern("ObjectSpace"));
+
+    rb_block_call(objectSpace, rb_intern("each_object"), 1, &rb_cBitmap, (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);
+
+    int state;
+    rb_protect(local_Graphics_call_gc_start, Qnil, &state);
 }
 
-void CGraphicsDraw::transitionRGSS(VALUE self, long time, VALUE bitmap)
-{
-	Graphics_freeze_sprite->setColor(sf::Color(255, 255, 255, 255));
-	RGSSTransition = true;
-    if(Graphics_freeze_shader != nullptr) {
-        auto& bitmap_ = rb::GetSafe<CBitmap_Element>(bitmap, rb_cBitmap);
-        Graphics_freeze_shader->setUniform("transition", bitmap_.getTexture());
-        for (long i = 1; i <= time; i++) {
-            Graphics_freeze_shader->setUniform("param", static_cast<float>(i) / time);
-            CGraphics::Get().update(self);
+void CGraphicsDraw::reloadStack() {
+    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+    rb_check_type(table, T_ARRAY);
+    Graphics_stack->detachSprites();  
+    long sz = RARRAY_LEN(table);
+    VALUE* ori = RARRAY_PTR(table);
+    for(long i = 0; i < sz; i++) {
+        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue ||
+            rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue ||
+            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue ||
+			rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue) {
+            if(RDATA(ori[i])->data != nullptr) {
+                Graphics_stack->bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
+            }
         }
     }
 }
 
-void CGraphicsDraw::transition(VALUE self, int argc, VALUE* argv) {
-    protect();
-    if(Graphics_freeze_sprite == nullptr) {
-        return;
-    }
-
-	long time = 8; //< RGSS doc
-    if(argc >= 1)
-		time = rb_num2long(argv[0]);
-    time = normalize_long(time, 1, 0xFFFF);
-	if (argc < 2 || rb_obj_is_kind_of(argv[1], rb_cBitmap) != Qtrue)
-		transitionBasic(self, time);
-	else
-		transitionRGSS(self, time, argv[1]);
-    
-    Graphics_freeze_sprite = nullptr;
-    Graphics_freeze_texture = nullptr;
-}
-
-VALUE CGraphicsDraw::takeSnapshot() {
-    protect();
-
-    //Allocates memory ruby-side to take a snapshot
-    VALUE bmp = rb_obj_alloc(rb_cBitmap);
-    CBitmap_Element* bitmap;
-    Data_Get_Struct(bmp, CBitmap_Element, bitmap);
-    if(bitmap == nullptr) {
-        return Qnil;
-    }
-
-    //Then uses it in C++ code
-    sf::Texture& text = bitmap->getTexture();
-    takeSnapshotOn(text);
-    return bmp;
+void CGraphicsDraw::bind(CDrawable_Element& element) {
+    Graphics_stack->bind(element);
 }
 
 void CGraphicsDraw::stop() {
-    /* Unfreezing Graphics */
-    Graphics_freeze_sprite = nullptr;    
-    Graphics_freeze_texture = nullptr;
-    Graphics_freeze_shader = nullptr;
+    Graphics_stack = nullptr;
+
+    game_window = nullptr;
+
+    clearRubyStack();
+}
+
+CGraphicsDraw::~CGraphicsDraw() {
+    if(Graphics_stack != nullptr) {
+        stop();
+    }
 }

@@ -1,18 +1,17 @@
 #include <cassert>
 #include "utils/ruby_common.h"
-#include "ruby/thread.h"
 #include "utils/common.h"
 
-#include "SpriteDisposer.h"
 #include "Input.h"
 
-#include "CBitmap_Element.h"
-#include "CViewport_Element.h"
 #include "CGraphics.h"
 
-VALUE CGraphics::init(VALUE self) {
-    Graphics_stack = std::make_unique<CGraphicsStack_Element>(self);
+CGraphics::CGraphics() : 
+    m_snapshot(), 
+    m_draw(m_snapshot) {         
+}
 
+VALUE CGraphics::init(VALUE self) {
     if(game_window != nullptr) {
         return Qnil;
     }
@@ -32,7 +31,8 @@ VALUE CGraphics::init(VALUE self) {
     game_window = std::make_unique<sf::RenderWindow>(config.video.vmode, std::move(config.title), style);
     game_window->setMouseCursorVisible(false);
 
-    m_draw.init(*game_window, config);
+    m_draw.init(self, *game_window, config);
+    m_snapshot.init();
 
 	/* Input adjustement */
     L_Input_Reset_Clocks();
@@ -41,7 +41,7 @@ VALUE CGraphics::init(VALUE self) {
     return self;
 }
 
-VALUE CGraphics::updateRaiseError(VALUE self, const GraphicUpdateMessage& message) {
+VALUE CGraphics::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message) {
     /* If the error is ClosedWindowError, we manage the window closing 
      * When @on_close is defined to a proc, @on_close can decide if the window closing is allowed or not
      * or do things before closing the window
@@ -60,7 +60,7 @@ VALUE CGraphics::updateRaiseError(VALUE self, const GraphicUpdateMessage& messag
                     return self; /* If the proc returns false we doesn't show the exception */
                 }
         }
-        clearStack();
+        m_draw.clearRubyStack();
         if(game_window != nullptr) {
             game_window->close();
             game_window = nullptr;
@@ -72,7 +72,7 @@ VALUE CGraphics::updateRaiseError(VALUE self, const GraphicUpdateMessage& messag
     return self;
 }
 
-void CGraphics::updateProcessEvent(GraphicUpdateMessage& message) {
+void CGraphics::updateProcessEvent(GraphicsUpdateMessage& message) {
     sf::Event event;
 	L_EnteredText.clear();
     while(game_window->pollEvent(event))
@@ -134,115 +134,37 @@ bool CGraphics::isGameWindowOpen() const {
     return game_window != nullptr && game_window->isOpen();
 }
 
-extern "C" {
-    VALUE local_Graphics_call_gc_start(VALUE ignored) {
-        rb_gc_start();
-        return Qnil;
-    }
-
-    VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE* argv) {
-        if(RDATA(block_arg)->data != nullptr) {
-            rb::Dispose<CBitmap_Element>(block_arg);
-        }
-        return Qnil;
-    }
-}
-
-bool CGraphics::clearStack() {
-    // Prevent a Thread from calling a graphic reset
-    if(InsideGraphicsUpdate) {
-        return false;
-    }
-
-    DisposeAllSprites(rb_ivar_get(rb_mGraphics, rb_iElementTable));
-
-    /* Disposing each Bitmap */
-    auto objectSpace = rb_const_get(rb_cObject, rb_intern("ObjectSpace"));
-
-    rb_block_call(objectSpace, rb_intern("each_object"), 1, &rb_cBitmap, (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);
-
-    int state;
-    rb_protect(local_Graphics_call_gc_start, Qnil, &state);
-
-    return true;
-}
-
-void CGraphics::reloadStack() {
-    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    rb_check_type(table, T_ARRAY);
-    Graphics_stack->detachSprites();  
-    long sz = RARRAY_LEN(table);
-    VALUE* ori = RARRAY_PTR(table);
-    for(long i = 0; i < sz; i++)
-    {
-        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue ||
-            rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue ||
-            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue ||
-			rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue)
-        {
-            if(RDATA(ori[i])->data != nullptr)
-            {
-                Graphics_stack->bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
-            }
-        }
-    }
-}
-
-void CGraphics::bind(CDrawable_Element& element) {
-    Graphics_stack->bind(element);
-}
-
 void CGraphics::stop() {
     protect();
-    Graphics_stack = nullptr;
-    if(!clearStack()) {
-        return;
-    }
-    
+    m_draw.stop();
+    m_snapshot.stop();
+
     /* Close the window */
     game_window->close();
     game_window = nullptr;
-
-    m_draw.stop();
 }
 
-void* Graphics_Update_Internal(void* data) {
-    auto& self = *reinterpret_cast<CGraphics*>(data);
-    
-    if(self.isGameWindowOpen()) {       
-        self.draw();
-        return nullptr;
-    }
-
-    auto message = std::make_unique<GraphicUpdateMessage>();
-    message->errorObject = rb_eStoppedGraphics;
-    message->message = "Game Window was closed during Graphics.update by a unknow cause...";
-    return message.release();
-}
-
-void CGraphics::draw() {
-    m_draw.update(*Graphics_stack);
-}
-
-VALUE CGraphics::update(VALUE self) {
+VALUE CGraphics::update(VALUE self, bool input) {
     protect();
     // Prevent a Thread from calling Graphics.update during Graphics.update process
     if(InsideGraphicsUpdate) { 
         return self;
     }
-    auto result = self;
-
     InsideGraphicsUpdate = true;
+
     /* Graphics.update real process */
-    auto message = 
-        std::unique_ptr<GraphicUpdateMessage>(reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(Graphics_Update_Internal, static_cast<void*>(this), NULL, NULL)));
+    auto message = m_draw.update();
     
     /* Message Processing */
-    GraphicUpdateMessage localMessage{};
-    updateProcessEvent(message == nullptr ? localMessage : *message);
+    GraphicsUpdateMessage localMessage{};
+    if(input) {
+        updateProcessEvent(message == nullptr ? localMessage : *message);
+    }
     localMessage = message == nullptr ? localMessage : *message;
+    
+    auto result = self;
     if(!localMessage.message.empty()) {
-        result = updateRaiseError(self, localMessage);
+        result = manageErrorMessage(self, localMessage);
     }
 
     /* End of Graphics.update process */
@@ -250,42 +172,23 @@ VALUE CGraphics::update(VALUE self) {
 
     /* Update the frame count */
     frame_count++;
-
-    return result;
-}
-
-VALUE CGraphics::updateNoInputCount(VALUE self) {
-    protect();
-    if (InsideGraphicsUpdate) // Prevent a Thread from calling Graphics.update during Graphics.update process
-        return self;
-
-    auto result = self;
-	InsideGraphicsUpdate = true;
-	/* Graphics.update real process */
-	GraphicUpdateMessage* message =
-		reinterpret_cast<GraphicUpdateMessage*>(rb_thread_call_without_gvl(Graphics_Update_Internal, static_cast<void*>(this), NULL, NULL));
-	
-    if (message != nullptr) {
-		result = updateRaiseError(self, *message);
-    }
-    
-    /* End of Graphics.update process */
-	InsideGraphicsUpdate = false;
-
     return result;
 }
 
 VALUE CGraphics::updateOnlyInput(VALUE self) {
     protect();
-    if (InsideGraphicsUpdate)
+    if (InsideGraphicsUpdate) {
         return self;
-    InsideGraphicsUpdate = true;
-	auto result = self;
-    GraphicUpdateMessage message;
-	updateProcessEvent(message);
-	if (!message.message.empty()) {
-		result = updateRaiseError(self, message);
     }
+    InsideGraphicsUpdate = true;
+
+    GraphicsUpdateMessage message;
+	updateProcessEvent(message);
+	auto result = self;
+    if (!message.message.empty()) {
+		result = manageErrorMessage(self, message);
+    }
+
 	InsideGraphicsUpdate = false;
     return result;
 }
@@ -310,19 +213,25 @@ VALUE CGraphics::takeSnapshot() {
     if(InsideGraphicsUpdate) {
         return Qnil;
     }
-    return m_draw.takeSnapshot();
+    return m_snapshot.takeSnapshot(*game_window);
 }
 
 void CGraphics::transition(VALUE self, int argc, VALUE* argv) {
-    m_draw.transition(self, argc, argv);
+    m_snapshot.transition(self, argc, argv);
 }
 
 VALUE CGraphics::freeze(VALUE self) {
-    return m_draw.freeze(self);
+    return m_snapshot.freeze(*game_window, self);
+}
+
+void CGraphics::reloadStack() {
+    m_draw.reloadStack();
+}
+
+void CGraphics::bind(CDrawable_Element& element) {
+    m_draw.bind(element);
 }
 
 CGraphics::~CGraphics() {
-    if(game_window != nullptr) {
-        stop();
-    }
+    if(game_window != nullptr) { stop(); }
 }

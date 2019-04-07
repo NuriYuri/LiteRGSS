@@ -84,7 +84,7 @@ VALUE rb_Graphics_update(VALUE self)
 
 VALUE rb_Graphics_update_no_input_count(VALUE self)
 {
-    return CGraphics::Get().updateNoInputCount(self);
+    return CGraphics::Get().update(self, false);
 }
 
 VALUE rb_Graphics_update_only_input(VALUE self)

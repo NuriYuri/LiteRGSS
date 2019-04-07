@@ -2,11 +2,18 @@
 #define CGraphicsDraw_H
 #include <memory>
 #include "ruby.h"
+#include "CGraphicsUpdateMessage.h"
 
 class CGraphicsStack_Element;
+class CDrawable_Element;
 struct CGraphicsConfig;
+class CGraphicsSnapshot;
+
 class CGraphicsDraw {
 public:
+    CGraphicsDraw(CGraphicsSnapshot& snapshot);
+    ~CGraphicsDraw();
+
     long screenWidth() const { return ScreenWidth; }
     long screenHeight() const { return ScreenHeight; }
     bool smoothScreen() const { return SmoothScreen; }
@@ -15,44 +22,33 @@ public:
     void setBrightness(unsigned char brightness) { Graphics_Brightness = brightness; }
     unsigned long frameRate() const { return frame_rate; }
 
-    void init(sf::RenderWindow& window, const CGraphicsConfig& vSync);
-    VALUE takeSnapshot();
-
-    VALUE freeze(VALUE self);
-    void transition(VALUE self, int argc, VALUE* argv);
+    void init(VALUE self, sf::RenderWindow& window, const CGraphicsConfig& vSync);
     void resizeScreen(VALUE self, VALUE width, VALUE height); 
     void setShader(sf::RenderStates* shader);
 
-    void update(CGraphicsStack_Element& stack);
+    std::unique_ptr<GraphicsUpdateMessage> update();
+    void updateInternal();
+    bool isGameWindowOpen() const;
+    void reloadStack();
+    void bind(CDrawable_Element& element);
+    void clearRubyStack();
 
     void stop();
 private:
-
     void initRender();
-    void loadShader();
-    void takeSnapshotOn(sf::Texture& text) const;
+    
     void drawBrightness();
-
-    void transitionBasic(VALUE self, long time);
-    void transitionRGSS(VALUE self, long time, VALUE bitmap);
 
     sf::RenderTarget& updateDrawPreProc(sf::View& defview);
     void updateDrawPostProc();
 
-    void protect();
-
-    sf::RenderWindow* game_window = nullptr;
-
-    std::unique_ptr<sf::Texture> Graphics_freeze_texture = nullptr;
-    std::unique_ptr<sf::Sprite> Graphics_freeze_sprite = nullptr;
-    std::unique_ptr<sf::Shader> Graphics_freeze_shader = nullptr;
-    
-    bool RGSSTransition = false;
-    std::unique_ptr<sf::RenderTexture> Graphics_Render = nullptr;
+    std::unique_ptr<CGraphicsStack_Element> Graphics_stack;
     sf::RenderStates* Graphics_States = nullptr;
+    sf::RenderWindow* game_window = nullptr;
+    std::unique_ptr<sf::RenderTexture> Graphics_Render = nullptr;
+    CGraphicsSnapshot& m_snapshot;
 
     unsigned long frame_rate = 60;
-
     unsigned char Graphics_Brightness = 255;
     long ScreenWidth = 640;
     long ScreenHeight = 480;

@@ -5,11 +5,7 @@
 #include "CGraphicsStack_Element.h"
 #include "CGraphicsConfig.h"
 #include "CGraphicsDraw.h"
-
-struct GraphicUpdateMessage {
-    VALUE errorObject;
-    std::string message;
-};
+#include "CGraphicsSnapshot.h"
 
 class CGraphics {
 public:
@@ -31,46 +27,35 @@ public:
     auto frameRate() const { return m_draw.frameRate(); }
 
     VALUE init(VALUE self);
-    VALUE update(VALUE self);
-    VALUE takeSnapshot();
-    
     void stop();
+    bool isGameWindowOpen() const;
+    void protect();
+    VALUE update(VALUE self, bool input = true);
+    VALUE updateOnlyInput(VALUE self);
+
+    VALUE takeSnapshot();
     VALUE freeze(VALUE self);
     void transition(VALUE self, int argc, VALUE* argv);
-    VALUE updateNoInputCount(VALUE self);
-    VALUE updateOnlyInput(VALUE self);
-    void reloadStack();
-    void bind(CDrawable_Element& element);
     void resizeScreen(VALUE self, VALUE width, VALUE height); 
     void setShader(sf::RenderStates* shader);
+    void reloadStack();
+    void bind(CDrawable_Element& element);
 
-    void draw();
-    bool isGameWindowOpen() const;
 private:
-    CGraphics() = default;
+    CGraphics();
 
-    void initRender();
-    void loadShader();
-    void drawBrightness();
-
-    void transitionBasic(VALUE self, long time);
-    void transitionRGSS(VALUE self, long time, VALUE bitmap);
-
-    VALUE updateRaiseError(VALUE self, const GraphicUpdateMessage& message);
+    VALUE manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message);
     sf::RenderTarget& updateDrawPreProc(sf::View& defview);
     void updateDrawPostProc();
-    void updateProcessEvent(GraphicUpdateMessage& message);
-    
-    bool clearStack();
-    void protect();
+    void updateProcessEvent(GraphicsUpdateMessage& message);
    
     bool InsideGraphicsUpdate = false;
     unsigned long frame_count = 0;
 
     std::unique_ptr<sf::RenderWindow> game_window = nullptr;
-    std::unique_ptr<CGraphicsStack_Element> Graphics_stack;
 
     CGraphicsConfigLoader m_configLoader;
+    CGraphicsSnapshot m_snapshot;
     CGraphicsDraw m_draw;
 };
 
