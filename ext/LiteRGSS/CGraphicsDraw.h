@@ -14,13 +14,13 @@ public:
     CGraphicsDraw(CGraphicsSnapshot& snapshot);
     ~CGraphicsDraw();
 
-    long screenWidth() const { return ScreenWidth; }
-    long screenHeight() const { return ScreenHeight; }
-    bool smoothScreen() const { return SmoothScreen; }
-    double scale() const { return Graphics_Scale; }
-    unsigned char brightness() const { return Graphics_Brightness; }
-    void setBrightness(unsigned char brightness) { Graphics_Brightness = brightness; }
-    unsigned long frameRate() const { return frame_rate; }
+    long screenWidth() const { return m_screenWidth; }
+    long screenHeight() const { return m_screenHeight; }
+    bool smoothScreen() const { return m_smoothScreen; }
+    double scale() const { return m_scale; }
+    unsigned char brightness() const { return m_brightness; }
+    void setBrightness(unsigned char brightness) { m_brightness = brightness; }
+    unsigned long frameRate() const { return m_frameRate; }
 
     void init(VALUE self, sf::RenderWindow& window, const CGraphicsConfig& vSync);
     void resizeScreen(VALUE self, VALUE width, VALUE height); 
@@ -42,18 +42,18 @@ private:
     sf::RenderTarget& updateDrawPreProc(sf::View& defview);
     void updateDrawPostProc();
 
-    std::unique_ptr<CGraphicsStack_Element> Graphics_stack;
-    sf::RenderStates* Graphics_States = nullptr;
-    sf::RenderWindow* game_window = nullptr;
-    std::unique_ptr<sf::RenderTexture> Graphics_Render = nullptr;
+    std::unique_ptr<CGraphicsStack_Element> m_stack;
+    sf::RenderStates* m_renderState = nullptr;
+    sf::RenderWindow* m_gameWindow = nullptr;
+    std::unique_ptr<sf::RenderTexture> m_renderTexture = nullptr;
     CGraphicsSnapshot& m_snapshot;
 
-    unsigned long frame_rate = 60;
-    unsigned char Graphics_Brightness = 255;
-    long ScreenWidth = 640;
-    long ScreenHeight = 480;
-    double Graphics_Scale = 1;
-    bool SmoothScreen = false;
+    unsigned long m_frameRate = 60;
+    unsigned char m_brightness = 255;
+    long m_screenWidth = 640;
+    long m_screenHeight = 480;
+    double m_scale = 1;
+    bool m_smoothScreen = false;
 };
 
 #endif

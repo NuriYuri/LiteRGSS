@@ -13,26 +13,26 @@
 CGraphicsDraw::CGraphicsDraw(CGraphicsSnapshot& snapshot) : m_snapshot(snapshot) {}
 
 void CGraphicsDraw::init(VALUE self, sf::RenderWindow& window, const CGraphicsConfig& config) {      
-    Graphics_stack = std::make_unique<CGraphicsStack_Element>(self);
+    m_stack = std::make_unique<CGraphicsStack_Element>(self);
 
-    game_window = &window;
-    game_window->setMouseCursorVisible(false);
+    m_gameWindow = &window;
+    m_gameWindow->setMouseCursorVisible(false);
 
 	/* VSYNC choice */
-    game_window->setVerticalSyncEnabled(config.vSync);
+    m_gameWindow->setVerticalSyncEnabled(config.vSync);
 	if(!config.vSync) {
-		game_window->setFramerateLimit(config.frameRate);
+		m_gameWindow->setFramerateLimit(config.frameRate);
 	}
     
-    ScreenWidth = config.video.width;
-    ScreenHeight = config.video.height;
-    SmoothScreen = config.smoothScreen;
-    Graphics_Scale = config.video.scale;
-    frame_rate = config.frameRate;
+    m_screenWidth = config.video.width;
+    m_screenHeight = config.video.height;
+    m_smoothScreen = config.smoothScreen;
+    m_scale = config.video.scale;
+    m_frameRate = config.frameRate;
     
 	/* Render resize */
-	if (Graphics_Render != nullptr) {
-		Graphics_Render->create(ScreenWidth, ScreenHeight);
+	if (m_renderTexture != nullptr) {
+		m_renderTexture->create(m_screenWidth, m_screenHeight);
     }
 }
 
@@ -49,8 +49,8 @@ void CGraphicsDraw::resizeScreen(VALUE self, VALUE width, VALUE height) {
 	rb_const_set(rb_mConfig, sheight, INT2NUM(NUM2INT(height)));
 	
     /* Close the window */
-    game_window->close();
-    game_window = nullptr;
+    m_gameWindow->close();
+    m_gameWindow = nullptr;
 	
     /* Restart Graphics */
     CGraphics::Get().init(self);
@@ -59,20 +59,20 @@ void CGraphicsDraw::resizeScreen(VALUE self, VALUE width, VALUE height) {
 	if (CViewport_Element::render)
 	{
 		CViewport_Element::render->create(NUM2INT(width), NUM2INT(height));
-		CViewport_Element::render->setSmooth(SmoothScreen);
+		CViewport_Element::render->setSmooth(m_smoothScreen);
 	}
 }
 
 void CGraphicsDraw::drawBrightness()
 {
 	sf::Vertex	vertices[4];
-	sf::Vector2u size = game_window->getSize();
+	sf::Vector2u size = m_gameWindow->getSize();
 	vertices[0].position = sf::Vector2f(0, 0);
 	vertices[1].position = sf::Vector2f(0, size.y);
 	vertices[2].position = sf::Vector2f(size.x, 0);
 	vertices[3].position = sf::Vector2f(size.x, size.y);
-	vertices[0].color = vertices[1].color = vertices[2].color = vertices[3].color = sf::Color(0, 0, 0, 255 - Graphics_Brightness);
-	game_window->draw(vertices, 4, sf::PrimitiveType::TriangleStrip);
+	vertices[0].color = vertices[1].color = vertices[2].color = vertices[3].color = sf::Color(0, 0, 0, 255 - m_brightness);
+	m_gameWindow->draw(vertices, 4, sf::PrimitiveType::TriangleStrip);
 }
 
 //
@@ -82,19 +82,19 @@ void CGraphicsDraw::drawBrightness()
 sf::RenderTarget& CGraphicsDraw::updateDrawPreProc(sf::View& defview)
 {
 	// Setting the default view parameters
-	defview.setSize(ScreenWidth, ScreenHeight);
-	defview.setCenter(round(ScreenWidth / 2.0f), round(ScreenHeight / 2.0f));
+	defview.setSize(m_screenWidth, m_screenHeight);
+	defview.setCenter(round(m_screenWidth / 2.0f), round(m_screenHeight / 2.0f));
 	// Appying the default view to the Window (used in updateDrawPostProc)
-	game_window->setView(defview);
-	// If the Graphics_Render is defined, we use it instead of the game_window (shader processing)
-	if (Graphics_Render) {
+	m_gameWindow->setView(defview);
+	// If the m_renderTexture is defined, we use it instead of the m_gameWindow (shader processing)
+	if (m_renderTexture) {
 		// Set the default view
-		Graphics_Render->setView(defview);
+		m_renderTexture->setView(defview);
 		// It's not cleard so we perform the clear operation
-		Graphics_Render->clear();
-		return *Graphics_Render.get();
+		m_renderTexture->clear();
+		return *m_renderTexture.get();
 	}
-	return *game_window;
+	return *m_gameWindow;
 }
 
 //
@@ -104,20 +104,20 @@ sf::RenderTarget& CGraphicsDraw::updateDrawPreProc(sf::View& defview)
 //
 void CGraphicsDraw::updateDrawPostProc() {
 	// Drawing render to window if finished
-	if (Graphics_Render)
+	if (m_renderTexture)
 	{
-		Graphics_Render->display();
-		sf::Sprite sp(Graphics_Render->getTexture());
-		if (Graphics_States == nullptr)
-			game_window->draw(sp);
+		m_renderTexture->display();
+		sf::Sprite sp(m_renderTexture->getTexture());
+		if (m_renderState == nullptr)
+			m_gameWindow->draw(sp);
 		else
-			game_window->draw(sp, *Graphics_States);
+			m_gameWindow->draw(sp, *m_renderState);
 	}
-    m_snapshot.draw(*game_window);
+    m_snapshot.draw(*m_gameWindow);
 }
 
 bool CGraphicsDraw::isGameWindowOpen() const {
-    return game_window != nullptr && game_window->isOpen();
+    return m_gameWindow != nullptr && m_gameWindow->isOpen();
 }
 
 void* GraphicsDraw_Update_Internal(void* dataPtr) {
@@ -139,35 +139,35 @@ std::unique_ptr<GraphicsUpdateMessage> CGraphicsDraw::update() {
 }
 
 void CGraphicsDraw::updateInternal() {
-    game_window->clear();
+    m_gameWindow->clear();
    
-    sf::View defview = game_window->getDefaultView();
+    sf::View defview = m_gameWindow->getDefaultView();
 	auto& render_target = updateDrawPreProc(defview);
 
 	// Rendering stuff
-    Graphics_stack->draw(defview, render_target);
+    m_stack->draw(defview, render_target);
 	
     // Perform the post proc
 	updateDrawPostProc();
 
-	// Update the brightness (applied to game_window)
-	if (Graphics_Brightness != 255) {
+	// Update the brightness (applied to m_gameWindow)
+	if (m_brightness != 255) {
 		drawBrightness();
     }
 
-    game_window->display();
+    m_gameWindow->display();
 }
 
 void CGraphicsDraw::initRender() {
     CGraphics::Get().protect();
-	if (Graphics_Render == nullptr && Graphics_States != nullptr) {
-		Graphics_Render = std::make_unique<sf::RenderTexture>();
-		Graphics_Render->create(ScreenWidth, ScreenHeight);
+	if (m_renderTexture == nullptr && m_renderState != nullptr) {
+		m_renderTexture = std::make_unique<sf::RenderTexture>();
+		m_renderTexture->create(m_screenWidth, m_screenHeight);
 	}
 }
 
 void CGraphicsDraw::setShader(sf::RenderStates* shader) {
-    Graphics_States = shader;
+    m_renderState = shader;
     if(shader != nullptr) {
         initRender();
     }
@@ -202,7 +202,7 @@ void CGraphicsDraw::clearRubyStack() {
 void CGraphicsDraw::reloadStack() {
     VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
     rb_check_type(table, T_ARRAY);
-    Graphics_stack->detachSprites();  
+    m_stack->detachSprites();  
     long sz = RARRAY_LEN(table);
     VALUE* ori = RARRAY_PTR(table);
     for(long i = 0; i < sz; i++) {
@@ -211,26 +211,26 @@ void CGraphicsDraw::reloadStack() {
             rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue ||
 			rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue) {
             if(RDATA(ori[i])->data != nullptr) {
-                Graphics_stack->bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
+                m_stack->bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
             }
         }
     }
 }
 
 void CGraphicsDraw::bind(CDrawable_Element& element) {
-    Graphics_stack->bind(element);
+    m_stack->bind(element);
 }
 
 void CGraphicsDraw::stop() {
-    Graphics_stack = nullptr;
+    m_stack = nullptr;
 
-    game_window = nullptr;
+    m_gameWindow = nullptr;
 
     clearRubyStack();
 }
 
 CGraphicsDraw::~CGraphicsDraw() {
-    if(Graphics_stack != nullptr) {
+    if(m_stack != nullptr) {
         stop();
     }
 }
