@@ -39,7 +39,7 @@ public:
     void resizeScreen(VALUE self, VALUE width, VALUE height); 
     void setShader(sf::RenderStates* shader);
     void reloadStack();
-    void bind(CDrawable_Element& element);
+    void bind(VALUE rubyElement, CDrawable_Element& element);
 
 private:
     CGraphics();

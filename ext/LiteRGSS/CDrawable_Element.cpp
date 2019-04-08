@@ -1,5 +1,6 @@
 #include <iostream>
 #include "CDrawable_Element.h"
+#include "CRubyGraphicsStack.h"
 #include "CRect_Element.h"
 
 extern ID rb_iElementTable;
@@ -7,11 +8,11 @@ extern VALUE rb_mGraphics;
 extern VALUE rb_eRGSSError;
 
 void CDrawable_Element::resetOriginStack() {
-    setOriginStack(nullptr);
+    setOriginStack(nullptr, nullptr);
 }
 
-void CDrawable_Element::setOriginStack(vector_tracker<CDrawable_Element*>& o) {
-    setOriginStack(&o);
+void CDrawable_Element::setOriginStack(CRubyGraphicsStack& oRuby, vector_tracker<CDrawable_Element*>& o) {
+    setOriginStack(&oRuby, &o);
 }
 
 void CDrawable_Element::bindRect(CRect_Element* rect) {
@@ -28,7 +29,7 @@ void CDrawable_Element::bindRect(CRect_Element* rect) {
     }
 }
 
-void CDrawable_Element::setOriginStack(vector_tracker<CDrawable_Element*> *o)  {
+void CDrawable_Element::setOriginStack(CRubyGraphicsStack* oRuby, vector_tracker<CDrawable_Element*> *o)  {
     /* if the stack is already setted, nothing to be done */
     if(origin_stack == o) {
         return;
@@ -49,17 +50,16 @@ void CDrawable_Element::setOriginStack(vector_tracker<CDrawable_Element*> *o)  {
             drawPriority = origin_stack->size();
         }
     }
+
+    origin_ruby_stack = oRuby;
 }
 
 CDrawable_Element::~CDrawable_Element() {  
     bindRect(nullptr);
 
     resetOriginStack();
-    if(!disposeFromViewport_) {
-        VALUE table = rb_ivar_get(NIL_P(rViewport) ? rb_mGraphics : rViewport, rb_iElementTable);
-        rb_check_type(table, T_ARRAY);
-        /* Suppression du drawable de ses stacks */
-        rb_ary_delete(table, self);
+    if(!disposeFromViewport_ && origin_ruby_stack != nullptr) {
+        origin_ruby_stack->remove(self);
     }
 
     RDATA(self)->data = nullptr;

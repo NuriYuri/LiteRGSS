@@ -83,12 +83,10 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
         y = LONG2FIX(0);
     }
     /* Sprite table creation */
-    rb_ivar_set(self, rb_iElementTable, rb_ary_new());
+    //rb_ivar_set(self, rb_iElementTable, rb_ary_new());
     /* Viewport setting */
     auto& viewport = rb::Get<CViewport_Element>(self);
-    global_Graphics_Bind(viewport);
-    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    rb_ary_push(table, self);
+    global_Graphics_Bind(self, viewport);
     viewport.setOx(0);
     viewport.setOy(0);
 	viewport.rAngle = LONG2FIX(0);
@@ -104,7 +102,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     viewport.rRect = rc;
     viewport.rTone = Qnil;
     viewport.rColor = Qnil;
-    viewport.detachSprites();
+    viewport.syncStacks();
     return self;
 }
 
@@ -376,21 +374,7 @@ VALUE rb_Viewport_setRenderState(VALUE self, VALUE val)
 VALUE rb_Viewport_ReloadStack(VALUE self)
 {
     auto& viewport = rb::Get<CViewport_Element>(self);
-    VALUE table = rb_ivar_get(self, rb_iElementTable);
-    rb_check_type(table, T_ARRAY);
-    viewport.detachSprites();
-    long sz = RARRAY_LEN(table);
-    VALUE* ori = RARRAY_PTR(table);
-    for(long i = 0; i < sz; i++)
-    {
-        if(rb_obj_is_kind_of(ori[i], rb_cDrawable) == Qtrue)
-        {
-            if(RDATA(ori[i])->data != nullptr)
-            {
-                viewport.bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
-            }
-        }
-    }
+    viewport.syncStacks();
     return self;
 }
 

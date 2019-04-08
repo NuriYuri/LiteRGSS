@@ -13,7 +13,8 @@
 CGraphicsDraw::CGraphicsDraw(CGraphicsSnapshot& snapshot) : m_snapshot(snapshot) {}
 
 void CGraphicsDraw::init(VALUE self, sf::RenderWindow& window, const CGraphicsConfig& config) {      
-    m_stack = std::make_unique<CGraphicsStack_Element>(self);
+    m_stack = std::make_unique<CGraphicsStack_Element>();
+    m_rubyStack = std::make_unique<CRubyGraphicsStack>(self);
 
     m_gameWindow = &window;
     m_gameWindow->setMouseCursorVisible(false);
@@ -188,7 +189,7 @@ extern "C" {
 }
 
 void CGraphicsDraw::clearRubyStack() {
-    DisposeAllSprites(rb_ivar_get(rb_mGraphics, rb_iElementTable));
+    //m_rubyStack->clearStack();
 
     /* Disposing each Bitmap */
     auto objectSpace = rb_const_get(rb_cObject, rb_intern("ObjectSpace"));
@@ -200,33 +201,20 @@ void CGraphicsDraw::clearRubyStack() {
 }
 
 void CGraphicsDraw::reloadStack() {
-    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    rb_check_type(table, T_ARRAY);
-    m_stack->detachSprites();  
-    long sz = RARRAY_LEN(table);
-    VALUE* ori = RARRAY_PTR(table);
-    for(long i = 0; i < sz; i++) {
-        if(rb_obj_is_kind_of(ori[i], rb_cViewport) == Qtrue ||
-            rb_obj_is_kind_of(ori[i], rb_cSprite) == Qtrue ||
-            rb_obj_is_kind_of(ori[i], rb_cText) == Qtrue ||
-			rb_obj_is_kind_of(ori[i], rb_cWindow) == Qtrue) {
-            if(RDATA(ori[i])->data != nullptr) {
-                m_stack->bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
-            }
-        }
-    }
+    m_rubyStack->syncStack(*m_stack);
 }
 
-void CGraphicsDraw::bind(CDrawable_Element& element) {
-    m_stack->bind(element);
+void CGraphicsDraw::bind(VALUE rubyElement, CDrawable_Element& element) {
+    m_stack->bind(*m_rubyStack, element);
 }
 
 void CGraphicsDraw::stop() {
-    m_stack = nullptr;
-
     m_gameWindow = nullptr;
 
     clearRubyStack();
+
+    m_stack = nullptr;
+    m_rubyStack = nullptr;
 }
 
 CGraphicsDraw::~CGraphicsDraw() {

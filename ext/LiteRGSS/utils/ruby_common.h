@@ -7,7 +7,6 @@
 extern VALUE rb_mLiteRGSS;
 extern VALUE rb_cDisposable;
 extern VALUE rb_cDrawable;
-extern VALUE rb_mGraphics;
 extern VALUE rb_mConfig;
 extern VALUE rb_cBitmap;
 extern VALUE rb_cImage;

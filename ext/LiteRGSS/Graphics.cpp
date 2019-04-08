@@ -37,7 +37,7 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "shader=", _rbf rb_Graphics_setShader, 1);
 	rb_define_module_function(rb_mGraphics, "resize_screen", _rbf rb_Graphics_resize_screen, 2);
     /* creating the element table */
-    rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
+    //rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
 	rb_iGraphicsShader = rb_intern("@__GraphicsShader");
     /* Store the max texture size */
 	rb_define_const(rb_mGraphics, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));
@@ -158,7 +158,7 @@ VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
 	return self;
 }
 
-void global_Graphics_Bind(CDrawable_Element& element)
+void global_Graphics_Bind(VALUE rubyElement, CDrawable_Element& element)
 {
-    CGraphics::Get().bind(element);
+    CGraphics::Get().bind(rubyElement, element);
 }

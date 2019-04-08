@@ -8,6 +8,7 @@ class CGraphicsStack_Element;
 class CDrawable_Element;
 struct CGraphicsConfig;
 class CGraphicsSnapshot;
+class CRubyGraphicsStack;
 
 class CGraphicsDraw {
 public:
@@ -30,7 +31,7 @@ public:
     void updateInternal();
     bool isGameWindowOpen() const;
     void reloadStack();
-    void bind(CDrawable_Element& element);
+    void bind(VALUE rubyElement, CDrawable_Element& element);
     void clearRubyStack();
 
     void stop();
@@ -43,6 +44,8 @@ private:
     void updateDrawPostProc();
 
     std::unique_ptr<CGraphicsStack_Element> m_stack;
+    std::unique_ptr<CRubyGraphicsStack> m_rubyStack;
+
     sf::RenderStates* m_renderState = nullptr;
     sf::RenderWindow* m_gameWindow = nullptr;
     std::unique_ptr<sf::RenderTexture> m_renderTexture = nullptr;

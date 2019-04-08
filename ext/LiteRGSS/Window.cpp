@@ -111,22 +111,22 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 	{
 		CViewport_Element* viewport;
 		Data_Get_Struct(argv[0], CViewport_Element, viewport);
-		viewport->bind(window);
-		table = rb_ivar_get(argv[0], rb_iElementTable);
+		viewport->bind(self, window);
+		//table = rb_ivar_get(argv[0], rb_iElementTable);
 		window.rViewport = argv[0];
+		//rb_ary_push(table, self);
 	}
 	/* Otherwise */
 	else
 	{
-		global_Graphics_Bind(window);
-		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+		global_Graphics_Bind(self, window);
 		window.rViewport = Qnil;
 	}
-	rb_ary_push(table, self);
+	
 
 	/* Sprite table creation */
-	rb_ivar_set(self, rb_iElementTable, rb_ary_new());
-	window.detachSprites();
+	//rb_ivar_set(self, rb_iElementTable, rb_ary_new());
+	window.syncStacks();
 
 	/* Rect definition */
 	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };

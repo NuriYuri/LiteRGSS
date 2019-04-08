@@ -1,11 +1,11 @@
 #include "CView_Element.h"
 
-void CView_Element::detachSprites() {
-    stack->detachSprites();
+void CView_Element::syncStacks() {
+    rubyStack->syncStack(*stack);
 }
 
-void CView_Element::bind(CDrawable_Element& drawable) {
-	stack->bind(drawable);
+void CView_Element::bind(VALUE rubyDrawable, CDrawable_Element& drawable) {
+	stack->bind(*rubyStack, drawable);
 }
 
 void CView_Element::drawFast(sf::RenderTarget& target) const  {

@@ -6,20 +6,22 @@
 #include "ruby.h"
 
 class CDrawable_Element;
+class CRubyGraphicsStack;
 class CGraphicsStack_Element {
+    friend class CRubyGraphicsStack;
 public:
-    CGraphicsStack_Element(VALUE& self);
-    virtual ~CGraphicsStack_Element();
+    CGraphicsStack_Element() = default;
+    ~CGraphicsStack_Element();
 
-    void detachSprites();
-    void bind(CDrawable_Element& drawable);
     void draw(sf::View& defview, sf::RenderTarget& target) const;
     void drawFast(sf::RenderTarget& target) const;
     void updateContentsOpacity(long opacity);
-private:
-    void clearStack();
 
-    VALUE self_ = Qnil;
+    void bind(CRubyGraphicsStack& rubyStack, CDrawable_Element& el);
+
+private:
+    void detachSprites();
+
     vector_tracker<CDrawable_Element*> stack;
 };
 #endif

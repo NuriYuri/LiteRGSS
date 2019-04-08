@@ -86,25 +86,26 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
 
         CViewport_Element* viewporte;
         Data_Get_Struct(viewport, CViewport_Element, viewporte);
-        viewporte->bind(text);
-        table = rb_ivar_get(viewport, rb_iElementTable);
+        viewporte->bind(self, text);
+        //table = rb_ivar_get(viewport, rb_iElementTable);
+        //rb_ary_push(table, self);
     }
 	/* If a window is specified */
 	else if (rb_obj_is_kind_of(viewport, rb_cWindow) == Qtrue)
 	{
 		auto& window = rb::GetSafe<CWindow_Element>(viewport, rb_cWindow);
-		window.bind(text);
-		table = rb_ivar_get(viewport, rb_iElementTable);
+		window.bind(self, text);
+		//table = rb_ivar_get(viewport, rb_iElementTable);
 		text.rViewport = viewport;
 		opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rContentOpacity) / 255);
+        //rb_ary_push(table, self);
 	}
     else
     {
-        global_Graphics_Bind(text);
-        table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+        global_Graphics_Bind(self, text);
         text.rViewport = Qnil;
     }
-    rb_ary_push(table, self);
+    
     /* Surface */
     rb_check_type(x, T_FIXNUM);
     text.rX = x;

@@ -8,13 +8,16 @@
 
 class CRect_Element;
 class CTone_Element;
+class CRubyGraphicsStack;
+class CGraphicsStack_Element;
 
 class CDrawable_Element {
     private:
         void resetOriginStack();
-        void setOriginStack(vector_tracker<CDrawable_Element*> *o);
+        void setOriginStack(CRubyGraphicsStack* oRuby, vector_tracker<CDrawable_Element*> *o);
         
         vector_tracker<CDrawable_Element*> *origin_stack = nullptr;
+        CRubyGraphicsStack* origin_ruby_stack = nullptr;
         CRect_Element* linkedRect = nullptr;
         unsigned long drawPriority = 0;
         bool disposeFromViewport_ = false;
@@ -24,8 +27,8 @@ class CDrawable_Element {
     public:
         CDrawable_Element() = default;
         virtual ~CDrawable_Element();
-        void setOriginStack(vector_tracker<CDrawable_Element*>& o);
-        void overrideOrigineStack() {origin_stack = nullptr;};
+        void setOriginStack(CRubyGraphicsStack& oRuby, vector_tracker<CDrawable_Element*>& o);
+        void overrideOrigineStack() {origin_stack = nullptr; origin_ruby_stack = nullptr; };
         unsigned long getIndex();
         virtual void draw(sf::RenderTarget& target) const = 0;
         virtual void drawFast(sf::RenderTarget& target) const = 0;

@@ -228,8 +228,8 @@ void CGraphics::reloadStack() {
     m_draw.reloadStack();
 }
 
-void CGraphics::bind(CDrawable_Element& element) {
-    m_draw.bind(element);
+void CGraphics::bind(VALUE rubyElement, CDrawable_Element& element) {
+    m_draw.bind(rubyElement, element);
 }
 
 CGraphics::~CGraphics() {
