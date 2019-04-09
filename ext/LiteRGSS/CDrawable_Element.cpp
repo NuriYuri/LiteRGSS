@@ -34,8 +34,8 @@ void CDrawable_Element::setOriginStack(CRubyGraphicsStack* oRuby, vector_tracker
     if(origin_stack == o) {
         return;
     }
-    
-    /* Removing from the old stack */
+
+    //Detach & Attach C++
     if(origin_stack != nullptr)
     {
         if(!origin_stack->remove(this)) {
@@ -51,7 +51,16 @@ void CDrawable_Element::setOriginStack(CRubyGraphicsStack* oRuby, vector_tracker
         }
     }
 
+    //Detach & Attach ruby
+    if(origin_ruby_stack != nullptr) {
+        origin_ruby_stack->remove(self);
+    }
+
     origin_ruby_stack = oRuby;
+
+    if(origin_ruby_stack != nullptr) {
+        origin_ruby_stack->add(self);
+    }
 }
 
 CDrawable_Element::~CDrawable_Element() {  
