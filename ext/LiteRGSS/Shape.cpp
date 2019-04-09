@@ -123,10 +123,8 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 		rb_raise(rb_eRGSSError, "Shape require viewport to be initialized.");
 	CViewport_Element* viewport_el;
 	Data_Get_Struct(viewport, CViewport_Element, viewport_el);
-	viewport_el->bind(self, *shape);
+	viewport_el->bind(*shape);
 	shape->rViewport = viewport;
-    //VALUE table = rb_ivar_get(viewport, rb_iElementTable);
-    //rb_ary_push(table, self);
 
 	// Shape initialization
 	itype = SYM2ID(type);

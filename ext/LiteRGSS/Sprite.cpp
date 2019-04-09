@@ -1,6 +1,7 @@
 #include "LiteRGSS.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
+#include "CGraphics.h"
 
 VALUE rb_cSprite = Qnil;
 
@@ -69,34 +70,27 @@ void Init_Sprite() {
 VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
 {
     auto& sprite = rb::Get<CSprite_Element>(self);
-    VALUE table = Qnil;
     /* If a viewport was specified */
     if(argc == 1 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue)
     {
         CViewport_Element* viewport;
         Data_Get_Struct(argv[0], CViewport_Element, viewport);
-        viewport->bind(argv[0], sprite);
-        //table = rb_ivar_get(argv[0], rb_iElementTable);
+        viewport->bind(sprite);
         sprite.rViewport = argv[0];
-        /* Ajout à la table de sauvegarde */
-        //rb_ary_push(table, self);
     }
 	/* If a window is specified */
 	else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cWindow) == Qtrue)
 	{
 		auto& window = rb::GetSafe<CWindow_Element>(argv[0], rb_cWindow);
-		window.bind(argv[0], sprite);
-		//table = rb_ivar_get(argv[0], rb_iElementTable);
+		window.bind(sprite);
 		sprite.rViewport = argv[0];
 		VALUE opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rBackOpacity) / 255);
 		rb_Sprite_setOpacity(self, opacity);
-        /* Ajout à la table de sauvegarde */
-        //rb_ary_push(table, self);
 	}
     /* Otherwise */
     else
     {
-        global_Graphics_Bind(self, sprite);
+        CGraphics::Get().bind(sprite);        
         sprite.rViewport = Qnil;
     }
     

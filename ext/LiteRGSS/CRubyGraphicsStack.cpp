@@ -6,13 +6,15 @@
 #include "CDrawable_Element.h"
 #include "SpriteDisposer.h"
 
+extern ID rb_iElementTable;
+
 CRubyGraphicsStack::CRubyGraphicsStack(VALUE self) {
     std::cout << "stack ruby created" << std::endl;
     rb_ivar_set(self, rb_iElementTable, m_table = rb_ary_new());
 }
 
 CRubyGraphicsStack::~CRubyGraphicsStack() { 
-    clearStack();
+    clear();
 }
 
 void CRubyGraphicsStack::add(VALUE el) {
@@ -25,9 +27,9 @@ void CRubyGraphicsStack::remove(VALUE el) {
     rb_ary_delete(m_table, el);
 }
 
-void CRubyGraphicsStack::syncStack(CGraphicsStack_Element& destStack) {
+void CRubyGraphicsStack::syncStackCppFromRuby(CGraphicsStack_Element& destStack) {
     std::cout << "sync stacks ruby <=> c++" << std::endl;
-    destStack.detachSprites();  
+    destStack.clear();  
     const long sz = RARRAY_LEN(m_table);
     VALUE* ori = RARRAY_PTR(m_table);
     for(long  i = 0; i < sz; i++) {
@@ -44,7 +46,7 @@ void CRubyGraphicsStack::syncStack(CGraphicsStack_Element& destStack) {
     }
 }
 
-void CRubyGraphicsStack::clearStack() {
+void CRubyGraphicsStack::clear() {
     std::cout << "stack ruby dispose all sprites" << std::endl;
     rb_check_type(m_table, T_ARRAY);
 	const long sz = RARRAY_LEN(m_table);

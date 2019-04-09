@@ -36,15 +36,16 @@ void Init_Graphics()
     rb_define_module_function(rb_mGraphics, "shader", _rbf rb_Graphics_getShader, 0);
     rb_define_module_function(rb_mGraphics, "shader=", _rbf rb_Graphics_setShader, 1);
 	rb_define_module_function(rb_mGraphics, "resize_screen", _rbf rb_Graphics_resize_screen, 2);
-    /* creating the element table */
-    //rb_ivar_set(rb_mGraphics, rb_iElementTable, rb_ary_new());
+    
 	rb_iGraphicsShader = rb_intern("@__GraphicsShader");
     /* Store the max texture size */
 	rb_define_const(rb_mGraphics, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));
 }
 
 VALUE rb_Graphics_start(VALUE self) {
-    return CGraphics::Get().init(self);
+    CGraphics::Get().updateSelf(self);
+    CGraphics::Get().init();
+    return self;
 }
 
 VALUE rb_Graphics_stop(VALUE self) {
@@ -57,7 +58,8 @@ VALUE rb_Graphics_snap_to_bitmap(VALUE self) {
 }
 
 VALUE rb_Graphics_freeze(VALUE self) {
-    return CGraphics::Get().freeze(self);
+    CGraphics::Get().freeze(self);
+    return self;
 }
 
 VALUE rb_Graphics_transition(int argc, VALUE* argv, VALUE self) {
@@ -79,17 +81,20 @@ VALUE rb_Graphics_list_res(VALUE self)
 
 VALUE rb_Graphics_update(VALUE self)
 {
-    return CGraphics::Get().update(self);
+    CGraphics::Get().update(self);
+    return self;
 }
 
 VALUE rb_Graphics_update_no_input_count(VALUE self)
 {
-    return CGraphics::Get().update(self, false);
+    CGraphics::Get().update(self, false);
+    return self;
 }
 
 VALUE rb_Graphics_update_only_input(VALUE self)
 {
-	return CGraphics::Get().updateOnlyInput(self);
+	CGraphics::Get().updateOnlyInput(self);
+    return self;
 }
 
 VALUE rb_Graphics_get_frame_count(VALUE self)
@@ -114,9 +119,8 @@ VALUE rb_Graphics_height(VALUE self)
     return rb_int2inum(CGraphics::Get().screenHeight());
 }
 
-VALUE rb_Graphics_ReloadStack(VALUE self)
-{
-    CGraphics::Get().reloadStack();
+VALUE rb_Graphics_ReloadStack(VALUE self) {
+    CGraphics::Get().syncStackCppFromRuby();
     return self;
 }
 
@@ -154,11 +158,21 @@ VALUE rb_Graphics_setShader(VALUE self, VALUE shader)
 
 VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
 {
-	CGraphics::Get().resizeScreen(self, width, height);
-	return self;
-}
+    ID swidth = rb_intern("ScreenWidth");
+	ID sheight = rb_intern("ScreenHeight");
+	/* Adjust screen resolution */
+	if (rb_const_defined(rb_mConfig, swidth)) {
+		rb_const_remove(rb_mConfig, swidth);
+    }
+	if (rb_const_defined(rb_mConfig, sheight)) {
+		rb_const_remove(rb_mConfig, sheight);
+    }
+    
+    const int iwidth = NUM2INT(width);
+    const int iheight = NUM2INT(height);
 
-void global_Graphics_Bind(VALUE rubyElement, CDrawable_Element& element)
-{
-    CGraphics::Get().bind(rubyElement, element);
+	rb_const_set(rb_mConfig, swidth, INT2NUM(iwidth));
+	rb_const_set(rb_mConfig, sheight, INT2NUM(iheight));
+	CGraphics::Get().resizeScreen(iwidth, iheight);
+	return self;
 }

@@ -11,8 +11,8 @@ public:
     CView_Element() = default;
     ~CView_Element() override = default;
     
-    void syncStacks();
-    void bind(VALUE rubyDrawable, CDrawable_Element& drawable);
+    void syncStackCppFromRuby();
+    void bind(CDrawable_Element& drawable);
     void drawFast(sf::RenderTarget& target) const override;
     void updateContentsOpacity(long opacity);
     void onSelfSetted() override {

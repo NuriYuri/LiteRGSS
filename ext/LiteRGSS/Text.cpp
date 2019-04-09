@@ -1,4 +1,5 @@
 #include "LiteRGSS.h"
+#include "CGraphics.h"
 
 void rb_Text_Load_Font(CText_Element &text, VALUE self, VALUE fontid, VALUE colorid, VALUE sizeid);
 
@@ -76,33 +77,28 @@ void Init_Text()
 VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
 {
     auto& text = rb::Get<CText_Element>(self);
-    VALUE fontid, viewport, x, y, width, height, str, align, outlinesize, table, colorid, sizeid;
+    VALUE fontid, viewport, x, y, width, height, str, align, outlinesize, colorid, sizeid;
 	VALUE opacity = LONG2NUM(255);
     rb_scan_args(argc, argv,"74", &fontid, &viewport, &x, &y, &width, &height, &str, &align, &outlinesize, &colorid, &sizeid);
     /* Viewport */
     if(rb_obj_is_kind_of(viewport, rb_cViewport) == Qtrue)
     {
-        text.rViewport = viewport;
-
         CViewport_Element* viewporte;
         Data_Get_Struct(viewport, CViewport_Element, viewporte);
-        viewporte->bind(self, text);
-        //table = rb_ivar_get(viewport, rb_iElementTable);
-        //rb_ary_push(table, self);
+        viewporte->bind(text);
+        text.rViewport = viewport;
     }
 	/* If a window is specified */
 	else if (rb_obj_is_kind_of(viewport, rb_cWindow) == Qtrue)
 	{
 		auto& window = rb::GetSafe<CWindow_Element>(viewport, rb_cWindow);
-		window.bind(self, text);
-		//table = rb_ivar_get(viewport, rb_iElementTable);
+		window.bind(text);
 		text.rViewport = viewport;
 		opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rContentOpacity) / 255);
-        //rb_ary_push(table, self);
 	}
     else
     {
-        global_Graphics_Bind(self, text);
+        CGraphics::Get().bind(text);
         text.rViewport = Qnil;
     }
     

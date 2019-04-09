@@ -2,6 +2,7 @@
 #include "Bitmap.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
+#include "CGraphics.h"
 
 VALUE rb_cWindow = Qnil;
 
@@ -102,7 +103,6 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 {
 	auto& window = rb::Get<CWindow_Element>(self);
 	VALUE viewport = Qnil;
-	VALUE table = Qnil;
 	
 	rb_scan_args(argc, argv, "01", &viewport);
 
@@ -111,22 +111,17 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 	{
 		CViewport_Element* viewport;
 		Data_Get_Struct(argv[0], CViewport_Element, viewport);
-		viewport->bind(self, window);
-		//table = rb_ivar_get(argv[0], rb_iElementTable);
+		viewport->bind(window);
 		window.rViewport = argv[0];
-		//rb_ary_push(table, self);
 	}
 	/* Otherwise */
 	else
 	{
-		global_Graphics_Bind(self, window);
+		CGraphics::Get().bind(window);
 		window.rViewport = Qnil;
 	}
 	
-
-	/* Sprite table creation */
-	//rb_ivar_set(self, rb_iElementTable, rb_ary_new());
-	window.syncStacks();
+	window.syncStackCppFromRuby();
 
 	/* Rect definition */
 	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };

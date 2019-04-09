@@ -18,10 +18,9 @@ public:
     void updateContentsOpacity(long opacity);
 
     void bind(CRubyGraphicsStack& rubyStack, CDrawable_Element& el);
+    void clear();
 
 private:
-    void detachSprites();
-
     vector_tracker<CDrawable_Element*> stack;
 };
 #endif

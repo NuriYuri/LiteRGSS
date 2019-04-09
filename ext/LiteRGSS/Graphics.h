@@ -27,6 +27,4 @@ VALUE rb_Graphics_getShader(VALUE self);
 VALUE rb_Graphics_setShader(VALUE self, VALUE shader);
 VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height);
 
-void global_Graphics_Bind(VALUE rubyElement, CDrawable_Element& element);
-
 #endif

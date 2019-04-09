@@ -3,12 +3,13 @@
 #include <memory>
 #include "ruby.h"
 #include "CGraphicsUpdateMessage.h"
+#include "CRubyGlobalBitmaps.h"
+#include "CRubyGraphicsStack.h"
 
 class CGraphicsStack_Element;
 class CDrawable_Element;
 struct CGraphicsConfig;
 class CGraphicsSnapshot;
-class CRubyGraphicsStack;
 
 class CGraphicsDraw {
 public:
@@ -23,18 +24,22 @@ public:
     void setBrightness(unsigned char brightness) { m_brightness = brightness; }
     unsigned long frameRate() const { return m_frameRate; }
 
-    void init(VALUE self, sf::RenderWindow& window, const CGraphicsConfig& vSync);
-    void resizeScreen(VALUE self, VALUE width, VALUE height); 
+    void init(sf::RenderWindow& window, const CGraphicsConfig& vSync);
+    void resizeScreen(int width, int height); 
     void setShader(sf::RenderStates* shader);
 
     std::unique_ptr<GraphicsUpdateMessage> update();
     void updateInternal();
     bool isGameWindowOpen() const;
-    void reloadStack();
-    void bind(VALUE rubyElement, CDrawable_Element& element);
+    void syncStackCppFromRuby();
     void clearRubyStack();
-
+    void bind(CDrawable_Element& element);
     void stop();
+
+    void updateSelf(VALUE self) {
+        m_rubyStack = std::make_unique<CRubyGraphicsStack>(self);
+    }
+
 private:
     void initRender();
     
@@ -43,8 +48,9 @@ private:
     sf::RenderTarget& updateDrawPreProc(sf::View& defview);
     void updateDrawPostProc();
 
-    std::unique_ptr<CGraphicsStack_Element> m_stack;
+    CGraphicsStack_Element m_stack;
     std::unique_ptr<CRubyGraphicsStack> m_rubyStack;
+    CRubyGlobalBitmaps m_globalBitmaps;
 
     sf::RenderStates* m_renderState = nullptr;
     sf::RenderWindow* m_gameWindow = nullptr;

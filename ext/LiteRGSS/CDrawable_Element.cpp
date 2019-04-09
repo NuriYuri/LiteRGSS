@@ -3,7 +3,6 @@
 #include "CRubyGraphicsStack.h"
 #include "CRect_Element.h"
 
-extern ID rb_iElementTable;
 extern VALUE rb_mGraphics;
 extern VALUE rb_eRGSSError;
 

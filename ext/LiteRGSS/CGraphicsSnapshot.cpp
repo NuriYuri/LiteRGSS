@@ -29,17 +29,16 @@ void CGraphicsSnapshot::init() {
 	Graphics_freeze_shader->loadFromMemory(GraphicsTransitionFragmentShader, sf::Shader::Type::Fragment);
 }
 
-VALUE CGraphicsSnapshot::freeze(sf::RenderWindow& window, VALUE self) {
+void CGraphicsSnapshot::freeze(sf::RenderWindow& window, VALUE self) {
     CGraphics::Get().protect();
     if(Graphics_freeze_texture != nullptr) {
-        return Qnil;
+        return;
     }
-    auto result = CGraphics::Get().update(self);
+    CGraphics::Get().update(self);
     Graphics_freeze_texture = std::make_unique<sf::Texture>();
     takeSnapshotOn(window, *Graphics_freeze_texture);
     Graphics_freeze_sprite = std::make_unique<sf::Sprite>(*Graphics_freeze_texture);
     Graphics_freeze_sprite->setScale(1.0f / CGraphics::Get().scale(), 1.0f / CGraphics::Get().scale());
-    return self;
 }
 
 void CGraphicsSnapshot::takeSnapshotOn(sf::RenderWindow& window, sf::Texture& text) const {

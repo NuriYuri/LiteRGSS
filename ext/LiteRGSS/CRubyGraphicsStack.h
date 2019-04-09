@@ -12,8 +12,8 @@ public:
 
     void add(VALUE el);
     void remove(VALUE el);
-    void syncStack(CGraphicsStack_Element& destStack);
-    void clearStack();
+    void syncStackCppFromRuby(CGraphicsStack_Element& destStack);
+    void clear();
 
 private:
     VALUE m_table = Qnil;

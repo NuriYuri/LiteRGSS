@@ -59,14 +59,14 @@ VALUE rb_SpriteMap_Initialize(int argc, VALUE* argv, VALUE self)
 	// Viewport push
 	if (rb_obj_is_kind_of(viewport, rb_cViewport) != Qtrue)
 		rb_raise(rb_eRGSSError, "SpriteMap require viewport to be initialized.");
+    
     auto &viewport_el = rb::Get<CViewport_Element>(viewport);
-	viewport_el.bind(self, sprite);
+	viewport_el.bind(sprite);
 	sprite.rViewport = viewport;
-    //VALUE table = rb_ivar_get(viewport, rb_iElementTable);
-    //rb_ary_push(table, self);
 
     // Sprite definition
     sprite.define_map(NUM2ULONG(tile_width), NUM2ULONG(tile_count));
+    return self;
 }
 
 VALUE rb_SpriteMap_Dispose(VALUE self)

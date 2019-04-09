@@ -7,14 +7,14 @@
 #include "CSprite_Element.h"
 
 CGraphicsStack_Element::~CGraphicsStack_Element() {
-	detachSprites();
+	clear();
 }
 
 void CGraphicsStack_Element::bind(CRubyGraphicsStack& rubyStack, CDrawable_Element& el) {
 	el.setOriginStack(rubyStack, stack);
 }
 
-void CGraphicsStack_Element::detachSprites() {
+void CGraphicsStack_Element::clear() {
 	for(auto& it : stack) {
 		it->overrideOrigineStack();
 	}

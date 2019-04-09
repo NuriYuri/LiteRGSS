@@ -34,6 +34,4 @@ extern VALUE rb_eRGSSError;
 extern VALUE rb_eStoppedGraphics;
 extern VALUE rb_eClosedWindow;
 
-extern ID rb_iElementTable;
-
 #endif

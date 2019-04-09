@@ -26,25 +26,27 @@ public:
     double scale() const { return m_draw.scale(); }
     auto frameRate() const { return m_draw.frameRate(); }
 
-    VALUE init(VALUE self);
+    void updateSelf(VALUE self);
+    void init();
     void stop();
     bool isGameWindowOpen() const;
     void protect();
-    VALUE update(VALUE self, bool input = true);
-    VALUE updateOnlyInput(VALUE self);
+    void update(VALUE self, bool input = true);
+    void updateOnlyInput(VALUE self);
 
     VALUE takeSnapshot();
-    VALUE freeze(VALUE self);
+    void freeze(VALUE self);
     void transition(VALUE self, int argc, VALUE* argv);
-    void resizeScreen(VALUE self, VALUE width, VALUE height); 
+    void resizeScreen(int width, int height); 
     void setShader(sf::RenderStates* shader);
-    void reloadStack();
-    void bind(VALUE rubyElement, CDrawable_Element& element);
+    void syncStackCppFromRuby();
+    void bind(CDrawable_Element& element);
 
 private:
+    void warnIfGraphicsUpdate() const;
     CGraphics();
 
-    VALUE manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message);
+    void manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message);
     sf::RenderTarget& updateDrawPreProc(sf::View& defview);
     void updateDrawPostProc();
     void updateProcessEvent(GraphicsUpdateMessage& message);

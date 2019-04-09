@@ -12,10 +12,7 @@
 
 CGraphicsDraw::CGraphicsDraw(CGraphicsSnapshot& snapshot) : m_snapshot(snapshot) {}
 
-void CGraphicsDraw::init(VALUE self, sf::RenderWindow& window, const CGraphicsConfig& config) {      
-    m_stack = std::make_unique<CGraphicsStack_Element>();
-    m_rubyStack = std::make_unique<CRubyGraphicsStack>(self);
-
+void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config) {
     m_gameWindow = &window;
     m_gameWindow->setMouseCursorVisible(false);
 
@@ -37,29 +34,20 @@ void CGraphicsDraw::init(VALUE self, sf::RenderWindow& window, const CGraphicsCo
     }
 }
 
-void CGraphicsDraw::resizeScreen(VALUE self, VALUE width, VALUE height) {
+void CGraphicsDraw::resizeScreen(int width, int height) {
     CGraphics::Get().protect();
-    ID swidth = rb_intern("ScreenWidth");
-	ID sheight = rb_intern("ScreenHeight");
-	/* Adjust screen resolution */
-	if (rb_const_defined(rb_mConfig, swidth))
-		rb_const_remove(rb_mConfig, swidth);
-	if (rb_const_defined(rb_mConfig, sheight))
-		rb_const_remove(rb_mConfig, sheight);
-	rb_const_set(rb_mConfig, swidth, INT2NUM(NUM2INT(width)));
-	rb_const_set(rb_mConfig, sheight, INT2NUM(NUM2INT(height)));
-	
+
     /* Close the window */
     m_gameWindow->close();
     m_gameWindow = nullptr;
 	
     /* Restart Graphics */
-    CGraphics::Get().init(self);
+    CGraphics::Get().init();
 	
     /* Reset viewport render */
 	if (CViewport_Element::render)
 	{
-		CViewport_Element::render->create(NUM2INT(width), NUM2INT(height));
+		CViewport_Element::render->create(width, height);
 		CViewport_Element::render->setSmooth(m_smoothScreen);
 	}
 }
@@ -122,6 +110,7 @@ bool CGraphicsDraw::isGameWindowOpen() const {
 }
 
 void* GraphicsDraw_Update_Internal(void* dataPtr) {
+    //NO RUBY API ACCESS MUST BE DONE HERE
     auto& self = *reinterpret_cast<CGraphicsDraw*>(dataPtr);
     if(self.isGameWindowOpen()) {       
         self.updateInternal();
@@ -146,7 +135,7 @@ void CGraphicsDraw::updateInternal() {
 	auto& render_target = updateDrawPreProc(defview);
 
 	// Rendering stuff
-    m_stack->draw(defview, render_target);
+    m_stack.draw(defview, render_target);
 	
     // Perform the post proc
 	updateDrawPostProc();
@@ -174,38 +163,16 @@ void CGraphicsDraw::setShader(sf::RenderStates* shader) {
     }
 }
 
-extern "C" {
-    VALUE local_Graphics_call_gc_start(VALUE ignored) {
-        rb_gc_start();
-        return Qnil;
-    }
-
-    VALUE local_Graphics_Dispose_Bitmap(VALUE block_arg, VALUE data, int argc, VALUE* argv) {
-        if(RDATA(block_arg)->data != nullptr) {
-            rb::Dispose<CBitmap_Element>(block_arg);
-        }
-        return Qnil;
-    }
-}
-
 void CGraphicsDraw::clearRubyStack() {
-    //m_rubyStack->clearStack();
-
-    /* Disposing each Bitmap */
-    auto objectSpace = rb_const_get(rb_cObject, rb_intern("ObjectSpace"));
-
-    rb_block_call(objectSpace, rb_intern("each_object"), 1, &rb_cBitmap, (rb_block_call_func_t)local_Graphics_Dispose_Bitmap, Qnil);
-
-    int state;
-    rb_protect(local_Graphics_call_gc_start, Qnil, &state);
+    m_globalBitmaps.clear();
 }
 
-void CGraphicsDraw::reloadStack() {
-    m_rubyStack->syncStack(*m_stack);
+void CGraphicsDraw::syncStackCppFromRuby() {
+    m_rubyStack->syncStackCppFromRuby(m_stack);
 }
 
-void CGraphicsDraw::bind(VALUE rubyElement, CDrawable_Element& element) {
-    m_stack->bind(*m_rubyStack, element);
+void CGraphicsDraw::bind(CDrawable_Element& element) {
+    m_stack.bind(*m_rubyStack, element);
 }
 
 void CGraphicsDraw::stop() {
@@ -213,12 +180,10 @@ void CGraphicsDraw::stop() {
 
     clearRubyStack();
 
-    m_stack = nullptr;
+    m_stack.clear();
     m_rubyStack = nullptr;
 }
 
 CGraphicsDraw::~CGraphicsDraw() {
-    if(m_stack != nullptr) {
-        stop();
-    }
+    stop();    
 }

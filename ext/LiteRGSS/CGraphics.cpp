@@ -11,9 +11,13 @@ CGraphics::CGraphics() :
     m_draw(m_snapshot) {         
 }
 
-VALUE CGraphics::init(VALUE self) {
+CGraphics::~CGraphics() {
+    if(game_window != nullptr) { stop(); }
+}
+
+void CGraphics::init() {
     if(game_window != nullptr) {
-        return Qnil;
+        return;
     }
     /* Shader Testing */
     if (!sf::Shader::isAvailable()) {
@@ -31,17 +35,19 @@ VALUE CGraphics::init(VALUE self) {
     game_window = std::make_unique<sf::RenderWindow>(config.video.vmode, std::move(config.title), style);
     game_window->setMouseCursorVisible(false);
 
-    m_draw.init(self, *game_window, config);
+    m_draw.init(*game_window, config);
     m_snapshot.init();
 
 	/* Input adjustement */
     L_Input_Reset_Clocks();
     L_Input_Setusec_threshold(1000000 / config.frameRate);
-    
-    return self;
 }
 
-VALUE CGraphics::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message) {
+void CGraphics::updateSelf(VALUE self) {
+    m_draw.updateSelf(self);
+}
+
+void CGraphics::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message) {
     /* If the error is ClosedWindowError, we manage the window closing 
      * When @on_close is defined to a proc, @on_close can decide if the window closing is allowed or not
      * or do things before closing the window
@@ -54,10 +60,9 @@ VALUE CGraphics::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& mes
         {
             VALUE handleClass = rb_class_of(closeHandle);
             if(handleClass == rb_cProc)
-                if(rb_proc_call(closeHandle, rb_ary_new()) == Qfalse)
-                {
+                if(rb_proc_call(closeHandle, rb_ary_new()) == Qfalse) {
                     InsideGraphicsUpdate = false;
-                    return self; /* If the proc returns false we doesn't show the exception */
+                    return; /* If the proc returns false we doesn't show the exception */
                 }
         }
         m_draw.clearRubyStack();
@@ -69,7 +74,6 @@ VALUE CGraphics::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& mes
     /* We raise the message */
     InsideGraphicsUpdate = false;
     rb_raise(message.errorObject, "%s", message.message.c_str());
-    return self;
 }
 
 void CGraphics::updateProcessEvent(GraphicsUpdateMessage& message) {
@@ -136,6 +140,9 @@ bool CGraphics::isGameWindowOpen() const {
 
 void CGraphics::stop() {
     protect();
+    if(InsideGraphicsUpdate) {
+
+    }
     m_draw.stop();
     m_snapshot.stop();
 
@@ -144,11 +151,11 @@ void CGraphics::stop() {
     game_window = nullptr;
 }
 
-VALUE CGraphics::update(VALUE self, bool input) {
+void CGraphics::update(VALUE self, bool input) {
     protect();
     // Prevent a Thread from calling Graphics.update during Graphics.update process
     if(InsideGraphicsUpdate) { 
-        return self;
+        return;
     }
     InsideGraphicsUpdate = true;
 
@@ -162,9 +169,8 @@ VALUE CGraphics::update(VALUE self, bool input) {
     }
     localMessage = message == nullptr ? localMessage : *message;
     
-    auto result = self;
     if(!localMessage.message.empty()) {
-        result = manageErrorMessage(self, localMessage);
+        manageErrorMessage(self, localMessage);
     }
 
     /* End of Graphics.update process */
@@ -172,25 +178,22 @@ VALUE CGraphics::update(VALUE self, bool input) {
 
     /* Update the frame count */
     frame_count++;
-    return result;
 }
 
-VALUE CGraphics::updateOnlyInput(VALUE self) {
+void CGraphics::updateOnlyInput(VALUE self) {
     protect();
     if (InsideGraphicsUpdate) {
-        return self;
+        return;
     }
     InsideGraphicsUpdate = true;
 
     GraphicsUpdateMessage message;
 	updateProcessEvent(message);
-	auto result = self;
     if (!message.message.empty()) {
-		result = manageErrorMessage(self, message);
+		manageErrorMessage(self, message);
     }
 
 	InsideGraphicsUpdate = false;
-    return result;
 }
 
 void CGraphics::protect()  {
@@ -201,8 +204,8 @@ void CGraphics::protect()  {
     }
 }
 
-void CGraphics::resizeScreen(VALUE self, VALUE width, VALUE height) {
-    m_draw.resizeScreen(self, width, height);
+void CGraphics::resizeScreen(int width, int height) {
+    m_draw.resizeScreen(width, height);
 }
 
 void CGraphics::setShader(sf::RenderStates* shader) {
@@ -220,18 +223,22 @@ void CGraphics::transition(VALUE self, int argc, VALUE* argv) {
     m_snapshot.transition(self, argc, argv);
 }
 
-VALUE CGraphics::freeze(VALUE self) {
-    return m_snapshot.freeze(*game_window, self);
+void CGraphics::freeze(VALUE self) {
+    m_snapshot.freeze(*game_window, self);
 }
 
-void CGraphics::reloadStack() {
-    m_draw.reloadStack();
+void CGraphics::syncStackCppFromRuby() {
+    warnIfGraphicsUpdate();
+    m_draw.syncStackCppFromRuby();
 }
 
-void CGraphics::bind(VALUE rubyElement, CDrawable_Element& element) {
-    m_draw.bind(rubyElement, element);
+void CGraphics::bind(CDrawable_Element& element) {
+    warnIfGraphicsUpdate();
+    m_draw.bind(element);
 }
 
-CGraphics::~CGraphics() {
-    if(game_window != nullptr) { stop(); }
+void CGraphics::warnIfGraphicsUpdate() const {
+    if(InsideGraphicsUpdate) {
+        rb_warn("WARNING : Accessing Ruby data while updating the screen");
+    }
 }

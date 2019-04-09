@@ -82,11 +82,9 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
         width = y;
         y = LONG2FIX(0);
     }
-    /* Sprite table creation */
-    //rb_ivar_set(self, rb_iElementTable, rb_ary_new());
     /* Viewport setting */
     auto& viewport = rb::Get<CViewport_Element>(self);
-    global_Graphics_Bind(self, viewport);
+    CGraphics::Get().bind(viewport);
     viewport.setOx(0);
     viewport.setOy(0);
 	viewport.rAngle = LONG2FIX(0);
@@ -102,7 +100,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     viewport.rRect = rc;
     viewport.rTone = Qnil;
     viewport.rColor = Qnil;
-    viewport.syncStacks();
+    viewport.syncStackCppFromRuby();
     return self;
 }
 
@@ -374,7 +372,7 @@ VALUE rb_Viewport_setRenderState(VALUE self, VALUE val)
 VALUE rb_Viewport_ReloadStack(VALUE self)
 {
     auto& viewport = rb::Get<CViewport_Element>(self);
-    viewport.syncStacks();
+    viewport.syncStackCppFromRuby();
     return self;
 }
 

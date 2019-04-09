@@ -1,10 +1,10 @@
 #include "CView_Element.h"
 
-void CView_Element::syncStacks() {
-    rubyStack->syncStack(*stack);
+void CView_Element::syncStackCppFromRuby() {
+    rubyStack->syncStackCppFromRuby(*stack);
 }
 
-void CView_Element::bind(VALUE rubyDrawable, CDrawable_Element& drawable) {
+void CView_Element::bind(CDrawable_Element& drawable) {
 	stack->bind(*rubyStack, drawable);
 }
 

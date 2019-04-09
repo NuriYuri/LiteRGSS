@@ -8,7 +8,7 @@
 class CGraphicsSnapshot {
 public:
     VALUE takeSnapshot(sf::RenderWindow& window);
-    VALUE freeze(sf::RenderWindow& window, VALUE self);
+    void freeze(sf::RenderWindow& window, VALUE self);
     void transition(VALUE self, int argc, VALUE* argv);
     void stop();
     void draw(sf::RenderWindow& window);
