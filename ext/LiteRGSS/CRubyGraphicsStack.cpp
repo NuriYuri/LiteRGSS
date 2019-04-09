@@ -9,7 +9,7 @@
 extern ID rb_iElementTable;
 
 CRubyGraphicsStack::CRubyGraphicsStack(VALUE self) {
-    std::cout << "stack ruby created" << std::endl;
+    //std::cout << "stack ruby created" << std::endl;
     rb_ivar_set(self, rb_iElementTable, m_table = rb_ary_new());
 }
 
@@ -28,26 +28,21 @@ void CRubyGraphicsStack::remove(VALUE el) {
 }
 
 void CRubyGraphicsStack::syncStackCppFromRuby(CGraphicsStack_Element& destStack) {
-    std::cout << "sync stacks ruby <=> c++" << std::endl;
-    destStack.clear();  
+    //std::cout << "sync stacks ruby <=> c++" << std::endl;  
+    destStack.clear();
     const long sz = RARRAY_LEN(m_table);
     VALUE* ori = RARRAY_PTR(m_table);
     for(long  i = 0; i < sz; i++) {
         const auto it = ori[i];
-        if(rb_obj_is_kind_of(it, rb_cViewport) == Qtrue ||
-            rb_obj_is_kind_of(it, rb_cSprite) == Qtrue ||
-            rb_obj_is_kind_of(it, rb_cText) == Qtrue ||
-			rb_obj_is_kind_of(it, rb_cWindow) == Qtrue) {
-            if(RDATA(it)->data != nullptr) {
-                auto& element = *reinterpret_cast<CDrawable_Element*>(RDATA(it)->data);
-                destStack.bind(*this, element);
-            }
-        }
+        if(RDATA(it)->data != nullptr) {
+            auto& element = *reinterpret_cast<CDrawable_Element*>(RDATA(it)->data);
+            destStack.bind(*this, element);
+        }        
     }
 }
 
 void CRubyGraphicsStack::clear() {
-    std::cout << "stack ruby dispose all sprites" << std::endl;
+    //std::cout << "stack ruby dispose all sprites" << std::endl;
     rb_check_type(m_table, T_ARRAY);
 	const long sz = RARRAY_LEN(m_table);
 	VALUE* ori = RARRAY_PTR(m_table);

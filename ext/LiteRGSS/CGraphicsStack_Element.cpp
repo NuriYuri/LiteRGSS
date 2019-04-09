@@ -16,7 +16,7 @@ void CGraphicsStack_Element::bind(CRubyGraphicsStack& rubyStack, CDrawable_Eleme
 
 void CGraphicsStack_Element::clear() {
 	for(auto& it : stack) {
-		it->overrideOrigineStack();
+		it->overrideOriginCppStack();
 	}
 	stack.clear();
 }

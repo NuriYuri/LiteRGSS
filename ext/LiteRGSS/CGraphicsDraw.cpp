@@ -185,7 +185,7 @@ void CGraphicsDraw::stop() {
     clearRubyStack();
 
     m_stack.clear();
-    m_rubyStack = nullptr;
+    m_rubyStack->clear();
 }
 
 CGraphicsDraw::~CGraphicsDraw() {

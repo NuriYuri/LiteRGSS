@@ -30,35 +30,36 @@ void CDrawable_Element::bindRect(CRect_Element* rect) {
 
 void CDrawable_Element::setOriginStack(CRubyGraphicsStack* oRuby, vector_tracker<CDrawable_Element*> *o)  {
     /* if the stack is already setted, nothing to be done */
-    if(origin_stack == o) {
-        return;
-    }
-
-    //Detach & Attach C++
-    if(origin_stack != nullptr)
-    {
-        if(!origin_stack->remove(this)) {
-            rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
+    if(origin_stack != o) {
+        //Detach & Attach C++
+        if(origin_stack != nullptr)
+        {
+            if(!origin_stack->remove(this)) {
+                rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
+            }
+        }
+        origin_stack = o;
+        if(origin_stack != nullptr)
+        {
+            origin_stack->push_back(this);
+            if(drawPriority == 0) {
+                drawPriority = origin_stack->size();
+            }
         }
     }
-    origin_stack = o;
-    if(o != nullptr)
-    {
-        origin_stack->push_back(this);
-        if(drawPriority == 0) {
-            drawPriority = origin_stack->size();
+    
+    /* if the stack is already setted, nothing to be done */
+    if(origin_ruby_stack != oRuby) {
+        //Detach & Attach ruby
+        if(origin_ruby_stack != nullptr) {
+            origin_ruby_stack->remove(self);
         }
-    }
 
-    //Detach & Attach ruby
-    if(origin_ruby_stack != nullptr) {
-        origin_ruby_stack->remove(self);
-    }
+        origin_ruby_stack = oRuby;
 
-    origin_ruby_stack = oRuby;
-
-    if(origin_ruby_stack != nullptr) {
-        origin_ruby_stack->add(self);
+        if(origin_ruby_stack != nullptr) {
+            origin_ruby_stack->add(self);
+        }
     }
 }
 

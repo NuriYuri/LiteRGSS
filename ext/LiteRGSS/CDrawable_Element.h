@@ -28,7 +28,7 @@ class CDrawable_Element {
         CDrawable_Element() = default;
         virtual ~CDrawable_Element();
         void setOriginStack(CRubyGraphicsStack& oRuby, vector_tracker<CDrawable_Element*>& o);
-        void overrideOrigineStack() {origin_stack = nullptr; origin_ruby_stack = nullptr; };
+        void overrideOriginCppStack() {origin_stack = nullptr; };
         unsigned long getIndex();
         virtual void draw(sf::RenderTarget& target) const = 0;
         virtual void drawFast(sf::RenderTarget& target) const = 0;
