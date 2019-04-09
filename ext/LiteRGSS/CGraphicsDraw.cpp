@@ -54,6 +54,7 @@ void CGraphicsDraw::resizeScreen(int width, int height) {
 
 void CGraphicsDraw::drawBrightness()
 {
+	//NO RUBY API ACCESS MUST BE DONE HERE
 	sf::Vertex	vertices[4];
 	sf::Vector2u size = m_gameWindow->getSize();
 	vertices[0].position = sf::Vector2f(0, 0);
@@ -68,12 +69,13 @@ void CGraphicsDraw::drawBrightness()
 // This function retreive the right render to perform the draw operations
 // It also resets the default view and transmit it to the right render
 //
-sf::RenderTarget& CGraphicsDraw::updateDrawPreProc(sf::View& defview)
+sf::RenderTarget& CGraphicsDraw::configureAndGetRenderTarget(sf::View& defview)
 {
+	//NO RUBY API ACCESS MUST BE DONE HERE
 	// Setting the default view parameters
 	defview.setSize(m_screenWidth, m_screenHeight);
 	defview.setCenter(round(m_screenWidth / 2.0f), round(m_screenHeight / 2.0f));
-	// Appying the default view to the Window (used in updateDrawPostProc)
+	// Appying the default view to the Window (used in postProcessing())
 	m_gameWindow->setView(defview);
 	// If the m_renderTexture is defined, we use it instead of the m_gameWindow (shader processing)
 	if (m_renderTexture) {
@@ -91,7 +93,8 @@ sf::RenderTarget& CGraphicsDraw::updateDrawPreProc(sf::View& defview)
 // - Draw the render to the Window if it's defined
 // - Draw the transition sprite
 //
-void CGraphicsDraw::updateDrawPostProc() {
+void CGraphicsDraw::postProcessing() {
+	//NO RUBY API ACCESS MUST BE DONE HERE
 	// Drawing render to window if finished
 	if (m_renderTexture)
 	{
@@ -102,10 +105,17 @@ void CGraphicsDraw::updateDrawPostProc() {
 		else
 			m_gameWindow->draw(sp, *m_renderState);
 	}
+	//Draw the "freeze" texture, if visible
     m_snapshot.draw(*m_gameWindow);
+
+	// Update the brightness (applied to m_gameWindow)
+	if (m_brightness != 255) {
+		drawBrightness();
+    }
 }
 
 bool CGraphicsDraw::isGameWindowOpen() const {
+	//NO RUBY API ACCESS MUST BE DONE HERE
     return m_gameWindow != nullptr && m_gameWindow->isOpen();
 }
 
@@ -129,21 +139,15 @@ std::unique_ptr<GraphicsUpdateMessage> CGraphicsDraw::update() {
 }
 
 void CGraphicsDraw::updateInternal() {
+	//NO RUBY API ACCESS MUST BE DONE HERE
     m_gameWindow->clear();
    
     sf::View defview = m_gameWindow->getDefaultView();
-	auto& render_target = updateDrawPreProc(defview);
-
-	// Rendering stuff
+	auto& render_target = configureAndGetRenderTarget(defview);
+	// Rendering C++ sprite stack
     m_stack.draw(defview, render_target);
-	
-    // Perform the post proc
-	updateDrawPostProc();
 
-	// Update the brightness (applied to m_gameWindow)
-	if (m_brightness != 255) {
-		drawBrightness();
-    }
+	postProcessing();
 
     m_gameWindow->display();
 }

@@ -45,8 +45,8 @@ private:
     
     void drawBrightness();
 
-    sf::RenderTarget& updateDrawPreProc(sf::View& defview);
-    void updateDrawPostProc();
+    sf::RenderTarget& configureAndGetRenderTarget(sf::View& defview);
+    void postProcessing();
 
     CGraphicsStack_Element m_stack;
     std::unique_ptr<CRubyGraphicsStack> m_rubyStack;

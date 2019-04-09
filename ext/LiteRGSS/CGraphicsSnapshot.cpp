@@ -133,6 +133,7 @@ void CGraphicsSnapshot::stop() {
 }
 
 void CGraphicsSnapshot::draw(sf::RenderWindow& window) {
+    //NO RUBY API ACCESS MUST BE DONE HERE
     // Display transition sprite
 	if (Graphics_freeze_sprite != nullptr)
 	{
