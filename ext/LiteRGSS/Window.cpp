@@ -121,7 +121,7 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 		window.rViewport = Qnil;
 	}
 	
-	window.syncStackCppFromRuby();
+	//window.syncStackCppFromRuby();
 
 	/* Rect definition */
 	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };
@@ -142,7 +142,7 @@ VALUE rb_Window_getViewport(VALUE self)
 VALUE rb_Window_DisposeFromViewport(VALUE self)
 {
 	auto& window = rb::Get<CWindow_Element>(self);
-	window.disposeFromViewport();
+	//window.disposeFromViewport();
 	return rb::Dispose<CWindow_Element>(self);
 }
 

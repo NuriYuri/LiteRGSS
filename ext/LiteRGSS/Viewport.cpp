@@ -22,7 +22,7 @@ void rb::Mark<CViewport_Element>(CViewport_Element* viewport)
 
 void Init_Viewport()
 {
-    rb_cViewport = rb_define_class_under(rb_mLiteRGSS, "Viewport", rb_cDisposable);
+    rb_cViewport = rb_define_class_under(rb_mLiteRGSS, "Viewport", rb_cDrawable);
 
     rb_define_alloc_func(rb_cViewport, rb::AllocDrawable<CViewport_Element>);
 
@@ -100,7 +100,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     viewport.rRect = rc;
     viewport.rTone = Qnil;
     viewport.rColor = Qnil;
-    viewport.syncStackCppFromRuby();
+    //viewport.syncStackCppFromRuby();
     return self;
 }
 

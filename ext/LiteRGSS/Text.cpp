@@ -176,7 +176,7 @@ VALUE rb_Text_Dispose(VALUE self)
 VALUE rb_Text_DisposeFromViewport(VALUE self)
 {
     auto& text = rb::Get<CText_Element>(self);
-	text.disposeFromViewport();
+	//text.disposeFromViewport();
 	return rb::Dispose<CText_Element>(self);
 }
 

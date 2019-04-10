@@ -28,7 +28,8 @@ class CDrawable_Element {
         CDrawable_Element() = default;
         virtual ~CDrawable_Element();
         void setOriginStack(CRubyGraphicsStack& oRuby, vector_tracker<CDrawable_Element*>& o);
-        void overrideOriginCppStack() {origin_stack = nullptr; };
+        void overrideOriginCppStack();
+        void overrideOriginRubyStack();
         unsigned long getIndex();
         virtual void draw(sf::RenderTarget& target) const = 0;
         virtual void drawFast(sf::RenderTarget& target) const = 0;
@@ -40,7 +41,7 @@ class CDrawable_Element {
             onSelfSetted();
         }
         virtual void onSelfSetted() {}
-        void disposeFromViewport() { RDATA(self)->data = nullptr; disposeFromViewport_ = true;}
+        //void disposeFromViewport() { /*RDATA(self)->data = nullptr; disposeFromViewport_ = true; */ }
         void bindRect(CRect_Element* rect);
         CRect_Element* getRect() const { return linkedRect; };
 

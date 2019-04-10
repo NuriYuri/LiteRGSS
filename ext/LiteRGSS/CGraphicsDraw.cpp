@@ -145,7 +145,7 @@ void CGraphicsDraw::updateInternal() {
     sf::View defview = m_gameWindow->getDefaultView();
 	auto& render_target = configureAndGetRenderTarget(defview);
 	// Rendering C++ sprite stack
-    m_stack.draw(defview, render_target);
+    m_stack->draw(defview, render_target);
 
 	postProcessing();
 
@@ -167,25 +167,19 @@ void CGraphicsDraw::setShader(sf::RenderStates* shader) {
     }
 }
 
-void CGraphicsDraw::clearRubyStack() {
-    m_globalBitmaps.clear();
-}
-
 void CGraphicsDraw::syncStackCppFromRuby() {
-    m_rubyStack->syncStackCppFromRuby(m_stack);
+    m_stack->syncStackCppFromRuby();
 }
 
 void CGraphicsDraw::bind(CDrawable_Element& element) {
-    m_stack.bind(*m_rubyStack, element);
+    m_stack->bind(element);
 }
 
 void CGraphicsDraw::stop() {
     m_gameWindow = nullptr;
 
-    clearRubyStack();
-
-    m_stack.clear();
-    m_rubyStack->clear();
+	m_stack->clear();
+    m_globalBitmaps.clear();  
 }
 
 CGraphicsDraw::~CGraphicsDraw() {

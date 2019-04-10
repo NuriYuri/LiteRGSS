@@ -63,13 +63,17 @@ void CDrawable_Element::setOriginStack(CRubyGraphicsStack* oRuby, vector_tracker
     }
 }
 
+void CDrawable_Element::overrideOriginCppStack() {
+    origin_stack = nullptr;
+}
+
+void CDrawable_Element::overrideOriginRubyStack() {
+    origin_ruby_stack = nullptr;
+}
+
 CDrawable_Element::~CDrawable_Element() {  
     bindRect(nullptr);
-
     resetOriginStack();
-    if(!disposeFromViewport_ && origin_ruby_stack != nullptr) {
-        origin_ruby_stack->remove(self);
-    }
 
     RDATA(self)->data = nullptr;
 }

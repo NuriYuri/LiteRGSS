@@ -5,16 +5,37 @@
 
 #include "CText_Element.h"
 #include "CSprite_Element.h"
+#include "CRubyGraphicsStack.h"
+
+CGraphicsStack_Element::CGraphicsStack_Element(std::unique_ptr<CRubyGraphicsStack> rubyStack) :
+	rubyStack(std::move(rubyStack)) {
+}
 
 CGraphicsStack_Element::~CGraphicsStack_Element() {
 	clear();
 }
 
-void CGraphicsStack_Element::bind(CRubyGraphicsStack& rubyStack, CDrawable_Element& el) {
-	el.setOriginStack(rubyStack, stack);
+void CGraphicsStack_Element::bind(CDrawable_Element& el) {
+	el.setOriginStack(*rubyStack, stack);
 }
 
 void CGraphicsStack_Element::clear() {
+	clearRuby();
+	detach();
+}
+
+void CGraphicsStack_Element::clearRuby() {
+	for(auto& it : stack) {
+		it->overrideOriginRubyStack();
+	}
+	rubyStack->clear();
+}
+
+void CGraphicsStack_Element::syncStackCppFromRuby() {
+	rubyStack->syncStackCppFromRuby(*this);
+}
+
+void CGraphicsStack_Element::detach() { 
 	for(auto& it : stack) {
 		it->overrideOriginCppStack();
 	}

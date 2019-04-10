@@ -15,6 +15,8 @@ public:
     void syncStackCppFromRuby(CGraphicsStack_Element& destStack);
     void clear();
 
+    VALUE self() { return m_table; }
+
 private:
     VALUE m_table = Qnil;
 };

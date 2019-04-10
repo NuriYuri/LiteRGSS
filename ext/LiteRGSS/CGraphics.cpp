@@ -65,11 +65,14 @@ void CGraphics::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& mess
                     return; /* If the proc returns false we doesn't show the exception */
                 }
         }
-        m_draw.clearRubyStack();
-        if(game_window != nullptr) {
+        InsideGraphicsUpdate = false;
+        stop();
+        return;
+        //m_draw.clearRubyStack();
+        /*if(game_window != nullptr) {
             game_window->close();
             game_window = nullptr;
-        }
+        }*/
     }
     /* We raise the message */
     InsideGraphicsUpdate = false;
@@ -140,9 +143,6 @@ bool CGraphics::isGameWindowOpen() const {
 
 void CGraphics::stop() {
     protect();
-    if(InsideGraphicsUpdate) {
-
-    }
     m_draw.stop();
     m_snapshot.stop();
 

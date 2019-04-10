@@ -32,12 +32,11 @@ public:
     void updateInternal();
     bool isGameWindowOpen() const;
     void syncStackCppFromRuby();
-    void clearRubyStack();
     void bind(CDrawable_Element& element);
     void stop();
 
     void updateSelf(VALUE self) {
-        m_rubyStack = std::make_unique<CRubyGraphicsStack>(self);
+        m_stack = std::make_unique<CGraphicsStack_Element>(std::make_unique<CRubyGraphicsStack>(self));
     }
 
 private:
@@ -48,8 +47,7 @@ private:
     sf::RenderTarget& configureAndGetRenderTarget(sf::View& defview);
     void postProcessing();
 
-    CGraphicsStack_Element m_stack;
-    std::unique_ptr<CRubyGraphicsStack> m_rubyStack;
+    std::unique_ptr<CGraphicsStack_Element> m_stack;
     CRubyGlobalBitmaps m_globalBitmaps;
 
     sf::RenderStates* m_renderState = nullptr;

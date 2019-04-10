@@ -16,13 +16,11 @@ public:
     void drawFast(sf::RenderTarget& target) const override;
     void updateContentsOpacity(long opacity);
     void onSelfSetted() override {
-        stack = std::make_unique<CGraphicsStack_Element>();
-        rubyStack = std::make_unique<CRubyGraphicsStack>(self);
+        stack = std::make_unique<CGraphicsStack_Element>(std::make_unique<CRubyGraphicsStack>(self));
     }
 
 private:
     std::unique_ptr<CGraphicsStack_Element> stack;
-    std::unique_ptr<CRubyGraphicsStack> rubyStack;
 };
 
 #endif

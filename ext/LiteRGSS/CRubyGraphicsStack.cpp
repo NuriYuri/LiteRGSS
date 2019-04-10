@@ -14,7 +14,7 @@ CRubyGraphicsStack::CRubyGraphicsStack(VALUE self) {
 }
 
 CRubyGraphicsStack::~CRubyGraphicsStack() { 
-    clear();
+    //clear();
 }
 
 void CRubyGraphicsStack::add(VALUE el) {
@@ -29,14 +29,15 @@ void CRubyGraphicsStack::remove(VALUE el) {
 
 void CRubyGraphicsStack::syncStackCppFromRuby(CGraphicsStack_Element& destStack) {
     //std::cout << "sync stacks ruby <=> c++" << std::endl;  
-    destStack.clear();
+    destStack.detach();
     const long sz = RARRAY_LEN(m_table);
     VALUE* ori = RARRAY_PTR(m_table);
+
     for(long  i = 0; i < sz; i++) {
         const auto it = ori[i];
-        if(RDATA(it)->data != nullptr) {
+        if(rb_obj_is_kind_of(it, rb_cDrawable) == Qtrue && RDATA(it)->data != nullptr) {
             auto& element = *reinterpret_cast<CDrawable_Element*>(RDATA(it)->data);
-            destStack.bind(*this, element);
+            destStack.bind(element);
         }        
     }
 }
