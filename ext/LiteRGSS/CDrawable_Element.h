@@ -14,9 +14,9 @@ class CGraphicsStack_Element;
 class CDrawable_Element {
     private:
         void resetOriginStack();
-        void setOriginStack(CRubyGraphicsStack* oRuby, vector_tracker<CDrawable_Element*> *o);
+        void setOriginStack(CRubyGraphicsStack* oRuby, CGraphicsStack_Element *o);
         
-        vector_tracker<CDrawable_Element*> *origin_stack = nullptr;
+        CGraphicsStack_Element *origin_stack = nullptr;
         CRubyGraphicsStack* origin_ruby_stack = nullptr;
         CRect_Element* linkedRect = nullptr;
         unsigned long drawPriority = 0;
@@ -27,9 +27,7 @@ class CDrawable_Element {
     public:
         CDrawable_Element() = default;
         virtual ~CDrawable_Element();
-        void setOriginStack(CRubyGraphicsStack& oRuby, vector_tracker<CDrawable_Element*>& o);
-        void overrideOriginCppStack();
-        void overrideOriginRubyStack();
+        void setOriginStack(CRubyGraphicsStack& oRuby, CGraphicsStack_Element& o);
         unsigned long getIndex();
         virtual void draw(sf::RenderTarget& target) const = 0;
         virtual void drawFast(sf::RenderTarget& target) const = 0;
@@ -47,6 +45,9 @@ class CDrawable_Element {
 
         /* Instance variable for Ruby */
         VALUE rViewport = Qnil;
-        
+
+        //TODO make this method access safe (forbid it except for CGraphicsStack_Element and CRubyGraphicsStack)
+        void overrideOriginCppStack(CGraphicsStack_Element* stack = nullptr);
+        void overrideOriginRubyStack();
 };
 #endif

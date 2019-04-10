@@ -21,8 +21,13 @@ public:
     void clear();
     
     void syncStackCppFromRuby();
+
+    bool removeCpp(CDrawable_Element* el);
+    void addCpp(CDrawable_Element* el);
+    auto size() const { return stack.size(); }
+    
 private:
-    void detach();
+    void syncFromRawData(std::vector<CDrawable_Element*> data = {}, bool overrideOriginStack = true);
     void clearRuby();
 
     vector_tracker<CDrawable_Element*> stack;

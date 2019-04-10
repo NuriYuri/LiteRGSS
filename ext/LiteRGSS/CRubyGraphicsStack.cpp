@@ -29,17 +29,22 @@ void CRubyGraphicsStack::remove(VALUE el) {
 
 void CRubyGraphicsStack::syncStackCppFromRuby(CGraphicsStack_Element& destStack) {
     //std::cout << "sync stacks ruby <=> c++" << std::endl;  
-    destStack.detach();
+    
     const long sz = RARRAY_LEN(m_table);
     VALUE* ori = RARRAY_PTR(m_table);
-
+    auto data = std::vector<CDrawable_Element*>{};
+    if(sz > 0) {
+        data.reserve(sz);
+    }
     for(long  i = 0; i < sz; i++) {
         const auto it = ori[i];
         if(rb_obj_is_kind_of(it, rb_cDrawable) == Qtrue && RDATA(it)->data != nullptr) {
             auto& element = *reinterpret_cast<CDrawable_Element*>(RDATA(it)->data);
-            destStack.bind(element);
+            element.overrideOriginCppStack(&destStack);
+            data.push_back(&element);
         }        
     }
+    destStack.syncFromRawData(std::move(data), false);
 }
 
 void CRubyGraphicsStack::clear() {

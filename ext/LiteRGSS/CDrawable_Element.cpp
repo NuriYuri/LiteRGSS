@@ -1,6 +1,7 @@
 #include <iostream>
 #include "CDrawable_Element.h"
 #include "CRubyGraphicsStack.h"
+#include "CGraphicsStack_Element.h"
 #include "CRect_Element.h"
 
 extern VALUE rb_mGraphics;
@@ -10,7 +11,7 @@ void CDrawable_Element::resetOriginStack() {
     setOriginStack(nullptr, nullptr);
 }
 
-void CDrawable_Element::setOriginStack(CRubyGraphicsStack& oRuby, vector_tracker<CDrawable_Element*>& o) {
+void CDrawable_Element::setOriginStack(CRubyGraphicsStack& oRuby, CGraphicsStack_Element& o) {
     setOriginStack(&oRuby, &o);
 }
 
@@ -28,20 +29,20 @@ void CDrawable_Element::bindRect(CRect_Element* rect) {
     }
 }
 
-void CDrawable_Element::setOriginStack(CRubyGraphicsStack* oRuby, vector_tracker<CDrawable_Element*> *o)  {
+void CDrawable_Element::setOriginStack(CRubyGraphicsStack* oRuby, CGraphicsStack_Element *o)  {
     /* if the stack is already setted, nothing to be done */
     if(origin_stack != o) {
         //Detach & Attach C++
         if(origin_stack != nullptr)
         {
-            if(!origin_stack->remove(this)) {
+            if(!origin_stack->removeCpp(this)) {
                 rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
             }
         }
         origin_stack = o;
         if(origin_stack != nullptr)
         {
-            origin_stack->push_back(this);
+            origin_stack->addCpp(this);
             if(drawPriority == 0) {
                 drawPriority = origin_stack->size();
             }
@@ -63,8 +64,8 @@ void CDrawable_Element::setOriginStack(CRubyGraphicsStack* oRuby, vector_tracker
     }
 }
 
-void CDrawable_Element::overrideOriginCppStack() {
-    origin_stack = nullptr;
+void CDrawable_Element::overrideOriginCppStack(CGraphicsStack_Element* originStack) {
+    origin_stack = originStack;
 }
 
 void CDrawable_Element::overrideOriginRubyStack() {

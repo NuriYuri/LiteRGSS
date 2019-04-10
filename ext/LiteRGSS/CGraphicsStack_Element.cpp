@@ -16,12 +16,12 @@ CGraphicsStack_Element::~CGraphicsStack_Element() {
 }
 
 void CGraphicsStack_Element::bind(CDrawable_Element& el) {
-	el.setOriginStack(*rubyStack, stack);
+	el.setOriginStack(*rubyStack, *this);
 }
 
 void CGraphicsStack_Element::clear() {
 	clearRuby();
-	detach();
+	syncFromRawData({});
 }
 
 void CGraphicsStack_Element::clearRuby() {
@@ -35,17 +35,27 @@ void CGraphicsStack_Element::syncStackCppFromRuby() {
 	rubyStack->syncStackCppFromRuby(*this);
 }
 
-void CGraphicsStack_Element::detach() { 
-	for(auto& it : stack) {
-		it->overrideOriginCppStack();
+void CGraphicsStack_Element::syncFromRawData(std::vector<CDrawable_Element*> data, bool overrideOriginStack) { 
+	if(overrideOriginStack) {
+		for(auto& it : stack) {
+			it->overrideOriginCppStack();
+		}
 	}
-	stack.clear();
+	stack = std::move(data);
 }
 
 void CGraphicsStack_Element::drawFast(sf::RenderTarget& target) const {
 	for(auto& element: stack) {
 		element->drawFast(target);
 	}
+}
+
+bool CGraphicsStack_Element::removeCpp(CDrawable_Element* el) {
+	return stack.remove(el);
+}
+
+void CGraphicsStack_Element::addCpp(CDrawable_Element* el) {
+	stack.push_back(el);
 }
 
 void CGraphicsStack_Element::draw(sf::View& defview, sf::RenderTarget& target) const  {
