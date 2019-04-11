@@ -75,14 +75,14 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
     {
         CViewport_Element* viewport;
         Data_Get_Struct(argv[0], CViewport_Element, viewport);
-        viewport->bind(sprite);
+        viewport->add(sprite);
         sprite.rViewport = argv[0];
     }
 	/* If a window is specified */
 	else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cWindow) == Qtrue)
 	{
 		auto& window = rb::GetSafe<CWindow_Element>(argv[0], rb_cWindow);
-		window.bind(sprite);
+		window.add(sprite);
 		sprite.rViewport = argv[0];
 		VALUE opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rBackOpacity) / 255);
 		rb_Sprite_setOpacity(self, opacity);
@@ -90,7 +90,7 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
     /* Otherwise */
     else
     {
-        CGraphics::Get().bind(sprite);        
+        CGraphics::Get().add(sprite);        
         sprite.rViewport = Qnil;
     }
     
@@ -122,8 +122,6 @@ VALUE rb_Sprite_Dispose(VALUE self)
 
 VALUE rb_Sprite_DisposeFromViewport(VALUE self)
 {
-    auto& sprite = rb::Get<CSprite_Element>(self);
-	//sprite.disposeFromViewport();
 	return rb::Dispose<CSprite_Element>(self);
 }
 

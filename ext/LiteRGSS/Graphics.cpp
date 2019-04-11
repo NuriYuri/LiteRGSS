@@ -4,6 +4,7 @@
 #include "CGraphics.h"
 #include "CBitmap_Element.h"
 #include "CViewport_Element.h"
+#include "CDrawableStack.h"
 
 VALUE rb_mGraphics = Qnil;
 VALUE rb_eStoppedGraphics = Qnil;
@@ -44,7 +45,7 @@ void Init_Graphics()
 
 VALUE rb_Graphics_start(VALUE self) {
     CGraphics::Get().updateSelf(self);
-    CGraphics::Get().init();
+    CGraphics::Get().init(std::make_unique<CDrawableStack>(self));
     return self;
 }
 

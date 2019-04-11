@@ -84,7 +84,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     }
     /* Viewport setting */
     auto& viewport = rb::Get<CViewport_Element>(self);
-    CGraphics::Get().bind(viewport);
+    CGraphics::Get().add(viewport);
     viewport.setOx(0);
     viewport.setOy(0);
 	viewport.rAngle = LONG2FIX(0);

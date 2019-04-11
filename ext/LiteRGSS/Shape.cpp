@@ -123,7 +123,7 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 		rb_raise(rb_eRGSSError, "Shape require viewport to be initialized.");
 	CViewport_Element* viewport_el;
 	Data_Get_Struct(viewport, CViewport_Element, viewport_el);
-	viewport_el->bind(*shape);
+	viewport_el->add(*shape);
 	shape->rViewport = viewport;
 
 	// Shape initialization
@@ -639,7 +639,5 @@ VALUE rb_Shape_Copy(VALUE self)
 
 VALUE rb_Shape_DisposeFromViewport(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	//shape.disposeFromViewport();
 	return rb::Dispose<CShape_Element>(self);
 }

@@ -2,10 +2,10 @@
 #define CGraphics_H
 #include <memory>
 #include "ruby.h"
-#include "CGraphicsStack_Element.h"
 #include "CGraphicsConfig.h"
 #include "CGraphicsDraw.h"
 #include "CGraphicsSnapshot.h"
+#include "CDrawableStack.h"
 
 class CGraphics {
 public:
@@ -27,7 +27,7 @@ public:
     auto frameRate() const { return m_draw.frameRate(); }
 
     void updateSelf(VALUE self);
-    void init();
+    void init(std::unique_ptr<CDrawableStack> stack);
     void stop();
     bool isGameWindowOpen() const;
     void protect();
@@ -40,7 +40,7 @@ public:
     void resizeScreen(int width, int height); 
     void setShader(sf::RenderStates* shader);
     void syncStackCppFromRuby();
-    void bind(CDrawable_Element& element);
+    void add(CDrawable_Element& element);
 
 private:
     void warnIfGraphicsUpdate() const;

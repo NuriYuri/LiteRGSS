@@ -111,13 +111,13 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 	{
 		CViewport_Element* viewport;
 		Data_Get_Struct(argv[0], CViewport_Element, viewport);
-		viewport->bind(window);
+		viewport->add(window);
 		window.rViewport = argv[0];
 	}
 	/* Otherwise */
 	else
 	{
-		CGraphics::Get().bind(window);
+		CGraphics::Get().add(window);
 		window.rViewport = Qnil;
 	}
 	
@@ -141,8 +141,6 @@ VALUE rb_Window_getViewport(VALUE self)
 
 VALUE rb_Window_DisposeFromViewport(VALUE self)
 {
-	auto& window = rb::Get<CWindow_Element>(self);
-	//window.disposeFromViewport();
 	return rb::Dispose<CWindow_Element>(self);
 }
 

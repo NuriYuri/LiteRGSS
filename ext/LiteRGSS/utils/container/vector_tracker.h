@@ -6,7 +6,8 @@
 template <class T>
 class vector_tracker {
 public:
-    vector_tracker(std::vector<T> defaultValue) : m_container(std::move(defaultValue)){}
+    template <class X>
+    vector_tracker(std::vector<X> defaultValue) : m_container(std::move(defaultValue)){}
     vector_tracker() = default;
     vector_tracker(vector_tracker&&) noexcept = default;
     vector_tracker(const vector_tracker&) = default;

@@ -61,7 +61,7 @@ VALUE rb_SpriteMap_Initialize(int argc, VALUE* argv, VALUE self)
 		rb_raise(rb_eRGSSError, "SpriteMap require viewport to be initialized.");
     
     auto &viewport_el = rb::Get<CViewport_Element>(viewport);
-	viewport_el.bind(sprite);
+	viewport_el.add(sprite);
 	sprite.rViewport = viewport;
 
     // Sprite definition

@@ -2,8 +2,7 @@
 #define CVIEW_ELEMENT_H
 #include <vector>
 #include "CDrawable_Element.h"
-#include "CGraphicsStack_Element.h"
-#include "CRubyGraphicsStack.h"
+#include "CDrawableStack.h"
 
 class CView_Element : 
     public CDrawable_Element {
@@ -11,16 +10,18 @@ public:
     CView_Element() = default;
     ~CView_Element() override = default;
     
+    //Forward from stack
     void syncStackCppFromRuby();
-    void bind(CDrawable_Element& drawable);
+    void add(CDrawable_Element& drawable);
     void drawFast(sf::RenderTarget& target) const override;
     void updateContentsOpacity(long opacity);
-    void onSelfSetted() override {
-        stack = std::make_unique<CGraphicsStack_Element>(std::make_unique<CRubyGraphicsStack>(self));
+
+    void onSelfSetted(VALUE self) override {
+        stack = std::make_unique<CDrawableStack>(self);
     }
 
 private:
-    std::unique_ptr<CGraphicsStack_Element> stack;
+    std::unique_ptr<CDrawableStack> stack;
 };
 
 #endif

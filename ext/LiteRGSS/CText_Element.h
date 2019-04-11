@@ -2,6 +2,7 @@
 #define CText_Element_H
 #include "ruby.h"
 #include "CDrawable_Element.h"
+#include "sf_Text2.hpp"
 #include "utils/metadata.h"
 
 class CText_Element : public CDrawable_Element {

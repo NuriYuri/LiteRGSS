@@ -1,19 +1,5 @@
-#include <iostream>
 #include "CDrawable_Element.h"
-#include "CRubyGraphicsStack.h"
-#include "CGraphicsStack_Element.h"
 #include "CRect_Element.h"
-
-extern VALUE rb_mGraphics;
-extern VALUE rb_eRGSSError;
-
-void CDrawable_Element::resetOriginStack() {
-    setOriginStack(nullptr, nullptr);
-}
-
-void CDrawable_Element::setOriginStack(CRubyGraphicsStack& oRuby, CGraphicsStack_Element& o) {
-    setOriginStack(&oRuby, &o);
-}
 
 void CDrawable_Element::bindRect(CRect_Element* rect) {
     if(rect != linkedRect) {
@@ -29,56 +15,8 @@ void CDrawable_Element::bindRect(CRect_Element* rect) {
     }
 }
 
-void CDrawable_Element::setOriginStack(CRubyGraphicsStack* oRuby, CGraphicsStack_Element *o)  {
-    /* if the stack is already setted, nothing to be done */
-    if(origin_stack != o) {
-        //Detach & Attach C++
-        if(origin_stack != nullptr)
-        {
-            if(!origin_stack->removeCpp(this)) {
-                rb_raise(rb_eRGSSError, "Desynchronized graphics stack");
-            }
-        }
-        origin_stack = o;
-        if(origin_stack != nullptr)
-        {
-            origin_stack->addCpp(this);
-            if(drawPriority == 0) {
-                drawPriority = origin_stack->size();
-            }
-        }
-    }
-    
-    /* if the stack is already setted, nothing to be done */
-    if(origin_ruby_stack != oRuby) {
-        //Detach & Attach ruby
-        if(origin_ruby_stack != nullptr) {
-            origin_ruby_stack->remove(self);
-        }
-
-        origin_ruby_stack = oRuby;
-
-        if(origin_ruby_stack != nullptr) {
-            origin_ruby_stack->add(self);
-        }
-    }
-}
-
-void CDrawable_Element::overrideOriginCppStack(CGraphicsStack_Element* originStack) {
-    origin_stack = originStack;
-}
-
-void CDrawable_Element::overrideOriginRubyStack() {
-    origin_ruby_stack = nullptr;
-}
 
 CDrawable_Element::~CDrawable_Element() {  
     bindRect(nullptr);
-    resetOriginStack();
-
-    RDATA(self)->data = nullptr;
 }
 
-unsigned long CDrawable_Element::getIndex() {
-    return drawPriority;
-}

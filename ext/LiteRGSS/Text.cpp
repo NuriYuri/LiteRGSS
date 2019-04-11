@@ -85,20 +85,20 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self)
     {
         CViewport_Element* viewporte;
         Data_Get_Struct(viewport, CViewport_Element, viewporte);
-        viewporte->bind(text);
+        viewporte->add(text);
         text.rViewport = viewport;
     }
 	/* If a window is specified */
 	else if (rb_obj_is_kind_of(viewport, rb_cWindow) == Qtrue)
 	{
 		auto& window = rb::GetSafe<CWindow_Element>(viewport, rb_cWindow);
-		window.bind(text);
+		window.add(text);
 		text.rViewport = viewport;
 		opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rContentOpacity) / 255);
 	}
     else
     {
-        CGraphics::Get().bind(text);
+        CGraphics::Get().add(text);
         text.rViewport = Qnil;
     }
     
@@ -175,8 +175,6 @@ VALUE rb_Text_Dispose(VALUE self)
 
 VALUE rb_Text_DisposeFromViewport(VALUE self)
 {
-    auto& text = rb::Get<CText_Element>(self);
-	//text.disposeFromViewport();
 	return rb::Dispose<CText_Element>(self);
 }
 

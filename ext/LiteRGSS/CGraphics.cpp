@@ -15,7 +15,7 @@ CGraphics::~CGraphics() {
     if(game_window != nullptr) { stop(); }
 }
 
-void CGraphics::init() {
+void CGraphics::init(std::unique_ptr<CDrawableStack> stack) {
     if(game_window != nullptr) {
         return;
     }
@@ -35,7 +35,7 @@ void CGraphics::init() {
     game_window = std::make_unique<sf::RenderWindow>(config.video.vmode, std::move(config.title), style);
     game_window->setMouseCursorVisible(false);
 
-    m_draw.init(*game_window, config);
+    m_draw.init(*game_window, config, std::move(stack));
     m_snapshot.init();
 
 	/* Input adjustement */
@@ -232,9 +232,9 @@ void CGraphics::syncStackCppFromRuby() {
     m_draw.syncStackCppFromRuby();
 }
 
-void CGraphics::bind(CDrawable_Element& element) {
+void CGraphics::add(CDrawable_Element& element) {
     warnIfGraphicsUpdate();
-    m_draw.bind(element);
+    m_draw.add(element);
 }
 
 void CGraphics::warnIfGraphicsUpdate() const {

@@ -1,4 +1,5 @@
 #include <cassert>
+#include "CGraphicsUpdateMessage.h"
 #include "utils/ruby_common.h"
 #include "utils/common.h"
 #include "ruby/thread.h"
@@ -10,9 +11,12 @@
 #include "CGraphicsDraw.h"
 #include "CGraphics.h"
 
-CGraphicsDraw::CGraphicsDraw(CGraphicsSnapshot& snapshot) : m_snapshot(snapshot) {}
+CGraphicsDraw::CGraphicsDraw(CGraphicsSnapshot& snapshot) : 
+	m_snapshot(snapshot) {
+}
 
-void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config) {
+void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config, std::unique_ptr<CDrawableStack> stack) {
+	m_stack = std::move(stack);
     m_gameWindow = &window;
     m_gameWindow->setMouseCursorVisible(false);
 
@@ -42,7 +46,7 @@ void CGraphicsDraw::resizeScreen(int width, int height) {
     m_gameWindow = nullptr;
 	
     /* Restart Graphics */
-    CGraphics::Get().init();
+    CGraphics::Get().init(std::move(m_stack));
 	
     /* Reset viewport render */
 	if (CViewport_Element::render)
@@ -171,8 +175,8 @@ void CGraphicsDraw::syncStackCppFromRuby() {
     m_stack->syncStackCppFromRuby();
 }
 
-void CGraphicsDraw::bind(CDrawable_Element& element) {
-    m_stack->bind(element);
+void CGraphicsDraw::add(CDrawable_Element& element) {
+    m_stack->add(element);
 }
 
 void CGraphicsDraw::stop() {
@@ -183,5 +187,5 @@ void CGraphicsDraw::stop() {
 }
 
 CGraphicsDraw::~CGraphicsDraw() {
-    stop();    
+    stop();
 }
