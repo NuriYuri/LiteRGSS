@@ -1,4 +1,4 @@
-#include "utils/ruby_common.h"
+#include "ruby_common.h"
 #include "CGraphicsRubyStack.h"
 
 extern ID rb_iElementTable;

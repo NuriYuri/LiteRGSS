@@ -1,5 +1,5 @@
 ext_name = 'LiteRGSS'
-test_name = 'LiteRGSS/test'
+test_name = ext_name + '_test'
 require 'rake/extensiontask'
 
 spec = Gem::Specification.new do |s|
@@ -11,7 +11,7 @@ spec = Gem::Specification.new do |s|
   s.authors = ["Nuri Yuri"]
   s.homepage = "https://psdk.pokemonworkshop.fr/litergss"
   s.extensions = FileList["ext/LiteRGSS/extconf.rb"]
-  s.files = FileList["ext/LiteRGSS/*.h", "ext/LiteRGSS/utils/*.h", "ext/LiteRGSS/*.cpp", "ext/LiteRGSS/*.hpp", "ext/LiteRGSS/*.c"]
+  s.files = FileList["ext/LiteRGSS/*.h", "ext/LiteRGSS/*.cpp", "ext/LiteRGSS/*.hpp", "ext/LiteRGSS/*.c"]
   s.metadata    = { "source_code_uri" => "https://github.com/NuriYuri/LiteRGSS", "documentation_uri" => "https://psdk.pokemonworkshop.fr/litergss" }
   s.required_ruby_version = '>= 2.5.0'
 end
@@ -19,5 +19,5 @@ end
 Gem::PackageTask.new(spec) do |pkg|
 end
 
-Rake::ExtensionTask.new(ext_name, spec)  
+#Rake::ExtensionTask.new(ext_name, spec)  
 Rake::ExtensionTask.new(test_name, spec)  

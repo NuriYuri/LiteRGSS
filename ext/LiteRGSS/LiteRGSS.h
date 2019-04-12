@@ -27,8 +27,8 @@
 #include "Yuki_Gif.h"
 #include "Window.h"
 #include "SpriteMap.h"
-#include "utils/common.h"
-#include "utils/ruby_common.h"
+#include "common.h"
+#include "ruby_common.h"
 
 void Init_DrawableDisposable();
 void Init_Graphics();

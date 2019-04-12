@@ -1,6 +1,6 @@
 #ifndef L_VIEWPORT_H
 #define L_VIEWPORT_H
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 class CViewport_Element;
 VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self);

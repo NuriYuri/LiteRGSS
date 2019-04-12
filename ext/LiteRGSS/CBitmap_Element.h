@@ -1,7 +1,7 @@
 #ifndef CBITMAP_ELEMENT_H
 #define CBITMAP_ELEMENT_H
 #include <SFML/Graphics.hpp>
-#include "utils/metadata.h"
+#include "metadata.h"
 
 class CBitmap_Element {
 public:

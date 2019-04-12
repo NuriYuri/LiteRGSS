@@ -1,6 +1,6 @@
 #ifndef L_TABLE_HEADER
 #define L_TABLE_HEADER
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 struct rb_Table_Struct_Header {
     unsigned int dim = 0u;

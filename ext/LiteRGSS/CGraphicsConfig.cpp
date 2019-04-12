@@ -1,5 +1,5 @@
-#include "utils/ruby_common.h"
-#include "utils/common.h"
+#include "ruby_common.h"
+#include "common.h"
 #include "CGraphicsConfig.h"
 
 CGraphicsVideoConfig CGraphicsConfigLoader::loadVideoFromConfigs() const {

@@ -1,6 +1,6 @@
 #include "CRubyGlobalBitmaps.h"
-#include "utils/rbAdapter.h"
-#include "utils/ruby_common.h"
+#include "rbAdapter.h"
+#include "ruby_common.h"
 #include "CBitmap_Element.h"
 
 CRubyGlobalBitmaps::~CRubyGlobalBitmaps() {

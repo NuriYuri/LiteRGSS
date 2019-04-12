@@ -1,7 +1,7 @@
 #ifndef L_SPRITE_HEADER
 #define L_SPRITE_HEADER
 #include "Graphics.h"
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Sprite_Copy(VALUE self);

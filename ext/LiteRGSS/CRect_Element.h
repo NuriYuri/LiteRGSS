@@ -3,7 +3,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "CDrawable_Element.h"
-#include "utils/metadata.h"
+#include "metadata.h"
 
 class CRect_Element {
 private:

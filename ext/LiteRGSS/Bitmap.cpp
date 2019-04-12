@@ -1,11 +1,11 @@
 #include <iostream>
-#include "utils/ruby_common.h"
-#include "utils/common.h"
+#include "ruby_common.h"
+#include "common.h"
 #include "lodepng.h"
 #include "Bitmap.h"
 #include "CViewport_Element.h"
 #include "CGraphics.h"
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
 

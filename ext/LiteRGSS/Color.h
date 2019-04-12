@@ -1,7 +1,7 @@
 #ifndef L_COLOR_H
 #define L_COLOR_H
 
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 VALUE rb_Color_Initialize(int argc, VALUE* argv, VALUE self); // Also .set
 VALUE rb_Color_InitializeCopy(VALUE self, VALUE original);

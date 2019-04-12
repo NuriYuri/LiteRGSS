@@ -1,6 +1,6 @@
 #ifndef CGraphicsCppStack_H
 #define CGraphicsCppStack_H
-#include "utils/container/vector_tracker.h"
+#include "vector_tracker.h"
 
 class CGraphicsStackItem;
 class CGraphicsCppStack {

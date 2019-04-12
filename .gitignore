@@ -29,3 +29,4 @@ yard/doc
 yard/*.html
 mkmf.log
 pkg/*
+ext/LiteRGSS_test/

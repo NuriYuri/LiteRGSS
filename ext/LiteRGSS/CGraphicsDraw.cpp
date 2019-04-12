@@ -1,7 +1,7 @@
 #include <cassert>
 #include "CGraphicsUpdateMessage.h"
-#include "utils/ruby_common.h"
-#include "utils/common.h"
+#include "ruby_common.h"
+#include "common.h"
 #include "ruby/thread.h"
 #include "SpriteDisposer.h"
 #include "CBitmap_Element.h"

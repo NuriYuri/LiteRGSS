@@ -2,7 +2,7 @@
 #define L_TEXT_HEADER
 #include "CText_Element.h"
 #include "Graphics.h"
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Text_Copy(VALUE self);

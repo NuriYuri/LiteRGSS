@@ -1,13 +1,13 @@
 #include <iostream>
 #include <ruby.h>
 
-#include "../utils/ruby_common.h"
-#include "../CDrawableStack.h"
+#include "ruby_common.h"
+#include "CDrawableStack.h"
 
-VALUE rb_mLiteRGSS = Qnil;
-VALUE rb_mConfig = Qnil;
-VALUE rb_eRGSSError = Qnil;
-ID rb_iElementTable = Qnil;
+extern VALUE rb_mLiteRGSS;
+extern VALUE rb_mConfig;
+extern VALUE rb_eRGSSError;
+extern ID rb_iElementTable;
 
 ID rb_cToto = Qnil;
 
