@@ -3,7 +3,7 @@
 #include <string>
 #include <stdexcept>
 #include <ruby.h>
-#include "utils/metadata.h"
+#include "metadata.h"
 
 extern VALUE rb_eRGSSError;
 

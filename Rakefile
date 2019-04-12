@@ -1,4 +1,5 @@
 ext_name = 'LiteRGSS'
+test_name = 'LiteRGSS/test'
 require 'rake/extensiontask'
 
 spec = Gem::Specification.new do |s|
@@ -19,3 +20,4 @@ Gem::PackageTask.new(spec) do |pkg|
 end
 
 Rake::ExtensionTask.new(ext_name, spec)  
+Rake::ExtensionTask.new(test_name, spec)  
