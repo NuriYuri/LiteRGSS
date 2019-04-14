@@ -2217,7 +2217,9 @@ RULES
     all_obj_src_files = Dir[File.join(obj_src_dir, "*.{#{obj_EXT.join(%q{,})}}")].sort
     all_src_files = Dir[File.join(codedir, "*.{#{SRC_EXT.join(%q{,})}}")].sort
     all_test_files = Dir[File.join(test_dir, "*.{#{SRC_EXT.join(%q{,})}}")].sort
-    
+
+    all_obj_test_files = Dir[File.join(obj_test_dir, "*.{#{obj_EXT.join(%q{,})}}")].sort
+    FileUtils.rm_r(all_obj_test_files)
     FileUtils.cp_r(all_obj_src_files, obj_test_dir)
 
     ext = ".#{$OBJEXT}"

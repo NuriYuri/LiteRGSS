@@ -1,3 +1,4 @@
+#include <iostream>
 #include "CGraphicsStack.h"
 
 extern VALUE rb_cDrawable;

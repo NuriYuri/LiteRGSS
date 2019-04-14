@@ -1,6 +1,6 @@
 #encoding: ASCII-8BIT
 # Load required library
-require "./lib/LiteRGSS"
+require_relative "../lib/LiteRGSS"
 require "rspec"
 
 # Start specification
