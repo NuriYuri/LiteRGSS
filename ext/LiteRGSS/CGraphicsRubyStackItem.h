@@ -13,7 +13,7 @@ class CGraphicsRubyStackItem {
         CGraphicsRubyStack *origin_stack = nullptr;
         VALUE m_self = Qnil;
     public:
-        ~CGraphicsRubyStackItem() = default;
+        virtual ~CGraphicsRubyStackItem();
         
         void setSelf(VALUE self) { m_self = self; onSelfSetted(m_self);}
     protected:

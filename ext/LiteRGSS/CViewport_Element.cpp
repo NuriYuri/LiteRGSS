@@ -3,7 +3,6 @@
 #include "CViewport_Element.h"
 #include "CGraphics.h"
 #include "CRect_Element.h"
-#include "Graphics.local.h"
 #include "CTone_Element.h"
 #include "CWindow_Element.h"
 

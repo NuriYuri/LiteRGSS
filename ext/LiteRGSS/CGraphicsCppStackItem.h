@@ -36,7 +36,7 @@ class CGraphicsCppStackItem {
         void resetOriginStack() { setOriginStack(nullptr); }
         void overrideOriginStack(CGraphicsCppStack* stack = nullptr) { origin_stack = stack; }
     public:
-        ~CGraphicsCppStackItem() = default;
+        virtual ~CGraphicsCppStackItem() { resetOriginStack(); }
         unsigned long getDrawPriority() const { return drawPriority; }
 
         virtual void draw(sf::RenderTarget& target) const = 0;

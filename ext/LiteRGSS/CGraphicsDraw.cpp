@@ -15,8 +15,7 @@ CGraphicsDraw::CGraphicsDraw(CGraphicsSnapshot& snapshot) :
 	m_snapshot(snapshot) {
 }
 
-void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config, std::unique_ptr<CDrawableStack> stack) {
-	m_stack = std::move(stack);
+void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config) {
     m_gameWindow = &window;
     m_gameWindow->setMouseCursorVisible(false);
 
@@ -46,7 +45,7 @@ void CGraphicsDraw::resizeScreen(int width, int height) {
     m_gameWindow = nullptr;
 	
     /* Restart Graphics */
-    CGraphics::Get().init(std::move(m_stack));
+    CGraphics::Get().init();
 	
     /* Reset viewport render */
 	if (CViewport_Element::render)

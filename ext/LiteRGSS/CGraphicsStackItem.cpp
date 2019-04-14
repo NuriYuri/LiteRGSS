@@ -20,10 +20,6 @@ void CGraphicsStackItem::overrideOriginRubyStack(CGraphicsRubyStack* oRuby) {
     CGraphicsRubyStackItem::overrideOriginStack(oRuby);
 }
 
-CGraphicsStackItem::~CGraphicsStackItem() {  
-    CGraphicsStackItem::resetOriginStack();
-}
-
 unsigned long CGraphicsStackItem::getDrawPriority() const {
     return CGraphicsCppStackItem::getDrawPriority();
 }

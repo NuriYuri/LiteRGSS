@@ -9,7 +9,7 @@
 class CGraphicsStack {
 public:
     CGraphicsStack(VALUE table);
-    ~CGraphicsStack();
+    virtual ~CGraphicsStack();
     
     void add(CGraphicsStackItem& el);
     void clear();

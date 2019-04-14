@@ -27,7 +27,7 @@ public:
     auto frameRate() const { return m_draw.frameRate(); }
 
     void updateSelf(VALUE self);
-    void init(std::unique_ptr<CDrawableStack> stack);
+    void init();
     void stop();
     bool isGameWindowOpen() const;
     void protect();

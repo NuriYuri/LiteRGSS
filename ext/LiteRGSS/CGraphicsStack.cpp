@@ -18,9 +18,10 @@ void CGraphicsStack::add(CGraphicsStackItem& el) {
 void CGraphicsStack::clear() {
 	for(auto& it : cppStack) {
 		it->overrideOriginRubyStack();
+        it->overrideOriginCppStack();
 	}
 	rubyStack.disposeAll();
-	cppStack.clear();
+	cppStack.detach();
 }
 
 void CGraphicsStack::syncStackCppFromRuby() {

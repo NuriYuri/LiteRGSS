@@ -8,10 +8,9 @@ public:
     CGraphicsCppStack() = default;
     ~CGraphicsCppStack();
 
-    void clear();
-    
     void syncFromRawData(std::vector<CGraphicsStackItem*> data = {}, bool overrideOriginStack = true);
 
+    void detach();
     bool remove(CGraphicsStackItem* el);
     void add(CGraphicsStackItem* el);
     std::size_t size() const { return stack.size(); }

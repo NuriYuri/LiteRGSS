@@ -2,11 +2,11 @@
 #include "CGraphicsStackItem.h"
 
 CGraphicsCppStack::~CGraphicsCppStack() {
-	clear();
+	syncFromRawData({});
 }
 
-void CGraphicsCppStack::clear() {
-	syncFromRawData({});
+void CGraphicsCppStack::detach() {
+	stack.clear();
 }
 
 void CGraphicsCppStack::syncFromRawData(std::vector<CGraphicsStackItem*> data, bool overrideOriginStack) { 

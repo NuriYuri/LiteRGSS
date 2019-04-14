@@ -28,3 +28,8 @@ void CGraphicsRubyStackItem::overrideOriginStack(CGraphicsRubyStack* stack) {
 void CGraphicsRubyStackItem::setOriginStack(CGraphicsRubyStack& o) {
     setOriginStack(&o);
 }
+
+CGraphicsRubyStackItem::~CGraphicsRubyStackItem() {
+    resetOriginStack();
+    RDATA(m_self)->data = nullptr;
+}

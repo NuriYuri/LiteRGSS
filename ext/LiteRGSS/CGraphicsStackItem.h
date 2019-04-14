@@ -17,7 +17,7 @@ class CGraphicsStackItem :
 
     public:
         CGraphicsStackItem() = default;
-        virtual ~CGraphicsStackItem();
+        ~CGraphicsStackItem() override = default;
 
         void setOriginStack(CGraphicsCppStack& cppStack, CGraphicsRubyStack& rubyStack);
         unsigned long getDrawPriority() const;

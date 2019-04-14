@@ -15,7 +15,7 @@ CGraphics::~CGraphics() {
     if(game_window != nullptr) { stop(); }
 }
 
-void CGraphics::init(std::unique_ptr<CDrawableStack> stack) {
+void CGraphics::init() {
     if(game_window != nullptr) {
         return;
     }
@@ -35,7 +35,7 @@ void CGraphics::init(std::unique_ptr<CDrawableStack> stack) {
     game_window = std::make_unique<sf::RenderWindow>(config.video.vmode, std::move(config.title), style);
     game_window->setMouseCursorVisible(false);
 
-    m_draw.init(*game_window, config, std::move(stack));
+    m_draw.init(*game_window, config);
     m_snapshot.init();
 
 	/* Input adjustement */

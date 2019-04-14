@@ -22,7 +22,7 @@ public:
     void setBrightness(unsigned char brightness) { m_brightness = brightness; }
     unsigned long frameRate() const { return m_frameRate; }
 
-    void init(sf::RenderWindow& window, const CGraphicsConfig& vSync, std::unique_ptr<CDrawableStack> stack);
+    void init(sf::RenderWindow& window, const CGraphicsConfig& vSync);
     void resizeScreen(int width, int height); 
     void setShader(sf::RenderStates* shader);
 
