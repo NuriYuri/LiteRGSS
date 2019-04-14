@@ -2185,7 +2185,7 @@ RULES
   # directory, i.e. the current directory.  It is included as part of the
   # +VPATH+ and added to the list of +INCFLAGS+.
   #
-  def create_makefile(target, srcprefix = nil)
+  def create_makefile(target, srcprefix = nil, codename = 'code', rubyver = '2.5.3')
     $target = target
     libpath = $DEFLIBPATH|$LIBPATH
     message "creating Makefile\n"
@@ -2207,8 +2207,22 @@ RULES
     srcprefix ||= "$(srcdir)/#{srcprefix}".chomp('/')
     RbConfig.expand(srcdir = srcprefix.dup)
 
+    codedir = File.expand_path(CONFIG["codedir"])
+    current_dir_path = File.expand_path(File.dirname(__FILE__))   
+    obj_src_dir = current_dir_path + '/tmp/' + CONFIG['arch'] + '/' + codename + '/' + rubyver + '/'
+    obj_test_dir = current_dir_path + '/tmp/' + CONFIG['arch'] + '/' + target + '/' + rubyver + '/'
+    test_dir = current_dir_path + '/ext/' + target
+
+    obj_EXT = %w[o]
+    all_obj_src_files = Dir[File.join(obj_src_dir, "*.{#{obj_EXT.join(%q{,})}}")].sort
+    all_src_files = Dir[File.join(codedir, "*.{#{SRC_EXT.join(%q{,})}}")].sort
+    all_test_files = Dir[File.join(test_dir, "*.{#{SRC_EXT.join(%q{,})}}")].sort
+    
+    FileUtils.cp_r(all_obj_src_files, obj_test_dir)
+
     ext = ".#{$OBJEXT}"
-    orig_srcs = Dir[File.join(srcdir, "*.{#{SRC_EXT.join(%q{,})}}")].sort
+    orig_srcs = all_test_files + all_src_files
+
     if not $objs
       srcs = $srcs || orig_srcs
       $objs = []
@@ -2228,8 +2242,10 @@ RULES
       srcs = $srcs || $objs.collect {|o| o.chomp(ext) << ".c"}
     end
     $srcs = srcs
-
-    hdrs = Dir[File.join(srcdir, "*.{#{HDR_EXT.join(%q{,})}}")]
+    
+    all_hdr_test_files = Dir[File.join(test_dir, "*.{#{HDR_EXT.join(%q{,})}}")].sort
+    all_hdr_files = Dir[File.join(codedir, "*.{#{HDR_EXT.join(%q{,})}}")].sort
+    hdrs = all_hdr_files + all_hdr_test_files
 
     target = nil if $objs.empty?
 
@@ -2282,10 +2298,10 @@ extout_prefix = #{$extout_prefix}
 target_prefix = #{target_prefix}
 LOCAL_LIBS = #{$LOCAL_LIBS}
 LIBS = #{$LIBRUBYARG} #{$libs} #{$LIBS}
-ORIG_SRCS = #{orig_srcs.collect(&File.method(:basename)).join(' ')}
-SRCS = $(ORIG_SRCS) #{(srcs - orig_srcs).collect(&File.method(:basename)).join(' ')}
+ORIG_SRCS = #{orig_srcs.join(' ')}
+SRCS = $(ORIG_SRCS) #{(srcs - orig_srcs).join(' ')}
 OBJS = #{$objs.join(" ")}
-HDRS = #{hdrs.map{|h| '$(srcdir)/' + File.basename(h)}.join(' ')}
+HDRS = #{hdrs.join(' ')}
 LOCAL_HDRS = #{$headers.join(' ')}
 TARGET = #{target}
 TARGET_NAME = #{target && target[/\A\w+/]}
@@ -2514,7 +2530,7 @@ site-install-rb: install-rb
     $LDFLAGS = with_config("ldflags", arg_config("LDFLAGS", config["LDFLAGS"])).dup
     $INCFLAGS = "-I$(arch_hdrdir)"
     $INCFLAGS << " -I$(hdrdir)/ruby/backward" unless $extmk
-    $INCFLAGS << " -I$(hdrdir) -I$(srcdir)"
+    $INCFLAGS << " -I$(hdrdir) -I$(srcdir) -I$(codedir)"
     $DLDFLAGS = with_config("dldflags", arg_config("DLDFLAGS", config["DLDFLAGS"])).dup
     $LIBEXT = config['LIBEXT'].dup
     $OBJEXT = config["OBJEXT"].dup
@@ -2529,7 +2545,7 @@ site-install-rb: install-rb
     $LIBPATH = []
     $INSTALLFILES = []
     $NONINSTALLFILES = [/~\z/, /\A#.*#\z/, /\A\.#/, /\.bak\z/i, /\.orig\z/, /\.rej\z/, /\.l[ao]\z/, /\.o\z/]
-    $VPATH = %w[$(srcdir) $(arch_hdrdir)/ruby $(hdrdir)/ruby]
+    $VPATH = %w[$(srcdir) $(codedir) $(arch_hdrdir)/ruby $(hdrdir)/ruby]
 
     $objs = nil
     $srcs = nil
@@ -2606,7 +2622,10 @@ MESSAGE
 
   RbConfig::CONFIG["srcdir"] = CONFIG["srcdir"] =
     $srcdir = arg_config("--srcdir", File.dirname($0))
-  $configure_args["--topsrcdir"] ||= $srcdir
+  RbConfig::CONFIG["codedir"] = CONFIG["codedir"] =
+    $codedir = arg_config("--codedir", File.dirname($0))
+
+    $configure_args["--topsrcdir"] ||= $srcdir
   if $curdir = arg_config("--curdir")
     RbConfig.expand(curdir = $curdir.dup)
   else
