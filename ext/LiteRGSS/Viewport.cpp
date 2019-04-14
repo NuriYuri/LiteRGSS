@@ -379,7 +379,7 @@ VALUE rb_Viewport_ReloadStack(VALUE self)
 VALUE rb_Viewport_Index(VALUE self)
 {
     auto& viewport = rb::Get<CViewport_Element>(self);
-    return rb_uint2inum(viewport.getIndex());
+    return rb_uint2inum(viewport.getDrawPriority());
 }
 
 void Viewport_SetView(CViewport_Element& viewport, long x, long y, long width, long height)

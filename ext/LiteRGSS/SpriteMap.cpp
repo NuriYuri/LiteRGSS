@@ -230,7 +230,7 @@ VALUE rb_SpriteMap_TileScaleSet(VALUE self, VALUE val)
 VALUE rb_SpriteMap_index(VALUE self)
 {
     auto& sprite = rb::Get<CSpriteMap_Element>(self);
-    return LONG2NUM(sprite.getIndex());
+    return LONG2NUM(sprite.getDrawPriority());
 }
 
 

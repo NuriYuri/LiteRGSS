@@ -469,7 +469,7 @@ VALUE rb_Text_setZ(VALUE self, VALUE val)
 VALUE rb_Text_Index(VALUE self)
 {
     auto& text = rb::Get<CText_Element>(self);
-    return rb_uint2inum(text.getIndex());
+    return rb_uint2inum(text.getDrawPriority());
 }
 
 VALUE rb_Text_Viewport(VALUE self)

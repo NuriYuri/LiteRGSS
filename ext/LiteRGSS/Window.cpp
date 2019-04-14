@@ -585,7 +585,7 @@ VALUE rb_Window_setVisible(VALUE self, VALUE val)
 VALUE rb_Window_getIndex(VALUE self)
 {
 	auto& window = rb::Get<CWindow_Element>(self);
-	return ULONG2NUM(window.getIndex());
+	return ULONG2NUM(window.getDrawPriority());
 }
 
 VALUE rb_Window_lock(VALUE self)

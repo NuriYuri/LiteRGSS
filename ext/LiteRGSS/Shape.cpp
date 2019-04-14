@@ -400,7 +400,7 @@ VALUE rb_Shape_setZoom(VALUE self, VALUE val)
 VALUE rb_Shape_getIndex(VALUE self)
 {
 	auto& shape = rb::Get<CShape_Element>(self);
-	return LONG2NUM(shape.getIndex());
+	return LONG2NUM(shape.getDrawPriority());
 }
 
 VALUE rb_Shape_getViewport(VALUE self)

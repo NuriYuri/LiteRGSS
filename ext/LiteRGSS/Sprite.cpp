@@ -429,7 +429,7 @@ VALUE rb_Sprite_Viewport(VALUE self)
 VALUE rb_Sprite_Index(VALUE self)
 {
     auto& sprite = rb::Get<CSprite_Element>(self);
-    return rb_uint2inum(sprite.getIndex());
+    return rb_uint2inum(sprite.getDrawPriority());
 }
 
 VALUE rb_Sprite_width(VALUE self)

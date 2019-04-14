@@ -20,6 +20,6 @@ class CGraphicsStackItem :
         virtual ~CGraphicsStackItem();
 
         void setOriginStack(CGraphicsCppStack& cppStack, CGraphicsRubyStack& rubyStack);
-        unsigned long getIndex() const;
+        unsigned long getDrawPriority() const;
 };
 #endif

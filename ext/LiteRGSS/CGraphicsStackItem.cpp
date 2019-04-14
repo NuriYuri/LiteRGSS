@@ -24,6 +24,6 @@ CGraphicsStackItem::~CGraphicsStackItem() {
     CGraphicsStackItem::resetOriginStack();
 }
 
-unsigned long CGraphicsStackItem::getIndex() const {
+unsigned long CGraphicsStackItem::getDrawPriority() const {
     return CGraphicsCppStackItem::getDrawPriority();
 }
