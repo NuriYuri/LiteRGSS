@@ -19,5 +19,5 @@ end
 Gem::PackageTask.new(spec) do |pkg|
 end
 
-#Rake::ExtensionTask.new(ext_name, spec)  
-Rake::ExtensionTask.new(test_name, spec)  
+Rake::ExtensionTask.new(ext_name, spec)
+Rake::ExtensionTask.new(test_name, spec)

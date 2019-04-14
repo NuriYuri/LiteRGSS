@@ -1,8 +1,8 @@
 #include <iostream>
 #include <ruby.h>
 
-#include "ruby_common.h"
-#include "CDrawableStack.h"
+#include "../LiteRGSS/ruby_common.h"
+#include "../LiteRGSS/CDrawableStack.h"
 
 extern VALUE rb_mLiteRGSS;
 extern VALUE rb_mConfig;
@@ -26,6 +26,7 @@ VALUE rb_Toto_Alloc(VALUE klass) {
 
 VALUE rb_Toto_titi(VALUE self) {
   CDrawableStack dw(self);
+  1 + 1;
     return self;
 }
 

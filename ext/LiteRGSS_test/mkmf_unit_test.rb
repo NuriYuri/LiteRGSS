@@ -2208,10 +2208,10 @@ RULES
     RbConfig.expand(srcdir = srcprefix.dup)
 
     codedir = File.expand_path(CONFIG["codedir"])
-    current_dir_path = File.expand_path(File.dirname(__FILE__))   
-    obj_src_dir = current_dir_path + '/tmp/' + CONFIG['arch'] + '/' + codename + '/' + rubyver + '/'
-    obj_test_dir = current_dir_path + '/tmp/' + CONFIG['arch'] + '/' + target + '/' + rubyver + '/'
-    test_dir = current_dir_path + '/ext/' + target
+    root_path = File.expand_path(codedir + '/../..')
+    obj_src_dir = root_path + '/tmp/' + CONFIG['arch'] + '/' + codename + '/' + rubyver + '/'
+    obj_test_dir = root_path + '/tmp/' + CONFIG['arch'] + '/' + target + '/' + rubyver + '/'
+    test_dir = root_path + '/ext/' + target
 
     obj_EXT = %w[o]
     all_obj_src_files = Dir[File.join(obj_src_dir, "*.{#{obj_EXT.join(%q{,})}}")].sort
