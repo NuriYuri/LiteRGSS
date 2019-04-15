@@ -176,8 +176,10 @@ void CGraphics::update(VALUE self, bool input) {
     /* End of Graphics.update process */
     InsideGraphicsUpdate = false;
 
-    /* Update the frame count */
-    frame_count++;
+    if(input) {
+        /* Update the frame count */
+        frame_count++;
+    }
 }
 
 void CGraphics::updateOnlyInput(VALUE self) {
