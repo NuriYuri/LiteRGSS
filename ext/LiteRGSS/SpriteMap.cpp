@@ -1,4 +1,5 @@
 #include "LiteRGSS.h"
+#include "Bitmap.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
 
@@ -58,14 +59,14 @@ VALUE rb_SpriteMap_Initialize(int argc, VALUE* argv, VALUE self)
 	// Viewport push
 	if (rb_obj_is_kind_of(viewport, rb_cViewport) != Qtrue)
 		rb_raise(rb_eRGSSError, "SpriteMap require viewport to be initialized.");
+    
     auto &viewport_el = rb::Get<CViewport_Element>(viewport);
-	viewport_el.bind(sprite);
+	viewport_el.add(sprite);
 	sprite.rViewport = viewport;
-    VALUE table = rb_ivar_get(viewport, rb_iElementTable);
-    rb_ary_push(table, self);
 
     // Sprite definition
     sprite.define_map(NUM2ULONG(tile_width), NUM2ULONG(tile_count));
+    return self;
 }
 
 VALUE rb_SpriteMap_Dispose(VALUE self)
@@ -229,7 +230,7 @@ VALUE rb_SpriteMap_TileScaleSet(VALUE self, VALUE val)
 VALUE rb_SpriteMap_index(VALUE self)
 {
     auto& sprite = rb::Get<CSpriteMap_Element>(self);
-    return LONG2NUM(sprite.getIndex());
+    return LONG2NUM(sprite.getDrawPriority());
 }
 
 

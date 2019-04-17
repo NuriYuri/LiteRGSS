@@ -1,6 +1,8 @@
 #include "LiteRGSS.h"
+#include "Bitmap.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
+#include "CGraphics.h"
 
 VALUE rb_cWindow = Qnil;
 
@@ -101,7 +103,6 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 {
 	auto& window = rb::Get<CWindow_Element>(self);
 	VALUE viewport = Qnil;
-	VALUE table = Qnil;
 	
 	rb_scan_args(argc, argv, "01", &viewport);
 
@@ -110,22 +111,17 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self)
 	{
 		CViewport_Element* viewport;
 		Data_Get_Struct(argv[0], CViewport_Element, viewport);
-		viewport->bind(window);
-		table = rb_ivar_get(argv[0], rb_iElementTable);
+		viewport->add(window);
 		window.rViewport = argv[0];
 	}
 	/* Otherwise */
 	else
 	{
-		global_Graphics_Bind(&window);
-		table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+		CGraphics::Get().add(window);
 		window.rViewport = Qnil;
 	}
-	rb_ary_push(table, self);
-
-	/* Sprite table creation */
-	rb_ivar_set(self, rb_iElementTable, rb_ary_new());
-	window.detachSprites();
+	
+	//window.syncStackCppFromRuby();
 
 	/* Rect definition */
 	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };
@@ -145,8 +141,6 @@ VALUE rb_Window_getViewport(VALUE self)
 
 VALUE rb_Window_DisposeFromViewport(VALUE self)
 {
-	auto& window = rb::Get<CWindow_Element>(self);
-	window.disposeFromViewport();
 	return rb::Dispose<CWindow_Element>(self);
 }
 
@@ -591,7 +585,7 @@ VALUE rb_Window_setVisible(VALUE self, VALUE val)
 VALUE rb_Window_getIndex(VALUE self)
 {
 	auto& window = rb::Get<CWindow_Element>(self);
-	return ULONG2NUM(window.getIndex());
+	return ULONG2NUM(window.getDrawPriority());
 }
 
 VALUE rb_Window_lock(VALUE self)

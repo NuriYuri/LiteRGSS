@@ -2,7 +2,7 @@
 #define L_TABLE32_HEADER
 
 #include <cstdint>
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 struct rb_Table32_Struct_Header {
     unsigned int dim = 0u;

@@ -27,6 +27,7 @@
 ////////////////////////////////////////////////////////////
 #include "LiteRGSS.h"
 #include "sf_Text2.hpp"
+#include "CGraphics.h"
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <cmath>
@@ -141,7 +142,7 @@ namespace sf
 			m_font = &font;
 			m_geometryNeedUpdate = true;
 			//<< YuriAdd
-			if (m_font != nullptr && !SmoothScreen)
+			if (m_font != nullptr && !CGraphics::Get().smoothScreen())
 				const_cast<sf::Texture*>(&m_font->getTexture(m_characterSize))->setSmooth(false);
 			//>> YuriAdd
 		}
@@ -156,7 +157,7 @@ namespace sf
 			m_characterSize = size;
 			m_geometryNeedUpdate = true;
 			//<< YuriAdd
-			if (m_font != nullptr && !SmoothScreen)
+			if (m_font != nullptr && !CGraphics::Get().smoothScreen())
 				const_cast<sf::Texture*>(&m_font->getTexture(m_characterSize))->setSmooth(false);
 			//<< YuriAdd
 		}

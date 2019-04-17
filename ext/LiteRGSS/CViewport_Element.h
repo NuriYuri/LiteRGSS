@@ -4,7 +4,7 @@
 #include "CView_Element.h"
 #include "CSprite_Element.h"
 #include "CSpriteMap_Element.h"
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 class CViewport_Element : public CView_Element {
     private:

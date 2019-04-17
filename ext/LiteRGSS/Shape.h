@@ -1,7 +1,7 @@
 #ifndef L_SHAPE_HEADER
 #define L_SHAPE_HEADER
 #include "Graphics.h"
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_Shape_Dispose(VALUE self);

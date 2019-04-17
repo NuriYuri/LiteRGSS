@@ -1,4 +1,5 @@
 #include "LiteRGSS.h"
+#include "Bitmap.h"
 
 VALUE rb_cYukiGifReader = Qnil;
 VALUE rb_cYukiGifError = Qnil;

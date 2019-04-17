@@ -1,4 +1,5 @@
 #include "LiteRGSS.h"
+#include "Bitmap.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
 
@@ -122,10 +123,8 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self)
 		rb_raise(rb_eRGSSError, "Shape require viewport to be initialized.");
 	CViewport_Element* viewport_el;
 	Data_Get_Struct(viewport, CViewport_Element, viewport_el);
-	viewport_el->bind(*shape);
+	viewport_el->add(*shape);
 	shape->rViewport = viewport;
-    VALUE table = rb_ivar_get(viewport, rb_iElementTable);
-    rb_ary_push(table, self);
 
 	// Shape initialization
 	itype = SYM2ID(type);
@@ -401,7 +400,7 @@ VALUE rb_Shape_setZoom(VALUE self, VALUE val)
 VALUE rb_Shape_getIndex(VALUE self)
 {
 	auto& shape = rb::Get<CShape_Element>(self);
-	return LONG2NUM(shape.getIndex());
+	return LONG2NUM(shape.getDrawPriority());
 }
 
 VALUE rb_Shape_getViewport(VALUE self)
@@ -640,7 +639,5 @@ VALUE rb_Shape_Copy(VALUE self)
 
 VALUE rb_Shape_DisposeFromViewport(VALUE self)
 {
-	auto& shape = rb::Get<CShape_Element>(self);
-	shape.disposeFromViewport();
 	return rb::Dispose<CShape_Element>(self);
 }

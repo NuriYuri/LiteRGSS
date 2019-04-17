@@ -1,7 +1,7 @@
 #ifndef L_SPRITE_MAP_HEADER
 #define L_SPRITE_MAP_HEADER
 #include "Graphics.h"
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 VALUE rb_SpriteMap_Initialize(int argc, VALUE* argv, VALUE self);
 VALUE rb_SpriteMap_Dispose(VALUE self);

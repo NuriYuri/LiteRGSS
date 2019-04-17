@@ -27,7 +27,4 @@ VALUE rb_Graphics_getShader(VALUE self);
 VALUE rb_Graphics_setShader(VALUE self, VALUE shader);
 VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height);
 
-void global_Graphics_Bind(CDrawable_Element* element);
-
-extern double Graphics_Scale;
 #endif

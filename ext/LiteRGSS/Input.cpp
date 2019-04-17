@@ -1,4 +1,8 @@
-#include "LiteRGSS.h"
+#include "ruby_common.h"
+#include "common.h"
+#include "CDrawable_Element.h"
+#include "CGraphics.h"
+#include "Input.h"
 
 #define L_INPUT_NUM_INGAME_KEY 17
 #define L_INPUT_NUM_MOUSE_KEY 5
@@ -33,15 +37,15 @@ sf::Clock L_Mouse_Clock[L_INPUT_NUM_MOUSE_KEY];
 #elif L_TRIGGER_METHOD == L_TRIGGER_COUNT_METHOD
 unsigned long L_Input_Count[L_INPUT_NUM_INGAME_KEY];
 unsigned long L_Mouse_Count[L_INPUT_NUM_MOUSE_KEY];
-#define L_TRIGGER_RESET_Mouse(i) L_Mouse_Count[i] = frame_count
-#define L_TRIGGER_RESET_Input(i) L_Input_Count[i] = frame_count
-#define L_Trigger_Mouse(pos) L_Mouse_Count[pos] == (frame_count - 1)
-#define L_Trigger_Input(pos) L_Input_Count[pos] == (frame_count - 1)
-#define L_Repeat_Input(pos) unsigned long count = (frame_count - L_Input_Count[pos]); \
-	if(count > (frame_rate / 2)) \
+#define L_TRIGGER_RESET_Mouse(i) L_Mouse_Count[i] = CGraphics::Get().frameCount()
+#define L_TRIGGER_RESET_Input(i) L_Input_Count[i] = CGraphics::Get().frameCount()
+#define L_Trigger_Mouse(pos) L_Mouse_Count[pos] == (CGraphics::Get().frameCount() - 1)
+#define L_Trigger_Input(pos) L_Input_Count[pos] == (CGraphics::Get().frameCount() - 1)
+#define L_Repeat_Input(pos) unsigned long count = (CGraphics::Get().frameCount() - L_Input_Count[pos]); \
+	if(count > (CGraphics::Get().frameRate() / 2)) \
 	{ \
-		count -= (frame_rate / 2); \
-		if ((count % (frame_rate / 6)) == 0) \
+		count -= (CGraphics::Get().frameRate() / 2); \
+		if ((count % (CGraphics::Get().frameRate() / 6)) == 0) \
 			return Qtrue; \
 	}
 #endif
@@ -736,12 +740,12 @@ VALUE rb_Mouse_Released(VALUE self, VALUE key_sym)
 
 VALUE rb_Mouse_x(VALUE self)
 {
-    return LONG2NUM(static_cast<long>(L_Mouse_Pos_X / Graphics_Scale));
+    return LONG2NUM(static_cast<long>(L_Mouse_Pos_X / CGraphics::Get().scale()));
 }
 
 VALUE rb_Mouse_y(VALUE self)
 {
-    return LONG2NUM(static_cast<long>(L_Mouse_Pos_Y / Graphics_Scale));
+    return LONG2NUM(static_cast<long>(L_Mouse_Pos_Y / CGraphics::Get().scale()));
 }
 
 VALUE rb_Mouse_Wheel(VALUE self)

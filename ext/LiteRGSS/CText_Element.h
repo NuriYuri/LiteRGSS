@@ -2,7 +2,8 @@
 #define CText_Element_H
 #include "ruby.h"
 #include "CDrawable_Element.h"
-#include "utils/metadata.h"
+#include "sf_Text2.hpp"
+#include "metadata.h"
 
 class CText_Element : public CDrawable_Element {
     private:

@@ -2,7 +2,7 @@
 #define CSpriteMap_Element_H
 #include "ruby.h"
 #include "CDrawable_Element.h"
-#include "utils/rbAdapter.h"
+#include "rbAdapter.h"
 
 class CSpriteMap_Element : public CDrawable_Element {
 protected:

@@ -3,7 +3,7 @@
 #include <string>
 #include <stdexcept>
 #include <ruby.h>
-#include "utils/metadata.h"
+#include "metadata.h"
 
 extern VALUE rb_eRGSSError;
 
@@ -57,7 +57,7 @@ namespace rb {
     VALUE AllocDrawable(VALUE klass) {
         auto value = new T();
         auto self = Data_Wrap_Struct(klass, Mark<T>, Free<T>, value);
-        value->self = self;
+        value->setSelf(self);
         return self;
     }
 

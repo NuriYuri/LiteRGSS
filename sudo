@@ -1,1 +1,1 @@
-Xq2cut rake compile -- --enable-debug
+rake compile -- --enable-debug

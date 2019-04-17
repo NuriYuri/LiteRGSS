@@ -1,4 +1,5 @@
 #include "LiteRGSS.h"
+#include "CGraphics.h"
 #include "CViewport_Element.h"
 #include "CRect_Element.h"
 #include "CTone_Element.h"
@@ -21,7 +22,7 @@ void rb::Mark<CViewport_Element>(CViewport_Element* viewport)
 
 void Init_Viewport()
 {
-    rb_cViewport = rb_define_class_under(rb_mLiteRGSS, "Viewport", rb_cDisposable);
+    rb_cViewport = rb_define_class_under(rb_mLiteRGSS, "Viewport", rb_cDrawable);
 
     rb_define_alloc_func(rb_cViewport, rb::AllocDrawable<CViewport_Element>);
 
@@ -81,13 +82,9 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
         width = y;
         y = LONG2FIX(0);
     }
-    /* Sprite table creation */
-    rb_ivar_set(self, rb_iElementTable, rb_ary_new());
     /* Viewport setting */
     auto& viewport = rb::Get<CViewport_Element>(self);
-    global_Graphics_Bind(&viewport);
-    VALUE table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
-    rb_ary_push(table, self);
+    CGraphics::Get().add(viewport);
     viewport.setOx(0);
     viewport.setOy(0);
 	viewport.rAngle = LONG2FIX(0);
@@ -103,7 +100,7 @@ VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self)
     viewport.rRect = rc;
     viewport.rTone = Qnil;
     viewport.rColor = Qnil;
-    viewport.detachSprites();
+    //viewport.syncStackCppFromRuby();
     return self;
 }
 
@@ -304,8 +301,8 @@ void Viewport_AdjustZoomAngle(CViewport_Element& viewport, VALUE rect)
 	view.setSize(static_cast<float>(width), static_cast<float>(height));
 	view.setRotation(-NUM2DBL(viewport.rAngle));
 	view.zoom(NUM2DBL(viewport.rZoom));
-	float sw = static_cast<float>(ScreenWidth);
-	float sh = static_cast<float>(ScreenHeight);
+	float sw = static_cast<float>(CGraphics::Get().screenWidth());
+	float sh = static_cast<float>(CGraphics::Get().screenHeight());
 	sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
 	view.setViewport(frect);
 }
@@ -375,28 +372,14 @@ VALUE rb_Viewport_setRenderState(VALUE self, VALUE val)
 VALUE rb_Viewport_ReloadStack(VALUE self)
 {
     auto& viewport = rb::Get<CViewport_Element>(self);
-    VALUE table = rb_ivar_get(self, rb_iElementTable);
-    rb_check_type(table, T_ARRAY);
-    viewport.detachSprites();
-    long sz = RARRAY_LEN(table);
-    VALUE* ori = RARRAY_PTR(table);
-    for(long i = 0; i < sz; i++)
-    {
-        if(rb_obj_is_kind_of(ori[i], rb_cDrawable) == Qtrue)
-        {
-            if(RDATA(ori[i])->data != nullptr)
-            {
-                viewport.bind(*reinterpret_cast<CDrawable_Element*>(RDATA(ori[i])->data));
-            }
-        }
-    }
+    viewport.syncStackCppFromRuby();
     return self;
 }
 
 VALUE rb_Viewport_Index(VALUE self)
 {
     auto& viewport = rb::Get<CViewport_Element>(self);
-    return rb_uint2inum(viewport.getIndex());
+    return rb_uint2inum(viewport.getDrawPriority());
 }
 
 void Viewport_SetView(CViewport_Element& viewport, long x, long y, long width, long height)
@@ -412,8 +395,8 @@ void Viewport_SetView(CViewport_Element& viewport, long x, long y, long width, l
     view.setSize(static_cast<float>(width), static_cast<float>(height));
 	view.setRotation(-NUM2DBL(viewport.rAngle));
 	view.zoom(NUM2DBL(viewport.rZoom));
-    float sw = static_cast<float>(ScreenWidth);
-    float sh = static_cast<float>(ScreenHeight);
+    float sw = static_cast<float>(CGraphics::Get().screenWidth());
+    float sh = static_cast<float>(CGraphics::Get().screenHeight());
     sf::FloatRect frect(x / sw, y / sh, width / sw, height / sh);
     view.setViewport(frect);
     // viewport.reset_render();

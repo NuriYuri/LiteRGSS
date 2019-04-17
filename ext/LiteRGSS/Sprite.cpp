@@ -1,6 +1,7 @@
 #include "LiteRGSS.h"
 #include "CBitmap_Element.h"
 #include "CRect_Element.h"
+#include "CGraphics.h"
 
 VALUE rb_cSprite = Qnil;
 
@@ -69,22 +70,19 @@ void Init_Sprite() {
 VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
 {
     auto& sprite = rb::Get<CSprite_Element>(self);
-    VALUE table = Qnil;
     /* If a viewport was specified */
     if(argc == 1 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue)
     {
         CViewport_Element* viewport;
         Data_Get_Struct(argv[0], CViewport_Element, viewport);
-        viewport->bind(sprite);
-        table = rb_ivar_get(argv[0], rb_iElementTable);
+        viewport->add(sprite);
         sprite.rViewport = argv[0];
     }
 	/* If a window is specified */
 	else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cWindow) == Qtrue)
 	{
 		auto& window = rb::GetSafe<CWindow_Element>(argv[0], rb_cWindow);
-		window.bind(sprite);
-		table = rb_ivar_get(argv[0], rb_iElementTable);
+		window.add(sprite);
 		sprite.rViewport = argv[0];
 		VALUE opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rBackOpacity) / 255);
 		rb_Sprite_setOpacity(self, opacity);
@@ -92,12 +90,10 @@ VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self)
     /* Otherwise */
     else
     {
-        global_Graphics_Bind(&sprite);
-        table = rb_ivar_get(rb_mGraphics, rb_iElementTable);
+        CGraphics::Get().add(sprite);        
         sprite.rViewport = Qnil;
     }
-    /* Ajout à la table de sauvegarde */
-    rb_ary_push(table, self);
+    
     /* Initializing Instance variables */
     sprite.rX = LONG2FIX(0);
     sprite.rY = LONG2FIX(0);
@@ -126,8 +122,6 @@ VALUE rb_Sprite_Dispose(VALUE self)
 
 VALUE rb_Sprite_DisposeFromViewport(VALUE self)
 {
-    auto& sprite = rb::Get<CSprite_Element>(self);
-	sprite.disposeFromViewport();
 	return rb::Dispose<CSprite_Element>(self);
 }
 
@@ -435,7 +429,7 @@ VALUE rb_Sprite_Viewport(VALUE self)
 VALUE rb_Sprite_Index(VALUE self)
 {
     auto& sprite = rb::Get<CSprite_Element>(self);
-    return rb_uint2inum(sprite.getIndex());
+    return rb_uint2inum(sprite.getDrawPriority());
 }
 
 VALUE rb_Sprite_width(VALUE self)
