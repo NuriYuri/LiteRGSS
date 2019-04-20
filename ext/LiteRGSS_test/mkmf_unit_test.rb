@@ -2185,7 +2185,7 @@ RULES
   # directory, i.e. the current directory.  It is included as part of the
   # +VPATH+ and added to the list of +INCFLAGS+.
   #
-  def create_makefile(target, srcprefix = nil, codename = 'code', rubyver = '2.5.3')
+  def create_makefile(target, srcprefix = nil, codename = 'code', rubyver = RUBY_VERSION)
     $target = target
     libpath = $DEFLIBPATH|$LIBPATH
     message "creating Makefile\n"

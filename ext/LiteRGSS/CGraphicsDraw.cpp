@@ -39,17 +39,12 @@ void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config
 
 void CGraphicsDraw::resizeScreen(int width, int height) {
     CGraphics::Get().protect();
-
-    /* Close the window */
-    m_gameWindow->close();
-    m_gameWindow = nullptr;
 	
     /* Restart Graphics */
     CGraphics::Get().init();
 	
     /* Reset viewport render */
-	if (CViewport_Element::render)
-	{
+	if (CViewport_Element::render) {
 		CViewport_Element::render->create(width, height);
 		CViewport_Element::render->setSmooth(m_smoothScreen);
 	}

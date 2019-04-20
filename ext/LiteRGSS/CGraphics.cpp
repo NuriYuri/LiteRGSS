@@ -16,9 +16,6 @@ CGraphics::~CGraphics() {
 }
 
 void CGraphics::init() {
-    if(game_window != nullptr) {
-        return;
-    }
     /* Shader Testing */
     if (!sf::Shader::isAvailable()) {
         rb_raise(rb_eRGSSError, "Shaders are not available :(");
@@ -65,14 +62,7 @@ void CGraphics::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& mess
                     return; /* If the proc returns false we doesn't show the exception */
                 }
         }
-        InsideGraphicsUpdate = false;
         stop();
-        return;
-        //m_draw.clearRubyStack();
-        /*if(game_window != nullptr) {
-            game_window->close();
-            game_window = nullptr;
-        }*/
     }
     /* We raise the message */
     InsideGraphicsUpdate = false;
