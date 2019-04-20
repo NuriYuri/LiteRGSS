@@ -16,9 +16,6 @@ CGraphics::~CGraphics() {
 }
 
 void CGraphics::init() {
-    if(game_window != nullptr) {
-        return;
-    }
     /* Shader Testing */
     if (!sf::Shader::isAvailable()) {
         rb_raise(rb_eRGSSError, "Shaders are not available :(");
