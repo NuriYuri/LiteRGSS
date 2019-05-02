@@ -19,10 +19,10 @@ VALUE rb_Color_Save(VALUE self, VALUE limit);
 VALUE rb_Color_to_s(VALUE self);
 
 namespace meta {
-    template<>
-    struct Log<sf::Color> {
-        static constexpr auto classname = "Color";
-    };
+	template<>
+	struct Log<sf::Color> {
+		static constexpr auto classname = "Color";
+	};
 }
 
 #endif

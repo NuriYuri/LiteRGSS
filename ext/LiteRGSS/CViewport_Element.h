@@ -7,7 +7,7 @@
 #include "rbAdapter.h"
 
 class CViewport_Element : public CView_Element {
-    private:
+	private:
 		long ox = 0;
 		long oy = 0;
 		sf::View view;
@@ -19,7 +19,7 @@ class CViewport_Element : public CView_Element {
 		mutable sf::Shader* render_states_shader = nullptr;
 		std::unique_ptr<sf::RenderStates> default_render_states;
 		mutable std::unique_ptr<sf::Shader> default_render_states_shader;
-    public:
+	public:
 		CViewport_Element() = default;
 		virtual ~CViewport_Element();
 		void draw(sf::RenderTarget& target) const override;
@@ -40,26 +40,27 @@ class CViewport_Element : public CView_Element {
 		void create_render();
 		void setVisible(bool value);
 		bool getVisible() { return visible; };
-        /* Ruby Ivar */
-        VALUE rRect = Qnil;
-        VALUE rTone = Qnil;
-        VALUE rColor = Qnil;
-        VALUE rZ = Qnil;
+		/* Ruby Ivar */
+		VALUE rRect = Qnil;
+		VALUE rTone = Qnil;
+		VALUE rColor = Qnil;
+		VALUE rZ = Qnil;
 		VALUE rAngle = Qnil;
 		VALUE rZoom = Qnil;
 		VALUE rRenderState = Qnil;
-        /* Shader related stuff */
+		/* Shader related stuff */
 		static std::unique_ptr<sf::RenderTexture> render;
 		static std::unique_ptr<sf::Sprite> render_sprite;
 	private:
 		sf::Color* check_up_color() const;
 		sf::RenderStates* getRenderState() const;
 		sf::Shader* getRenderStateShader() const;
+		void setupView(sf::RenderTarget& target) const;
 };
 namespace meta {
-    template<>
-    struct Log<CViewport_Element> {
-        static constexpr auto classname = "Viewport";
-    };
+	template<>
+	struct Log<CViewport_Element> {
+		static constexpr auto classname = "Viewport";
+	};
 }
 #endif

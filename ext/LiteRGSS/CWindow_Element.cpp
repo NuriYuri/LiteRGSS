@@ -21,8 +21,8 @@ void CWindow_Element::draw(sf::RenderTarget& target) const {
 
 void CWindow_Element::drawFast(sf::RenderTarget& target) const 
 {
-    if(!vertices.empty() && visible)
-    {
+	if(!vertices.empty() && visible)
+	{
 		/* Draw window */
 		for(unsigned long i = 0; i < num_vertices_line; i++)
 			target.draw(vertices[i], texture);
@@ -41,7 +41,7 @@ void CWindow_Element::drawFast(sf::RenderTarget& target) const
 		/* Draw pause */
 		if(RTEST(rPause) && rPauseSkin != Qnil)
 			target.draw(pause_sprite);
-    }
+	}
 }
 
 void CWindow_Element::drawCalculateView(sf::RenderTarget & target, sf::View & targetView) const

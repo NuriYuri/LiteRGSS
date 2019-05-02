@@ -3,7 +3,7 @@
 #include <string>
 #include "ruby_common.h"
 struct GraphicsUpdateMessage {
-    VALUE errorObject;
-    std::string message;
+	VALUE errorObject;
+	std::string message;
 };
 #endif

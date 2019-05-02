@@ -29,8 +29,8 @@ VALUE rb_SpriteMap_Copy(VALUE self);
 
 
 namespace rb {
-    template<>
-    void Mark<CSpriteMap_Element>(CSpriteMap_Element* sprite);
+	template<>
+	void Mark<CSpriteMap_Element>(CSpriteMap_Element* sprite);
 }
 
 #endif

@@ -11,8 +11,8 @@ std::unique_ptr<sf::Sprite> CViewport_Element::render_sprite = nullptr;
 
 CViewport_Element::~CViewport_Element() 
 {
-    if(!CGraphics::Get().isGameWindowOpen()) {
-        std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
+	if(!CGraphics::Get().isGameWindowOpen()) {
+		std::cerr << "Game window release thus viewport " << this << " not freed." << std::endl;
 	}
 
 	bindTone(nullptr);
@@ -24,30 +24,23 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 	auto* render_states = getRenderState();
 	if (!visible)
 		return;
-    if(render_states)
-    {
+	if(render_states)
+	{
 		const sf::Color* col;
 		CRect_Element* rect = getRect();
-        // Loading Window View
-       /* sf::View wview = view;
-        wview.setRotation(0);
-		wview.setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
-		wview.setSize(ScreenWidth, ScreenHeight);
-        target.setView(wview);*/
 		// Loading Target view
 		const sf::Vector2f view_size = view.getSize();
 		sf::View tview = view;
-		//tview.setViewport(sf::FloatRect(0.0f, 0.0f, view_size.x / ScreenWidth, view_size.y / ScreenHeight));
 		render->setView(tview);
 		// Clearing render
 		if (render_states->shader)
 			col = check_up_color();
 		else
 			col = &sf::Color::Transparent;
-        render->clear(*col);
-        // Drawing sprites
-        CView_Element::drawFast(*render);
-        render->display();
+		render->clear(*col);
+		// Drawing sprites
+		CView_Element::drawFast(*render);
+		render->display();
 		// Update internal texture & draw result to Window
 		render_sprite->setTexture(render->getTexture());
 		if (rect)
@@ -55,17 +48,26 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 			render_sprite->setTextureRect(rect->getRect());
 			render_sprite->setPosition(rect->getRect().left, rect->getRect().top);
 		}
-		//render_sprite->setTextureRect(sf::IntRect(0, 0, static_cast<int>(view_size.x), static_cast<int>(view_size.y)));
+		// Reset the target view
+		setupView(target);
+		// Draw the result
 		target.draw(*render_sprite, *render_states);
-		/*sf::Sprite sp(render->getTexture());
-		sp.setTextureRect(sf::IntRect(0, 0, static_cast<int>(view_size.x), static_cast<int>(view_size.y)));
-        target.draw(sp, *render_states);*/
-    }
-    else
-    {
-        target.setView(view);
-        CView_Element::drawFast(target);
-    }
+	}
+	else
+	{
+		target.setView(view);
+		CView_Element::drawFast(target);
+	}
+}
+
+void CViewport_Element::setupView(sf::RenderTarget& target) const 
+{
+	long height = CGraphics::Get().screenHeight();
+	long width = CGraphics::Get().screenWidth();
+	sf::View defview = target.getDefaultView();
+	defview.setSize(width, height);
+	defview.setCenter(round(width / 2.0f), round(height / 2.0f));
+	target.setView(defview);
 }
 
 bool CViewport_Element::isViewport() const
@@ -163,21 +165,21 @@ sf::Color* CViewport_Element::check_up_color() const
 /* ---- Shader Part ---- */
 /* Thaks to https://github.com/Ancurio/mkxp/blob/master/shader/sprite.frag (Ancurio & urkle) */
 const std::string ViewportGlobalFragmentShader = \
-    "uniform sampler2D texture;" \
-    "uniform vec4 tone;" \
-    "uniform vec4 color;" \
-    "const vec3 lumaF = vec3(.299, .587, .114);" \
-    "void main()" \
-    "{" \
-    "   vec4 frag = texture2D(texture, gl_TexCoord[0].xy);" \
-    /*"   frag.rgb = mix(frag.rgb, gl_Color.rgb, cola);" \*/
-    "   frag.rgb = mix(frag.rgb, color.rgb, color.a);" \
-    "   float luma = dot(frag.rgb, lumaF);" \
-    "   frag.rgb += tone.rgb;" \
-    "   frag.rgb = mix(frag.rgb, vec3(luma), tone.w);" \
-    "   frag.a *= gl_Color.a;" \
-    "   gl_FragColor = frag;" \
-    "}";
+	"uniform sampler2D texture;" \
+	"uniform vec4 tone;" \
+	"uniform vec4 color;" \
+	"const vec3 lumaF = vec3(.299, .587, .114);" \
+	"void main()" \
+	"{" \
+	"   vec4 frag = texture2D(texture, gl_TexCoord[0].xy);" \
+	/*"   frag.rgb = mix(frag.rgb, gl_Color.rgb, cola);" \*/
+	"   frag.rgb = mix(frag.rgb, color.rgb, color.a);" \
+	"   float luma = dot(frag.rgb, lumaF);" \
+	"   frag.rgb += tone.rgb;" \
+	"   frag.rgb = mix(frag.rgb, vec3(luma), tone.w);" \
+	"   frag.a *= gl_Color.a;" \
+	"   gl_FragColor = frag;" \
+	"}";
 
 
 sf::Glsl::Vec4 __Viewport_reset_tone(0.0f, 0.0f, 0.0f, 0.0f);
@@ -185,10 +187,10 @@ sf::Glsl::Vec4 __Viewport_reset_tone(0.0f, 0.0f, 0.0f, 0.0f);
 
 /*void CViewport_Element::reset_render()
 {
-    if(render == nullptr)
-        return;
-    const sf::Vector2f sz = getView()->getSize();
-    render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));
+	if(render == nullptr)
+		return;
+	const sf::Vector2f sz = getView()->getSize();
+	render->create(static_cast<unsigned int>(sz.x), static_cast<unsigned int>(sz.y));
 }*/
 
 void CViewport_Element::create_render()
@@ -203,8 +205,8 @@ void CViewport_Element::create_render()
 		render_sprite = std::make_unique<sf::Sprite>();
 	}
 	// Return if the render texture (internal_texture) is already created
-    if(default_render_states.get() != nullptr)
-        return;
+	if(default_render_states.get() != nullptr)
+		return;
 	// Creation of the render states
 	default_render_states_shader = std::make_unique<sf::Shader>();
 	// Shader initialialization

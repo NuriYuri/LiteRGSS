@@ -24,10 +24,10 @@ struct rb_yuki_gif_data {
 };
 
 namespace meta {
-    template<>
-    struct Log<rb_yuki_gif_data> {
-        static constexpr auto classname = "GIF";
-    };
+	template<>
+	struct Log<rb_yuki_gif_data> {
+		static constexpr auto classname = "GIF";
+	};
 }
 
 #endif // !YUKI_GIF_H

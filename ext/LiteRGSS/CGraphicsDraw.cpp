@@ -16,34 +16,34 @@ CGraphicsDraw::CGraphicsDraw(CGraphicsSnapshot& snapshot) :
 }
 
 void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config) {
-    m_gameWindow = &window;
-    m_gameWindow->setMouseCursorVisible(false);
+	m_gameWindow = &window;
+	m_gameWindow->setMouseCursorVisible(false);
 
 	/* VSYNC choice */
-    m_gameWindow->setVerticalSyncEnabled(config.vSync);
+	m_gameWindow->setVerticalSyncEnabled(config.vSync);
 	if(!config.vSync) {
 		m_gameWindow->setFramerateLimit(config.frameRate);
 	}
-    
-    m_screenWidth = config.video.width;
-    m_screenHeight = config.video.height;
-    m_smoothScreen = config.smoothScreen;
-    m_scale = config.video.scale;
-    m_frameRate = config.frameRate;
-    
+	
+	m_screenWidth = config.video.width;
+	m_screenHeight = config.video.height;
+	m_smoothScreen = config.smoothScreen;
+	m_scale = config.video.scale;
+	m_frameRate = config.frameRate;
+	
 	/* Render resize */
 	if (m_renderTexture != nullptr) {
 		m_renderTexture->create(m_screenWidth, m_screenHeight);
-    }
+	}
 }
 
 void CGraphicsDraw::resizeScreen(int width, int height) {
-    CGraphics::Get().protect();
+	CGraphics::Get().protect();
 	
-    /* Restart Graphics */
-    CGraphics::Get().init();
+	/* Restart Graphics */
+	CGraphics::Get().init();
 	
-    /* Reset viewport render */
+	/* Reset viewport render */
 	if (CViewport_Element::render) {
 		CViewport_Element::render->create(width, height);
 		CViewport_Element::render->setSmooth(m_smoothScreen);
@@ -104,54 +104,54 @@ void CGraphicsDraw::postProcessing() {
 			m_gameWindow->draw(sp, *m_renderState);
 	}
 	//Draw the "freeze" texture, if visible
-    m_snapshot.draw(*m_gameWindow);
+	m_snapshot.draw(*m_gameWindow);
 
 	// Update the brightness (applied to m_gameWindow)
 	if (m_brightness != 255) {
 		drawBrightness();
-    }
+	}
 }
 
 bool CGraphicsDraw::isGameWindowOpen() const {
 	//NO RUBY API ACCESS MUST BE DONE HERE
-    return m_gameWindow != nullptr && m_gameWindow->isOpen();
+	return m_gameWindow != nullptr && m_gameWindow->isOpen();
 }
 
 void* GraphicsDraw_Update_Internal(void* dataPtr) {
-    //NO RUBY API ACCESS MUST BE DONE HERE
-    auto& self = *reinterpret_cast<CGraphicsDraw*>(dataPtr);
-    if(self.isGameWindowOpen()) {       
-        self.updateInternal();
-        return nullptr;
-    }
+	//NO RUBY API ACCESS MUST BE DONE HERE
+	auto& self = *reinterpret_cast<CGraphicsDraw*>(dataPtr);
+	if(self.isGameWindowOpen()) {	   
+		self.updateInternal();
+		return nullptr;
+	}
 
-    auto message = std::make_unique<GraphicsUpdateMessage>();
-    message->errorObject = rb_eStoppedGraphics;
-    message->message = "Game Window was closed during Graphics.update by a unknow cause...";
-    return message.release();
+	auto message = std::make_unique<GraphicsUpdateMessage>();
+	message->errorObject = rb_eStoppedGraphics;
+	message->message = "Game Window was closed during Graphics.update by a unknow cause...";
+	return message.release();
 }
 
 std::unique_ptr<GraphicsUpdateMessage> CGraphicsDraw::update() {
-    const auto result = rb_thread_call_without_gvl(GraphicsDraw_Update_Internal, static_cast<void*>(this), NULL, NULL);
-    return std::unique_ptr<GraphicsUpdateMessage>(reinterpret_cast<GraphicsUpdateMessage*>(result));
+	const auto result = rb_thread_call_without_gvl(GraphicsDraw_Update_Internal, static_cast<void*>(this), NULL, NULL);
+	return std::unique_ptr<GraphicsUpdateMessage>(reinterpret_cast<GraphicsUpdateMessage*>(result));
 }
 
 void CGraphicsDraw::updateInternal() {
 	//NO RUBY API ACCESS MUST BE DONE HERE
-    m_gameWindow->clear();
+	m_gameWindow->clear();
    
-    sf::View defview = m_gameWindow->getDefaultView();
+	sf::View defview = m_gameWindow->getDefaultView();
 	auto& render_target = configureAndGetRenderTarget(defview);
 	// Rendering C++ sprite stack
-    m_stack->draw(defview, render_target);
+	m_stack->draw(defview, render_target);
 
 	postProcessing();
 
-    m_gameWindow->display();
+	m_gameWindow->display();
 }
 
 void CGraphicsDraw::initRender() {
-    CGraphics::Get().protect();
+	CGraphics::Get().protect();
 	if (m_renderTexture == nullptr && m_renderState != nullptr) {
 		m_renderTexture = std::make_unique<sf::RenderTexture>();
 		m_renderTexture->create(m_screenWidth, m_screenHeight);
@@ -159,27 +159,27 @@ void CGraphicsDraw::initRender() {
 }
 
 void CGraphicsDraw::setShader(sf::RenderStates* shader) {
-    m_renderState = shader;
-    if(shader != nullptr) {
-        initRender();
-    }
+	m_renderState = shader;
+	if(shader != nullptr) {
+		initRender();
+	}
 }
 
 void CGraphicsDraw::syncStackCppFromRuby() {
-    m_stack->syncStackCppFromRuby();
+	m_stack->syncStackCppFromRuby();
 }
 
 void CGraphicsDraw::add(CDrawable_Element& element) {
-    m_stack->add(element);
+	m_stack->add(element);
 }
 
 void CGraphicsDraw::stop() {
-    m_gameWindow = nullptr;
+	m_gameWindow = nullptr;
 
 	m_stack->clear();
-    m_globalBitmaps.clear();  
+	m_globalBitmaps.clear();  
 }
 
 CGraphicsDraw::~CGraphicsDraw() {
-    stop();
+	stop();
 }

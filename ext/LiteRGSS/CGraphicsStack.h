@@ -8,20 +8,20 @@
 
 class CGraphicsStack {
 public:
-    CGraphicsStack(VALUE table);
-    virtual ~CGraphicsStack();
-    
-    void add(CGraphicsStackItem& el);
-    void clear();
-    void syncStackCppFromRuby();
-    std::size_t size() const { return cppStack.size(); }
+	CGraphicsStack(VALUE table);
+	virtual ~CGraphicsStack();
+	
+	void add(CGraphicsStackItem& el);
+	void clear();
+	void syncStackCppFromRuby();
+	std::size_t size() const { return cppStack.size(); }
 
-protected:    
-    auto begin() const { return cppStack.begin(); }
-    auto end() const { return cppStack.end(); }
+protected:	
+	auto begin() const { return cppStack.begin(); }
+	auto end() const { return cppStack.end(); }
 
 private:
-    CGraphicsCppStack cppStack;
-    CGraphicsRubyStack rubyStack;
+	CGraphicsCppStack cppStack;
+	CGraphicsRubyStack rubyStack;
 };
 #endif

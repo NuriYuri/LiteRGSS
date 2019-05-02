@@ -52,7 +52,7 @@ VALUE rb_Text_setBold(VALUE self, VALUE val);
 VALUE rb_Text_UpdateI(CText_Element& text);
 
 namespace rb {
-    template<>
-    void Mark<CText_Element>(CText_Element* text);
+	template<>
+	void Mark<CText_Element>(CText_Element* text);
 }
 #endif

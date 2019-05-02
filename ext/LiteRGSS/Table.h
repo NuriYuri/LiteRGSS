@@ -3,16 +3,16 @@
 #include "rbAdapter.h"
 
 struct rb_Table_Struct_Header {
-    unsigned int dim = 0u;
-    unsigned int xsize = 0u;
-    unsigned int ysize = 0u;
-    unsigned int zsize = 0u;
-    unsigned int data_size = 0u;
+	unsigned int dim = 0u;
+	unsigned int xsize = 0u;
+	unsigned int ysize = 0u;
+	unsigned int zsize = 0u;
+	unsigned int data_size = 0u;
 };
 
 struct rb_Table_Struct {
-    rb_Table_Struct_Header header {};
-    short* heap = nullptr;
+	rb_Table_Struct_Header header {};
+	short* heap = nullptr;
 };
 
 VALUE rb_Table_initialize(int argc, VALUE* argv, VALUE self);
@@ -34,10 +34,10 @@ void rb_Table_internal_copyLine(short* &xheap1, short* &xheap2, long ini_x, long
 void rb_Table_internal_copyModuloYpart(short* xheap1, short* yheap2, long ox2, long target_x, long offsetx, long src_xsize, long m);
 
 namespace meta {
-    template<>
-    struct Log<rb_Table_Struct> {
-        static constexpr auto classname = "Table";
-    };
+	template<>
+	struct Log<rb_Table_Struct> {
+		static constexpr auto classname = "Table";
+	};
 }
 
 #endif

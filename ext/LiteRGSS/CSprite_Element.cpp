@@ -7,14 +7,14 @@ void CSprite_Element::draw(sf::RenderTarget& target) const
 
 void CSprite_Element::drawFast(sf::RenderTarget& target) const 
 {
-    if(drawable && visible)
-    {
-        target.draw(sprite);
-    }
+	if(drawable && visible)
+	{
+		target.draw(sprite);
+	}
 }
 
 CSprite_Element::~CSprite_Element() {
-    sprite.setColor(sf::Color(255, 255, 255, 255));
-    drawable = false;
-    visible = false;
+	sprite.setColor(sf::Color(255, 255, 255, 255));
+	drawable = false;
+	visible = false;
 }

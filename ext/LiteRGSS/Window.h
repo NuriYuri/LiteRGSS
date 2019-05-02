@@ -64,7 +64,7 @@ VALUE rb_Window_Copy(VALUE self);
 VALUE rb_Window_DisposeFromViewport(VALUE self);
 
 namespace rb {
-    template<>
-    void Mark<CWindow_Element>(CWindow_Element* window);
+	template<>
+	void Mark<CWindow_Element>(CWindow_Element* window);
 }
 #endif // !L_WINDOW_HEADER

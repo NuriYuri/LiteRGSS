@@ -3,14 +3,14 @@
 #include "CSprite_Element.h"
 
 void CDrawableStack::draw(sf::View& defview, sf::RenderTarget& target) const  {
-    bool was_viewport = false;
+	bool was_viewport = false;
 	for(auto& element: *this) {
-        if(was_viewport && !element->isViewport()) {
+		if(was_viewport && !element->isViewport()) {
 			target.setView(defview);
-        }
-        was_viewport = element->isViewport();
-        element->draw(target);
-    }
+		}
+		was_viewport = element->isViewport();
+		element->draw(target);
+	}
 }
 
 void CDrawableStack::drawFast(sf::RenderTarget& target) const {

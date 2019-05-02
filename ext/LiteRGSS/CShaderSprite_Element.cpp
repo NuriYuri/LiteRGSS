@@ -2,19 +2,19 @@
 
 CShaderSprite_Element::CShaderSprite_Element() {
 	getSprite().setColor(sf::Color(255, 255, 255, 255));
-    //setLinkedRect(nullptr);
+	//setLinkedRect(nullptr);
 	rRenderStates = Qnil;
 }
 
 void CShaderSprite_Element::draw(sf::RenderTarget& target) const
 {
-    if(drawable && visible)
-    {
+	if(drawable && visible)
+	{
 		if (render_states == nullptr)
 			target.draw(sprite);
 		else
 			target.draw(sprite, *render_states);//, render_states->shader);
-    }
+	}
 }
 
 void CShaderSprite_Element::drawFast(sf::RenderTarget& target) const

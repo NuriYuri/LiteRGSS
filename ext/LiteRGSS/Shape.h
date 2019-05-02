@@ -57,7 +57,7 @@ VALUE rb_Shape_Copy(VALUE self);
 VALUE rb_Shape_DisposeFromViewport(VALUE self);
 
 namespace rb {
-    template<>
-    void Mark<CShape_Element>(CShape_Element* shape);
+	template<>
+	void Mark<CShape_Element>(CShape_Element* shape);
 }
 #endif

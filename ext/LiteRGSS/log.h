@@ -4,7 +4,7 @@
  *
  * This file is part of NetSurf, http://www.netsurf-browser.org/
  * Licenced under the MIT License,
- *                http://www.opensource.org/licenses/mit-license.php
+ *				http://www.opensource.org/licenses/mit-license.php
  */
 
 #include <stdio.h>

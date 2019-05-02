@@ -14,10 +14,10 @@ void CShape_Element::draw(sf::RenderTarget& target) const
 
 void CShape_Element::drawFast(sf::RenderTarget& target) const
 {
-    if(visible && shape != nullptr)
-    {
-        target.draw(*shape);
-    }
+	if(visible && shape != nullptr)
+	{
+		target.draw(*shape);
+	}
 }
 
 void CShape_Element::setVisible(bool value)

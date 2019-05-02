@@ -1,7 +1,7 @@
 /*
  * This file is part of NetSurf's LibNSGIF, http://www.netsurf-browser.org/
  * Licensed under the MIT License,
- *                http://www.opensource.org/licenses/mit-license.php
+ *				http://www.opensource.org/licenses/mit-license.php
  *
  * Copyright 2017 Michael Drake <michael.drake@codethink.co.uk>
  */
@@ -27,9 +27,9 @@ struct lzw_ctx;
 
 /** LZW decoding response codes */
 typedef enum lzw_result {
-	LZW_OK,        /**< Success */
-	LZW_OK_EOD,    /**< Success; reached zero-length sub-block */
-	LZW_NO_MEM,    /**< Error: Out of memory */
+	LZW_OK,		/**< Success */
+	LZW_OK_EOD,	/**< Success; reached zero-length sub-block */
+	LZW_NO_MEM,	/**< Error: Out of memory */
 	LZW_NO_DATA,   /**< Error: Out of data */
 	LZW_EOI_CODE,  /**< Error: End of Information code */
 	LZW_BAD_ICODE, /**< Error: Bad initial LZW code */
@@ -41,7 +41,7 @@ typedef enum lzw_result {
  * Create an LZW decompression context.
  *
  * \param[out] ctx  Returns an LZW decompression context.  Caller owned,
- *                  free with lzw_context_destroy().
+ *				  free with lzw_context_destroy().
  * \return LZW_OK on success, or appropriate error code otherwise.
  */
 lzw_result lzw_context_create(
@@ -60,16 +60,16 @@ void lzw_context_destroy(
  *
  * Caller owns neither `stack_base_out` or `stack_pos_out`.
  *
- * \param[in]  ctx                  The LZW decompression context to initialise.
- * \param[in]  compressed_data      The compressed data.
+ * \param[in]  ctx				  The LZW decompression context to initialise.
+ * \param[in]  compressed_data	  The compressed data.
  * \param[in]  compressed_data_len  Byte length of compressed data.
  * \param[in]  compressed_data_pos  Start position in data.  Must be position
- *                                  of a size byte at sub-block start.
- * \param[in]  code_size            The initial LZW code size to use.
- * \param[out] stack_base_out       Returns base of decompressed data stack.
- * \param[out] stack_pos_out        Returns current stack position.
- *                                  There are `stack_pos_out - stack_base_out`
- *                                  current stack entries.
+ *								  of a size byte at sub-block start.
+ * \param[in]  code_size			The initial LZW code size to use.
+ * \param[out] stack_base_out	   Returns base of decompressed data stack.
+ * \param[out] stack_pos_out		Returns current stack position.
+ *								  There are `stack_pos_out - stack_base_out`
+ *								  current stack entries.
  * \return LZW_OK on success, or appropriate error code otherwise.
  */
 lzw_result lzw_decode_init(
@@ -89,12 +89,12 @@ lzw_result lzw_decode_init(
  *
  * Caller does not own `stack_pos_out`.
  *
- * \param[in]  ctx            LZW reading context, updated.
+ * \param[in]  ctx			LZW reading context, updated.
  * \param[out] stack_pos_out  Returns current stack position.
- *                            Use with `stack_base_out` value from previous
- *                            lzw_decode_init() call.
- *                            There are `stack_pos_out - stack_base_out`
- *                            current stack entries.
+ *							Use with `stack_base_out` value from previous
+ *							lzw_decode_init() call.
+ *							There are `stack_pos_out - stack_base_out`
+ *							current stack entries.
  * \return LZW_OK on success, or appropriate error code otherwise.
  */
 lzw_result lzw_decode(

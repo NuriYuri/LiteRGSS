@@ -3,9 +3,9 @@
 
 class CRubyGlobalBitmaps {
 public:
-    CRubyGlobalBitmaps() = default;
-    virtual ~CRubyGlobalBitmaps();
-    void clear();
+	CRubyGlobalBitmaps() = default;
+	virtual ~CRubyGlobalBitmaps();
+	void clear();
 };
 
 #endif

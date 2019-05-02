@@ -6,13 +6,13 @@ VALUE rb_cShader = Qnil;
 
 #define SHADER_PROTECT if(RDATA(self)->data == nullptr) \
 {\
-    rb_raise(rb_eRGSSError, "Disposed Shader."); \
-    return self; \
+	rb_raise(rb_eRGSSError, "Disposed Shader."); \
+	return self; \
 }
 
 #define GET_SHADER sf::RenderStates* render_state; \
-    Data_Get_Struct(self, sf::RenderStates, render_state); \
-    SHADER_PROTECT \
+	Data_Get_Struct(self, sf::RenderStates, render_state); \
+	SHADER_PROTECT \
 	sf::Shader* shader = const_cast<sf::Shader*>(render_state->shader);
 
 void rb_Shader_Free(void* data)

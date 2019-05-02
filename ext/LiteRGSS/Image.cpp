@@ -7,81 +7,81 @@ VALUE rb_cImage = Qnil;
 
 void Init_Image()
 {
-    rb_cImage = rb_define_class_under(rb_mLiteRGSS, "Image", rb_cDisposable);
-    rb_define_alloc_func(rb_cImage, rb::Alloc<sf::Image>);
-    rb_define_method(rb_cImage, "initialize", _rbf rb_Image_Initialize, -1);
-    rb_define_method(rb_cImage, "initialize_copy", _rbf rb_Image_Initialize_Copy, 1);
-    rb_define_method(rb_cImage, "dispose", _rbf rb_Image_Dispose, 0);
-    rb_define_method(rb_cImage, "width", _rbf rb_Image_Width, 0);
-    rb_define_method(rb_cImage, "height", _rbf rb_Image_Height, 0);
-    rb_define_method(rb_cImage, "rect", _rbf rb_Image_Rect, 0);
-    rb_define_method(rb_cImage, "copy_to_bitmap", _rbf rb_Image_Copy_to_Bitmap, 1);
-    rb_define_method(rb_cImage, "blt", _rbf rb_Image_blt, 4);
-    rb_define_method(rb_cImage, "blt!", _rbf rb_Image_blt_fast, 4);
+	rb_cImage = rb_define_class_under(rb_mLiteRGSS, "Image", rb_cDisposable);
+	rb_define_alloc_func(rb_cImage, rb::Alloc<sf::Image>);
+	rb_define_method(rb_cImage, "initialize", _rbf rb_Image_Initialize, -1);
+	rb_define_method(rb_cImage, "initialize_copy", _rbf rb_Image_Initialize_Copy, 1);
+	rb_define_method(rb_cImage, "dispose", _rbf rb_Image_Dispose, 0);
+	rb_define_method(rb_cImage, "width", _rbf rb_Image_Width, 0);
+	rb_define_method(rb_cImage, "height", _rbf rb_Image_Height, 0);
+	rb_define_method(rb_cImage, "rect", _rbf rb_Image_Rect, 0);
+	rb_define_method(rb_cImage, "copy_to_bitmap", _rbf rb_Image_Copy_to_Bitmap, 1);
+	rb_define_method(rb_cImage, "blt", _rbf rb_Image_blt, 4);
+	rb_define_method(rb_cImage, "blt!", _rbf rb_Image_blt_fast, 4);
 	rb_define_method(rb_cImage, "stretch_blt", _rbf rb_Image_stretch_blt, 3);
 	rb_define_method(rb_cImage, "stretch_blt!", _rbf rb_Image_stretch_blt_fast, 3);
 	rb_define_method(rb_cImage, "get_pixel", _rbf rb_Image_get_pixel, 2);
 	rb_define_method(rb_cImage, "get_pixel_alpha", _rbf rb_Image_get_pixel_alpha, 2);
 	rb_define_method(rb_cImage, "set_pixel", _rbf rb_Image_set_pixel, 3);
-    rb_define_method(rb_cImage, "clear_rect", _rbf rb_Image_clear_rect, 4);
-    rb_define_method(rb_cImage, "fill_rect", _rbf rb_Image_fill_rect, 5);
+	rb_define_method(rb_cImage, "clear_rect", _rbf rb_Image_clear_rect, 4);
+	rb_define_method(rb_cImage, "fill_rect", _rbf rb_Image_fill_rect, 5);
 	rb_define_method(rb_cImage, "create_mask", _rbf rb_Image_create_mask, 2);
-    rb_define_method(rb_cImage, "to_png", _rbf rb_Image_toPNG, 0);
-    rb_define_method(rb_cImage, "to_png_file", _rbf rb_Image_toPNG_file, 1);
+	rb_define_method(rb_cImage, "to_png", _rbf rb_Image_toPNG, 0);
+	rb_define_method(rb_cImage, "to_png_file", _rbf rb_Image_toPNG_file, 1);
 }
 
 VALUE rb_Image_Initialize(int argc, VALUE *argv, VALUE self)
 {
-    VALUE string;
+	VALUE string;
 	VALUE fromMemory;
-    auto& img = rb::Get<sf::Image>(self);
-    rb_scan_args(argc, argv, "11", &string, &fromMemory);
-    /* Load From filename */
-    if(NIL_P(fromMemory))
-    {
-        rb_check_type(string, T_STRING);
+	auto& img = rb::Get<sf::Image>(self);
+	rb_scan_args(argc, argv, "11", &string, &fromMemory);
+	/* Load From filename */
+	if(NIL_P(fromMemory))
+	{
+		rb_check_type(string, T_STRING);
 		if(!rb_Image_LoadLodePNG(img, RSTRING_PTR(string), 0))
 			if(!img.loadFromFile(RSTRING_PTR(string)))
 			{
 				errno = ENOENT;
 				rb_sys_fail(RSTRING_PTR(string));
 			}
-    }
-    /* Load From Memory */
-    else if(fromMemory == Qtrue)
-    {
-        rb_check_type(string, T_STRING);
+	}
+	/* Load From Memory */
+	else if(fromMemory == Qtrue)
+	{
+		rb_check_type(string, T_STRING);
 		if(!rb_Image_LoadLodePNG(img, RSTRING_PTR(string), RSTRING_LEN(string)))
 			if(!img.loadFromMemory(RSTRING_PTR(string), RSTRING_LEN(string)))
 				rb_raise(rb_eRGSSError, "Failed to load image from memory.");
-    }
-    else
-    {
-        rb_check_type(string, T_FIXNUM);
-        rb_check_type(fromMemory, T_FIXNUM);
-        img.create(rb_num2long(string), rb_num2long(fromMemory), sf::Color(0, 0, 0, 0));
-        //rb_raise(rb_eRGSSError, "Bitmap no longer allow drawing, thus Bitmap.new(width, height) is not allowed.");
-    }
-    return self;
+	}
+	else
+	{
+		rb_check_type(string, T_FIXNUM);
+		rb_check_type(fromMemory, T_FIXNUM);
+		img.create(rb_num2long(string), rb_num2long(fromMemory), sf::Color(0, 0, 0, 0));
+		//rb_raise(rb_eRGSSError, "Bitmap no longer allow drawing, thus Bitmap.new(width, height) is not allowed.");
+	}
+	return self;
 }
 
 VALUE rb_Image_Initialize_Copy(VALUE self, VALUE other)
 {
-    //rb_notimplement();
-    rb_check_frozen(self);
-    if(rb_obj_is_kind_of(other, rb_cImage) != Qtrue)
-    {
-        rb_raise(rb_eTypeError, "Cannot clone %s into Image.", RSTRING_PTR(rb_class_name(CLASS_OF(other))));
-        return self;
-    }
-    sf::Image* img;
-    sf::Image* imgo;
-    Data_Get_Struct(self, sf::Image, img);
-    Data_Get_Struct(other, sf::Image, imgo);
-    if(imgo == nullptr)
-        rb_raise(rb_eRGSSError, "Disposed Image.");
-    img->create(imgo->getSize().x, imgo->getSize().y, imgo->getPixelsPtr());
-    return self;
+	//rb_notimplement();
+	rb_check_frozen(self);
+	if(rb_obj_is_kind_of(other, rb_cImage) != Qtrue)
+	{
+		rb_raise(rb_eTypeError, "Cannot clone %s into Image.", RSTRING_PTR(rb_class_name(CLASS_OF(other))));
+		return self;
+	}
+	sf::Image* img;
+	sf::Image* imgo;
+	Data_Get_Struct(self, sf::Image, img);
+	Data_Get_Struct(other, sf::Image, imgo);
+	if(imgo == nullptr)
+		rb_raise(rb_eRGSSError, "Disposed Image.");
+	img->create(imgo->getSize().x, imgo->getSize().y, imgo->getPixelsPtr());
+	return self;
 }
 
 VALUE rb_Image_Dispose(VALUE self)
@@ -91,60 +91,60 @@ VALUE rb_Image_Dispose(VALUE self)
 
 VALUE rb_Image_Width(VALUE self)
 {
-    auto& img = rb::Get<sf::Image>(self);
-    sf::Vector2u size = img.getSize();
-    return rb_int2inum(size.x);
+	auto& img = rb::Get<sf::Image>(self);
+	sf::Vector2u size = img.getSize();
+	return rb_int2inum(size.x);
 }
 
 VALUE rb_Image_Height(VALUE self)
 {
-    auto& img = rb::Get<sf::Image>(self);
-    sf::Vector2u size = img.getSize();
-    return rb_int2inum(size.y);
+	auto& img = rb::Get<sf::Image>(self);
+	sf::Vector2u size = img.getSize();
+	return rb_int2inum(size.y);
 }
 
 VALUE rb_Image_Rect(VALUE self)
 {
-    auto& img = rb::Get<sf::Image>(self);
-    sf::Vector2u size = img.getSize();
-    VALUE argv[4] = {LONG2FIX(0), LONG2FIX(0), rb_int2inum(size.x), rb_int2inum(size.y)};
-    return rb_class_new_instance(4, argv, rb_cRect);
+	auto& img = rb::Get<sf::Image>(self);
+	sf::Vector2u size = img.getSize();
+	VALUE argv[4] = {LONG2FIX(0), LONG2FIX(0), rb_int2inum(size.x), rb_int2inum(size.y)};
+	return rb_class_new_instance(4, argv, rb_cRect);
 }
 
 VALUE rb_Image_Copy_to_Bitmap(VALUE self, VALUE bitmap)
 {
-    auto& img = rb::Get<sf::Image>(self);
-    rb_Bitmap_getTexture(bitmap).update(img);
-    return self;
+	auto& img = rb::Get<sf::Image>(self);
+	rb_Bitmap_getTexture(bitmap).update(img);
+	return self;
 }
 
 VALUE rb_Image_blt_fast(VALUE self, VALUE x, VALUE y, VALUE src_image, VALUE rect)
 {
-    auto& img = rb::Get<sf::Image>(self);
-    auto& img2 = rb::GetSafe<sf::Image>(src_image, rb_cImage);
-    auto& s_rect = rb::GetSafe<CRect_Element>(rect, rb_cRect);
-    img.copy(
-        img2,
-        NUM2ULONG(x),
-        NUM2ULONG(y),
-        s_rect.getRect()
-    );
-    return self;
+	auto& img = rb::Get<sf::Image>(self);
+	auto& img2 = rb::GetSafe<sf::Image>(src_image, rb_cImage);
+	auto& s_rect = rb::GetSafe<CRect_Element>(rect, rb_cRect);
+	img.copy(
+		img2,
+		NUM2ULONG(x),
+		NUM2ULONG(y),
+		s_rect.getRect()
+	);
+	return self;
 }
 
 VALUE rb_Image_blt(VALUE self, VALUE x, VALUE y, VALUE src_image, VALUE rect)
 {
-    auto& img = rb::Get<sf::Image>(self);
-    auto& img2 = rb::GetSafe<sf::Image>(src_image, rb_cImage);
-    auto& s_rect = rb::GetSafe<CRect_Element>(rect, rb_cRect);
-    img.copy(
-        img2,
-        NUM2ULONG(x),
-        NUM2ULONG(y),
-        s_rect.getRect(),
+	auto& img = rb::Get<sf::Image>(self);
+	auto& img2 = rb::GetSafe<sf::Image>(src_image, rb_cImage);
+	auto& s_rect = rb::GetSafe<CRect_Element>(rect, rb_cRect);
+	img.copy(
+		img2,
+		NUM2ULONG(x),
+		NUM2ULONG(y),
+		s_rect.getRect(),
 		true
-    );
-    return self;
+	);
+	return self;
 }
 
 VALUE rb_Image_clear_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height)

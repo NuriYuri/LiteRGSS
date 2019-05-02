@@ -3,23 +3,23 @@
 #include "CGraphicsStack.h"
 
 void CGraphicsStackItem::resetOriginStack() {
-    CGraphicsCppStackItem::resetOriginStack();
-    CGraphicsRubyStackItem::resetOriginStack();
+	CGraphicsCppStackItem::resetOriginStack();
+	CGraphicsRubyStackItem::resetOriginStack();
 }
 
 void CGraphicsStackItem::setOriginStack(CGraphicsCppStack& cppStack, CGraphicsRubyStack& rubyStack) {
-    CGraphicsCppStackItem::setOriginStack(cppStack);
-    CGraphicsRubyStackItem::setOriginStack(rubyStack);
+	CGraphicsCppStackItem::setOriginStack(cppStack);
+	CGraphicsRubyStackItem::setOriginStack(rubyStack);
 }
 
 void CGraphicsStackItem::overrideOriginCppStack(CGraphicsCppStack* oCpp) {
-    CGraphicsCppStackItem::overrideOriginStack(oCpp);
+	CGraphicsCppStackItem::overrideOriginStack(oCpp);
 }
 
 void CGraphicsStackItem::overrideOriginRubyStack(CGraphicsRubyStack* oRuby) {
-    CGraphicsRubyStackItem::overrideOriginStack(oRuby);
+	CGraphicsRubyStackItem::overrideOriginStack(oRuby);
 }
 
 unsigned long CGraphicsStackItem::getDrawPriority() const {
-    return CGraphicsCppStackItem::getDrawPriority();
+	return CGraphicsCppStackItem::getDrawPriority();
 }

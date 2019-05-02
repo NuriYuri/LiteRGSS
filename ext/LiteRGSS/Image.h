@@ -27,10 +27,10 @@ VALUE rb_Image_create_mask(VALUE self, VALUE color, VALUE alpha);
 bool rb_Image_LoadLodePNG(sf::Image& img, char* str, long from_memory_size);
 
 namespace meta {
-    template<>
-    struct Log<sf::Image> {
-        static constexpr auto classname = "Image";
-    };
+	template<>
+	struct Log<sf::Image> {
+		static constexpr auto classname = "Image";
+	};
 }
 
 #endif

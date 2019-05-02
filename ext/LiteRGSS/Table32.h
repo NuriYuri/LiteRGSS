@@ -5,16 +5,16 @@
 #include "rbAdapter.h"
 
 struct rb_Table32_Struct_Header {
-    unsigned int dim = 0u;
-    unsigned int xsize = 0u;
-    unsigned int ysize = 0u;
-    unsigned int zsize = 0u;
-    unsigned int data_size = 0u;
+	unsigned int dim = 0u;
+	unsigned int xsize = 0u;
+	unsigned int ysize = 0u;
+	unsigned int zsize = 0u;
+	unsigned int data_size = 0u;
 };
 
 struct rb_Table32_Struct {
-    rb_Table32_Struct_Header header{};
-    int32_t* heap = nullptr;
+	rb_Table32_Struct_Header header{};
+	int32_t* heap = nullptr;
 };
 
 VALUE rb_Table32_initialize(int argc, VALUE* argv, VALUE self);
@@ -30,10 +30,10 @@ VALUE rb_Table32_Save(VALUE self, VALUE limit);
 VALUE rb_Table32_Fill(VALUE self, VALUE val);
 
 namespace meta {
-    template<>
-    struct Log<rb_Table32_Struct> {
-        static constexpr auto classname = "Table32";
-    };
+	template<>
+	struct Log<rb_Table32_Struct> {
+		static constexpr auto classname = "Table32";
+	};
 }
 
 #endif

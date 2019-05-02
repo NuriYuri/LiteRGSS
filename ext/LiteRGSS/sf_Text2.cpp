@@ -11,12 +11,12 @@
 // subject to the following restrictions:
 //
 // 1. The origin of this software must not be misrepresented;
-//    you must not claim that you wrote the original software.
-//    If you use this software in a product, an acknowledgment
-//    in the product documentation would be appreciated but is not required.
+//	you must not claim that you wrote the original software.
+//	If you use this software in a product, an acknowledgment
+//	in the product documentation would be appreciated but is not required.
 //
 // 2. Altered source versions must be plainly marked as such,
-//    and must not be misrepresented as being the original software.
+//	and must not be misrepresented as being the original software.
 //
 // 3. This notice may not be removed or altered from any source distribution.
 //
@@ -354,8 +354,8 @@ namespace sf
 			// Handle special characters
 			switch (curChar)
 			{
-			case ' ':  position.x += whitespaceWidth;             continue;
-			case '\t': position.x += whitespaceWidth * 4;         continue;
+			case ' ':  position.x += whitespaceWidth;			 continue;
+			case '\t': position.x += whitespaceWidth * 4;		 continue;
 			case '\n': position.y += lineSpacing; position.x = 0; continue;
 			}
 
@@ -452,7 +452,7 @@ namespace sf
 
 				switch (curChar)
 				{
-				case L' ':  x += whitespaceWidth;     break;
+				case L' ':  x += whitespaceWidth;	 break;
 				case L'\t': x += whitespaceWidth * 4; break;
 				case L'\n': y += lineSpacing; x = 0;  break;
 				}
@@ -597,7 +597,7 @@ namespace sf
 
 				switch (curChar)
 				{
-				case L' ':  x += whitespaceWidth;     break;
+				case L' ':  x += whitespaceWidth;	 break;
 				case L'\t': x += whitespaceWidth * 4; break;
 				case L'\n': y += lineSpacing; x = 0;  break;
 				}

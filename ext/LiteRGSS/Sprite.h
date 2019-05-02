@@ -42,7 +42,7 @@ VALUE rb_Sprite_width(VALUE self);
 VALUE rb_Sprite_height(VALUE self);
 
 namespace rb {
-    template<>
-    void Mark<CSprite_Element>(CSprite_Element* sprite);
+	template<>
+	void Mark<CSprite_Element>(CSprite_Element* sprite);
 }
 #endif

@@ -4,11 +4,11 @@
 #include "CView_Element.h"
 
 class CWindow_Element : public CView_Element {
-    private:
+	private:
 		std::vector<sf::VertexArray> vertices;
 		sf::Texture* texture = nullptr;
 		sf::View view;
-        bool visible = true;
+		bool visible = true;
 		unsigned long num_vertices_line = 0;
 		long counter = 0;
 		sf::Sprite pause_sprite;
@@ -21,17 +21,17 @@ class CWindow_Element : public CView_Element {
 		void rectSet(sf::IntRect &rect, long x, long y, long width, long height);
 		void allocateVerticesStretch();
 		void calculateVerticesStretch(long x, long y, long line, long cell, sf::Vector2i &s, sf::Vector2i &a, sf::IntRect &rect);
-    public:
+	public:
 		CWindow_Element();
 		virtual ~CWindow_Element() = default;
-        void draw(sf::RenderTarget& target) const override;
-        void drawFast(sf::RenderTarget& target) const override;
+		void draw(sf::RenderTarget& target) const override;
+		void drawFast(sf::RenderTarget& target) const override;
 		void drawCalculateView(sf::RenderTarget& target, sf::View& targetView) const;
-        bool isViewport() const override { return false; };
-        bool isPureSprite() const override { return false; };
+		bool isViewport() const override { return false; };
+		bool isPureSprite() const override { return false; };
 		bool isShape() const override { return false; };
-        void setVisible(bool value) { visible = value;};
-        bool getVisible() { return visible; };
+		void setVisible(bool value) { visible = value;};
+		bool getVisible() { return visible; };
 		sf::VertexArray* getVertices();
 		void setVertices(sf::VertexArray* _vertices);
 		sf::Texture* getTexture();
@@ -52,13 +52,13 @@ class CWindow_Element : public CView_Element {
 		void resetPausePosition();
 		void resetCursorPosition(sf::IntRect* rect);
 
-        /* Instance variable for Ruby */
-        VALUE rBitmap = Qnil;
-        VALUE rX = Qnil;
-        VALUE rY = Qnil;
-        VALUE rZ = Qnil;
-        VALUE rOX = Qnil;
-        VALUE rOY = Qnil;
+		/* Instance variable for Ruby */
+		VALUE rBitmap = Qnil;
+		VALUE rX = Qnil;
+		VALUE rY = Qnil;
+		VALUE rZ = Qnil;
+		VALUE rOX = Qnil;
+		VALUE rOY = Qnil;
 		VALUE rRect = Qnil;
 		VALUE rWidth = Qnil;
 		VALUE rHeight = Qnil;
@@ -79,9 +79,9 @@ class CWindow_Element : public CView_Element {
 void Dispose_AllSprite(VALUE table);
 
 namespace meta {
-    template<>
-    struct Log<CWindow_Element> {
-        static constexpr auto classname = "Window";
-    };
+	template<>
+	struct Log<CWindow_Element> {
+		static constexpr auto classname = "Window";
+	};
 }
 #endif

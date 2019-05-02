@@ -11,12 +11,12 @@
 // subject to the following restrictions:
 //
 // 1. The origin of this software must not be misrepresented;
-//    you must not claim that you wrote the original software.
-//    If you use this software in a product, an acknowledgment
-//    in the product documentation would be appreciated but is not required.
+//	you must not claim that you wrote the original software.
+//	If you use this software in a product, an acknowledgment
+//	in the product documentation would be appreciated but is not required.
 //
 // 2. Altered source versions must be plainly marked as such,
-//    and must not be misrepresented as being the original software.
+//	and must not be misrepresented as being the original software.
 //
 // 3. This notice may not be removed or altered from any source distribution.
 //
@@ -55,7 +55,7 @@ namespace sf
 		////////////////////////////////////////////////////////////
 		enum Style
 		{
-			Regular = 0,      ///< Regular characters, no style
+			Regular = 0,	  ///< Regular characters, no style
 			Bold = 1 << 0, ///< Bold characters
 			Italic = 1 << 1, ///< Italic characters
 			Underlined = 1 << 2, ///< Underlined characters
@@ -80,8 +80,8 @@ namespace sf
 		/// of a certain size, make sure the corresponding bitmap
 		/// font that supports that size is used.
 		///
-		/// \param string         Text assigned to the string
-		/// \param font           Font used to draw the string
+		/// \param string		 Text assigned to the string
+		/// \param font		   Font used to draw the string
 		/// \param characterSize  Base size of characters, in pixels
 		///
 		////////////////////////////////////////////////////////////
@@ -466,24 +466,24 @@ namespace sf
 		////////////////////////////////////////////////////////////
 		// Member data
 		////////////////////////////////////////////////////////////
-		String              m_string;              ///< String to display
-		const Font*         m_font;                ///< Font used to display the string
-		unsigned int        m_characterSize;       ///< Base size of characters, in pixels
-		float               m_letterSpacingFactor; ///< Spacing factor between letters
-		float               m_lineSpacingFactor;   ///< Spacing factor between lines
-		Uint32              m_style;               ///< Text style (see Style enum)
-		Color               m_fillColor;           ///< Text fill color
-		Color               m_outlineColor;        ///< Text outline color
-		float               m_outlineThickness;    ///< Thickness of the text's outline
-		mutable VertexArray m_vertices;            ///< Vertex array containing the fill geometry
-		mutable VertexArray m_outlineVertices;     ///< Vertex array containing the outline geometry
-		mutable FloatRect   m_bounds;              ///< Bounding rectangle of the text (in local coordinates)
-		mutable bool        m_geometryNeedUpdate;  ///< Does the geometry need to be recomputed?
-		mutable Uint64      m_fontTextureId;       ///< The font texture id
+		String			  m_string;			  ///< String to display
+		const Font*		 m_font;				///< Font used to display the string
+		unsigned int		m_characterSize;	   ///< Base size of characters, in pixels
+		float			   m_letterSpacingFactor; ///< Spacing factor between letters
+		float			   m_lineSpacingFactor;   ///< Spacing factor between lines
+		Uint32			  m_style;			   ///< Text style (see Style enum)
+		Color			   m_fillColor;		   ///< Text fill color
+		Color			   m_outlineColor;		///< Text outline color
+		float			   m_outlineThickness;	///< Thickness of the text's outline
+		mutable VertexArray m_vertices;			///< Vertex array containing the fill geometry
+		mutable VertexArray m_outlineVertices;	 ///< Vertex array containing the outline geometry
+		mutable FloatRect   m_bounds;			  ///< Bounding rectangle of the text (in local coordinates)
+		mutable bool		m_geometryNeedUpdate;  ///< Does the geometry need to be recomputed?
+		mutable Uint64	  m_fontTextureId;	   ///< The font texture id
 		//<< YuriAdd
-		bool                m_DrawShadow;
-		Uint32              m_numberCharsToDraw;
-		float               m_lineHeight;
+		bool				m_DrawShadow;
+		Uint32			  m_numberCharsToDraw;
+		float			   m_lineHeight;
 		//>> YuriAdd
 		friend class Texture;
 	};

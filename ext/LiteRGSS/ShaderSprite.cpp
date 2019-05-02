@@ -7,25 +7,25 @@ VALUE rb_cShaderSprite = Qnil;
 template<>
 void rb::Mark<CShaderSprite_Element>(CShaderSprite_Element* sprite)
 {
-    if(sprite == nullptr)
-        return;
-    rb_gc_mark(sprite->rViewport);
-    rb_gc_mark(sprite->rBitmap);
-    rb_gc_mark(sprite->rX);
-    rb_gc_mark(sprite->rY);
-    rb_gc_mark(sprite->rZ);
-    rb_gc_mark(sprite->rOX);
-    rb_gc_mark(sprite->rOY);
-    rb_gc_mark(sprite->rAngle);
-    rb_gc_mark(sprite->rZoomX);
-    rb_gc_mark(sprite->rZoomY);
-    rb_gc_mark(sprite->rRect);
+	if(sprite == nullptr)
+		return;
+	rb_gc_mark(sprite->rViewport);
+	rb_gc_mark(sprite->rBitmap);
+	rb_gc_mark(sprite->rX);
+	rb_gc_mark(sprite->rY);
+	rb_gc_mark(sprite->rZ);
+	rb_gc_mark(sprite->rOX);
+	rb_gc_mark(sprite->rOY);
+	rb_gc_mark(sprite->rAngle);
+	rb_gc_mark(sprite->rZoomX);
+	rb_gc_mark(sprite->rZoomY);
+	rb_gc_mark(sprite->rRect);
 	rb_gc_mark(sprite->rRenderStates);
 }
 
 void Init_ShaderSprite() {
 	rb_cShaderSprite = rb_define_class_under(rb_mLiteRGSS, "ShaderedSprite", rb_cSprite);
-    rb_define_alloc_func(rb_cShaderSprite, rb::AllocDrawable<CShaderSprite_Element>);
+	rb_define_alloc_func(rb_cShaderSprite, rb::AllocDrawable<CShaderSprite_Element>);
 
 	rb_define_method(rb_cShaderSprite, "shader", _rbf rb_ShaderSprite_getShader, 0);
 	rb_define_method(rb_cShaderSprite, "shader=", _rbf rb_ShaderSprite_setShader, 1);

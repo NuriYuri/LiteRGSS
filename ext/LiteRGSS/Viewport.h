@@ -33,7 +33,7 @@ VALUE rb_Viewport_Index(VALUE self);
 void Viewport_SetView(CViewport_Element& viewport, long x, long y, long width, long height);
 
 namespace rb {
-    template<>
-    void Mark<CViewport_Element>(CViewport_Element* viewport);
+	template<>
+	void Mark<CViewport_Element>(CViewport_Element* viewport);
 }
 #endif
