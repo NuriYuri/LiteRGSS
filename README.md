@@ -1,15 +1,11 @@
 # Lite RGSS
 ## What is Lite RGSS ?
 
-`LiteRGSS` is a little Ruby Game library that reproduces some features of the RGSS. It has been written with `SFML` for the Graphical part.
+`LiteRGSS` is a little Ruby Game library that reproduces some features of the RGSS. It has been written with `SFML` and only manage the Graphic part.
 
 Nuri Yuri wrote LiteRGSS during his free time, that's why [SFML](https://www.sfml-dev.org/index-fr.php"SFML") has been used (easy to use, nothing to learn) and wanted to have a RGSS like library that was usable directly with the MRI (to allow thing like `require "socket"` which is impossible with `mkxp` and other RGSS like library)
 
-## What is currently done ?
-
-* The Graphics.update function
-* The creation of a Bitmap (+dispose)
-* The creation of a Sprite (+dispose +bitmap=)
+During the year 2019 [Scorbutics](https://github.com/Scorbutics) started to refractor & make the C++ part of LiteRGSS better.
 
 ## Why using LiteRGSS instead of RGSS1 RGSS2 or RGSS3 ?
 
@@ -32,5 +28,6 @@ All the explaination (building, using) are on the official doc : https://psdk.po
 ## Specials Thanks
 
 * SFML for their library https://www.sfml-dev.org
+* [Scorbutics](https://github.com/Scorbutics) for the contributions
 * NetSurf Browser for their gif library :) https://netsurf-browser.org
 * Lode Vandevenne for LodePNG
