@@ -4,9 +4,19 @@
 #include "CDrawable_Element.h"
 #include "rbAdapter.h"
 
+#define SPRITE_MAP_USE_VERTEX
+
 class CSpriteMap_Element : public CDrawable_Element {
 protected:
+#ifndef SPRITE_MAP_USE_VERTEX
 	sf::Sprite *sprites;
+#else
+	sf::Vertex *vertices;
+	sf::VertexBuffer *buffers;
+	sf::Texture **textures;
+	sf::Transformable *transformable;
+	void generate_vertices();
+#endif
 	bool *active_sprites;
 	bool drawable = false;
 	bool visible = true;
