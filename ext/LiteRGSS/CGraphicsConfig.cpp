@@ -52,7 +52,7 @@ sf::String CGraphicsConfigLoader::loadTitleFromConfigs() const {
 unsigned int CGraphicsConfigLoader::loadFrameRateFromConfigs() const {
 	ID framerate = rb_intern("FrameRate");
 	if(rb_const_defined(rb_mConfig, framerate)) {
-		return normalize_long(rb_num2long(rb_const_get(rb_mConfig, framerate)), 1, 120);
+		return normalize_long(rb_num2long(rb_const_get(rb_mConfig, framerate)), 1, 240);
 	}
 	return 60;
 }
