@@ -4,6 +4,9 @@
 #include "../LiteRGSS/CShaderFactory.h"
 #include "ShaderFactory_test.h"
 
+static std::unique_ptr<sf::Shader> ShaderFactoryTest_shader;
+static sf::Shader* ShaderFactoryTest_shaderRaw;
+
 void rb_ShaderFactoryTest_Free(void* data) {
   auto* typedData = reinterpret_cast<CShaderFactory*>(data);
   delete typedData;
@@ -28,6 +31,17 @@ VALUE rb_ShaderFactoryTest_disable(VALUE self) {
   return self;
 }
 
+VALUE rb_ShaderFactoryTest_create(VALUE self) {
+  auto& wrapper = rb::Get<CShaderFactory>(self);
+  ShaderFactoryTest_shader = wrapper.createUnique();
+  ShaderFactoryTest_shaderRaw = wrapper.createNew();
+  return self;
+}
+
+VALUE rb_ShaderFactoryTest_shader_exists(VALUE self) {
+  return ShaderFactoryTest_shader != nullptr && ShaderFactoryTest_shaderRaw != nullptr ? Qtrue : Qfalse;
+}
+
 ID rb_cShaderFactoryTest = Qnil;
 
 void InitShaderFactoryTest() {
@@ -35,5 +49,7 @@ void InitShaderFactoryTest() {
     rb_define_alloc_func(rb_cShaderFactoryTest, rb_ShaderFactoryTest_Alloc);
     rb_define_method(rb_cShaderFactoryTest, "initialize", _rbf rb_ShaderFactoryTest_initialize, -1);
     rb_define_method(rb_cShaderFactoryTest, "disable", _rbf rb_ShaderFactoryTest_disable, 0);
-    rb_define_method(rb_cShaderFactoryTest, "enabled", _rbf rb_ShaderFactoryTest_enabled, 0);
+    rb_define_method(rb_cShaderFactoryTest, "enabled?", _rbf rb_ShaderFactoryTest_enabled, 0);
+    rb_define_method(rb_cShaderFactoryTest, "create", _rbf rb_ShaderFactoryTest_create, 0);
+    rb_define_method(rb_cShaderFactoryTest, "shader_exists?", _rbf rb_ShaderFactoryTest_shader_exists, 0);
 }
