@@ -4,6 +4,7 @@
 #include "CGraphicsSnapshot.h"
 #include "CBitmap_Element.h"
 #include "CGraphics.h"
+#include "CShaderFactory.h"
 
 void CGraphicsSnapshot::init() {
 	static constexpr const char* GraphicsTransitionFragmentShader = \
@@ -25,8 +26,10 @@ void CGraphicsSnapshot::init() {
 		"  gl_FragColor = frag;" \
 		"}";
 
-	Graphics_freeze_shader = std::make_unique<sf::Shader>();
-	Graphics_freeze_shader->loadFromMemory(GraphicsTransitionFragmentShader, sf::Shader::Type::Fragment);
+	Graphics_freeze_shader = CGraphics::Get().createUniqueShader();
+	if (Graphics_freeze_shader != nullptr) {
+		Graphics_freeze_shader->loadFromMemory(GraphicsTransitionFragmentShader, sf::Shader::Type::Fragment);
+	}
 }
 
 void CGraphicsSnapshot::freeze(sf::RenderWindow& window, VALUE self) {

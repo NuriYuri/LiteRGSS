@@ -2,6 +2,7 @@
 #define CGraphics_H
 #include <memory>
 #include "ruby.h"
+#include "CShaderFactory.h"
 #include "CGraphicsConfig.h"
 #include "CGraphicsDraw.h"
 #include "CGraphicsSnapshot.h"
@@ -42,6 +43,10 @@ public:
 	void syncStackCppFromRuby();
 	void add(CDrawable_Element& element);
 
+	std::unique_ptr<sf::Shader> createUniqueShader() const;
+	sf::Shader* createNewShader() const;
+	bool areShadersEnabled() const;
+
 private:
 	void warnIfGraphicsUpdate() const;
 	CGraphics();
@@ -59,6 +64,7 @@ private:
 	CGraphicsConfigLoader m_configLoader;
 	CGraphicsSnapshot m_snapshot;
 	CGraphicsDraw m_draw;
+	CShaderFactory m_shaderFactory;	
 };
 
 #endif
