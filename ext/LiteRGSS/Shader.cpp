@@ -54,6 +54,7 @@ void Init_Shader()
 	rb_define_method(rb_cShader, "dup", _rbf rb_Shader_Copy, 0);
 	
 	rb_define_singleton_method(rb_cShader, "is_geometry_available?", _rbf rb_Shader_isGeometryAvailable, 0);
+	rb_define_singleton_method(rb_cShader, "available?", _rbf rb_Shader_isAvailable, 0);
 
 	rb_define_const(rb_cShader, "Fragment", LONG2FIX(sf::Shader::Type::Fragment));
 	rb_define_const(rb_cShader, "Vertex", LONG2FIX(sf::Shader::Type::Vertex));
@@ -263,6 +264,11 @@ VALUE rb_Shader_setFloatArrayUniform(VALUE self, VALUE name, VALUE uniform)
 	}
 	shader->setUniformArray(rb_string_value_cstr(&name), &floats[0], len);
 	return self;
+}
+
+VALUE rb_Shader_isAvailable(VALUE self) 
+{
+	return CGraphics::Get().areShadersEnabled() ? Qtrue : Qfalse;
 }
 
 VALUE rb_Shader_isGeometryAvailable(VALUE self)

@@ -44,7 +44,7 @@ VALUE rb_ShaderFactoryTest_shader_exists(VALUE self) {
 
 ID rb_cShaderFactoryTest = Qnil;
 
-void InitShaderFactoryTest() {
+void Init_ShaderFactoryTest() {
     rb_cShaderFactoryTest = rb_define_class("ShaderFactory", rb_cObject);
     rb_define_alloc_func(rb_cShaderFactoryTest, rb_ShaderFactoryTest_Alloc);
     rb_define_method(rb_cShaderFactoryTest, "initialize", _rbf rb_ShaderFactoryTest_initialize, -1);

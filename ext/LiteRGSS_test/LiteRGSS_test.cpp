@@ -102,6 +102,6 @@ extern "C" {
     Init_LiteRGSS();
 
     Init_DrawableStackTest();
-    InitShaderFactoryTest();
+    Init_ShaderFactoryTest();
   }
 }
