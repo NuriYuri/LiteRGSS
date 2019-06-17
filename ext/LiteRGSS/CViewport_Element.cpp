@@ -5,6 +5,7 @@
 #include "CRect_Element.h"
 #include "CTone_Element.h"
 #include "CWindow_Element.h"
+#include "CShaderFactory.h"
 
 std::unique_ptr<sf::RenderTexture> CViewport_Element::render = nullptr;
 std::unique_ptr<sf::Sprite> CViewport_Element::render_sprite = nullptr;
@@ -208,14 +209,16 @@ void CViewport_Element::create_render()
 	if(default_render_states.get() != nullptr)
 		return;
 	// Creation of the render states
-	default_render_states_shader = std::make_unique<sf::Shader>();
-	// Shader initialialization
-	sf::Shader& shader = *default_render_states_shader;
-	if (shader.loadFromMemory(ViewportGlobalFragmentShader, sf::Shader::Fragment))
-	{
-		shader.setUniform("texture", sf::Shader::CurrentTexture);
-		shader.setUniform("tone", __Viewport_reset_tone);
-		shader.setUniform("color", __Viewport_reset_tone);
+	default_render_states_shader = CGraphics::Get().createUniqueShader();
+	if(default_render_states_shader != nullptr) {
+		// Shader initialialization
+		sf::Shader& shader = *default_render_states_shader;
+		if (shader.loadFromMemory(ViewportGlobalFragmentShader, sf::Shader::Fragment))
+		{
+			shader.setUniform("texture", sf::Shader::CurrentTexture);
+			shader.setUniform("tone", __Viewport_reset_tone);
+			shader.setUniform("color", __Viewport_reset_tone);
+		}
 	}
 	default_render_states = std::make_unique<sf::RenderStates>(default_render_states_shader.get());
 	color_copy = std::make_unique<sf::Color>(0, 0, 0, 0);

@@ -15,12 +15,21 @@ CGraphics::~CGraphics() {
 	if(game_window != nullptr) { stop(); }
 }
 
+std::unique_ptr<sf::Shader> CGraphics::createUniqueShader() const {
+	return m_shaderFactory.createUnique();
+}
+
+sf::Shader* CGraphics::createNewShader() const {
+	return m_shaderFactory.createNew();
+}
+
+bool CGraphics::areShadersEnabled() const {
+	return m_shaderFactory.areEnabled();
+}
+
 void CGraphics::init() {
-	/* Shader Testing */
-	if (!sf::Shader::isAvailable()) {
-		rb_raise(rb_eRGSSError, "Shaders are not available :(");
-	}
-	
+	m_shaderFactory.warnIfNotAvailable();
+
 	/* Window Loading */
 	auto config = m_configLoader.load();
 	frame_count = 0;

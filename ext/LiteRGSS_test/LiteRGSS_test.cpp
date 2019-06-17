@@ -9,6 +9,8 @@
 #include "../LiteRGSS/CSprite_Element.h"
 #include "../LiteRGSS/CGraphics.h"
 
+#include "ShaderFactory_test.h"
+
 extern VALUE rb_cSprite;
 extern ID rb_cDrawable;
 
@@ -100,5 +102,6 @@ extern "C" {
     Init_LiteRGSS();
 
     Init_DrawableStackTest();
+    Init_ShaderFactoryTest();
   }
 }

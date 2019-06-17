@@ -1,6 +1,7 @@
 #ifndef L_SHADER_HEADER
 #define L_SHADER_HEADER
 
+VALUE rb_Shader_isAvailable(VALUE self);
 VALUE rb_Shader_isGeometryAvailable(VALUE self);
 VALUE rb_Shader_loadFromMemory(int argc, VALUE *argv, VALUE self);
 VALUE rb_Shader_Copy(VALUE self);

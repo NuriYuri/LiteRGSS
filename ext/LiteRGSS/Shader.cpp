@@ -1,5 +1,6 @@
 #include "LiteRGSS.h"
 #include "CTone_Element.h"
+#include "CGraphics.h"
 #include "Bitmap.h"
 
 VALUE rb_cShader = Qnil;
@@ -10,10 +11,11 @@ VALUE rb_cShader = Qnil;
 	return self; \
 }
 
-#define GET_SHADER sf::RenderStates* render_state; \
+#define GET_SHADER_OR_RETURN_SELF sf::RenderStates* render_state; \
 	Data_Get_Struct(self, sf::RenderStates, render_state); \
 	SHADER_PROTECT \
-	sf::Shader* shader = const_cast<sf::Shader*>(render_state->shader);
+	sf::Shader* shader = const_cast<sf::Shader*>(render_state->shader);\
+	if(shader == nullptr) { return self; }
 
 void rb_Shader_Free(void* data)
 {
@@ -30,7 +32,7 @@ void rb_Shader_Free(void* data)
 
 VALUE rb_Shader_Alloc(VALUE klass)
 {
-	sf::Shader* shader = new sf::Shader();
+	sf::Shader* shader = CGraphics::Get().createNewShader();
 	sf::RenderStates* render_state = new sf::RenderStates(shader);
 	return Data_Wrap_Struct(klass, NULL, rb_Shader_Free, render_state);
 }
@@ -52,6 +54,7 @@ void Init_Shader()
 	rb_define_method(rb_cShader, "dup", _rbf rb_Shader_Copy, 0);
 	
 	rb_define_singleton_method(rb_cShader, "is_geometry_available?", _rbf rb_Shader_isGeometryAvailable, 0);
+	rb_define_singleton_method(rb_cShader, "available?", _rbf rb_Shader_isAvailable, 0);
 
 	rb_define_const(rb_cShader, "Fragment", LONG2FIX(sf::Shader::Type::Fragment));
 	rb_define_const(rb_cShader, "Vertex", LONG2FIX(sf::Shader::Type::Vertex));
@@ -61,7 +64,7 @@ void Init_Shader()
 VALUE rb_Shader_loadFromMemory(int argc, VALUE *argv, VALUE self)
 {
 	VALUE arg1, arg2, arg3;
-	GET_SHADER
+	GET_SHADER_OR_RETURN_SELF
 	rb_scan_args(argc, argv, "12", &arg1, &arg2, &arg3);
 	rb_check_type(arg1, T_STRING);
 	if (RTEST(arg2))
@@ -94,7 +97,7 @@ VALUE rb_Shader_loadFromMemory(int argc, VALUE *argv, VALUE self)
 
 VALUE rb_Shader_setFloatUniform(VALUE self, VALUE name, VALUE uniform)
 {
-	GET_SHADER;
+	GET_SHADER_OR_RETURN_SELF;
 	rb_check_type(name, T_STRING);
 	if (rb_obj_is_kind_of(uniform, rb_cArray) == Qtrue)
 	{
@@ -141,7 +144,7 @@ VALUE rb_Shader_setFloatUniform(VALUE self, VALUE name, VALUE uniform)
 
 VALUE rb_Shader_setIntUniform(VALUE self, VALUE name, VALUE uniform)
 {
-	GET_SHADER;
+	GET_SHADER_OR_RETURN_SELF;
 	rb_check_type(name, T_STRING);
 	if (rb_obj_is_kind_of(uniform, rb_cArray) == Qtrue)
 	{
@@ -172,7 +175,7 @@ VALUE rb_Shader_setIntUniform(VALUE self, VALUE name, VALUE uniform)
 
 VALUE rb_Shader_setBoolUniform(VALUE self, VALUE name, VALUE uniform)
 {
-	GET_SHADER;
+	GET_SHADER_OR_RETURN_SELF;
 	rb_check_type(name, T_STRING);
 	if (rb_obj_is_kind_of(uniform, rb_cArray) == Qtrue)
 	{
@@ -202,7 +205,7 @@ VALUE rb_Shader_setBoolUniform(VALUE self, VALUE name, VALUE uniform)
 
 VALUE rb_Shader_setTextureUniform(VALUE self, VALUE name, VALUE uniform)
 {
-	GET_SHADER;
+	GET_SHADER_OR_RETURN_SELF;
 	rb_check_type(name, T_STRING);
 	if (rb_obj_is_kind_of(uniform, rb_cBitmap) == Qtrue)
 	{
@@ -218,7 +221,7 @@ VALUE rb_Shader_setTextureUniform(VALUE self, VALUE name, VALUE uniform)
 
 VALUE rb_Shader_setMatrixUniform(VALUE self, VALUE name, VALUE uniform)
 {
-	GET_SHADER;
+	GET_SHADER_OR_RETURN_SELF;
 	unsigned long i;
 	rb_check_type(name, T_STRING);
 	rb_check_type(uniform, T_ARRAY);
@@ -248,7 +251,7 @@ VALUE rb_Shader_setMatrixUniform(VALUE self, VALUE name, VALUE uniform)
 
 VALUE rb_Shader_setFloatArrayUniform(VALUE self, VALUE name, VALUE uniform)
 {
-	GET_SHADER;
+	GET_SHADER_OR_RETURN_SELF;
 	rb_check_type(name, T_STRING);
 	rb_check_type(uniform, T_ARRAY);
 	unsigned int len = RARRAY_LEN(uniform);
@@ -263,9 +266,14 @@ VALUE rb_Shader_setFloatArrayUniform(VALUE self, VALUE name, VALUE uniform)
 	return self;
 }
 
+VALUE rb_Shader_isAvailable(VALUE self) 
+{
+	return CGraphics::Get().areShadersEnabled() ? Qtrue : Qfalse;
+}
+
 VALUE rb_Shader_isGeometryAvailable(VALUE self)
 {
-	return sf::Shader::isAvailable() ? Qtrue : Qfalse;
+	return CGraphics::Get().areShadersEnabled() ? Qtrue : Qfalse;
 }
 
 
