@@ -168,17 +168,16 @@ sf::Color* CViewport_Element::check_up_color() const
 const std::string ViewportGlobalFragmentShader = \
 	"uniform sampler2D texture;" \
 	"uniform vec4 tone;" \
+	"float opacity = 0.1;" \ 
 	"uniform vec4 color;" \
 	"const vec3 lumaF = vec3(.299, .587, .114);" \
 	"void main()" \
 	"{" \
 	"   vec4 frag = texture2D(texture, gl_TexCoord[0].xy);" \
-	/*"   frag.rgb = mix(frag.rgb, gl_Color.rgb, cola);" \*/
-	"   frag.rgb = mix(frag.rgb, color.rgb, color.a);" \
 	"   float luma = dot(frag.rgb, lumaF);" \
-	"   frag.rgb += tone.rgb;" \
 	"   frag.rgb = mix(frag.rgb, vec3(luma), tone.w);" \
-	"   frag.a *= gl_Color.a;" \
+	"   frag.a *= opacity;" \
+	"   frag.rgb = mix(frag.rgb, color.rgb, color.a);" \
 	"   gl_FragColor = frag;" \
 	"}";
 
