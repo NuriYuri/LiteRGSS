@@ -82,7 +82,10 @@ VALUE rb_Table_initialize(int argc, VALUE* argv, VALUE self)
 	bool err = compute_header_data(argc, argv,
 		table.header.dim, table.header.xsize, table.header.ysize, table.header.zsize, table.header.data_size);
 
-	if (err) return Qnil;
+	if (err) {
+		rb_raise(rb_eRGSSError, "Table can be 1D, 2D or 3D but nothing else, requested dimension : %dD", argc);	
+		return Qnil;
+	}
 
 	// Then alloc data heap for this table 
 	if(table.heap != nullptr) {
