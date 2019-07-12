@@ -39,50 +39,46 @@ void Init_Table()
 	rb_define_singleton_method(rb_cTable, "_load", _rbf rb_Table_Load, 1);
 }
 
-// Return false if no error occured, true if there is an error
-bool compute_header_data(int argc, VALUE* argv,
-	unsigned int& out_dim, unsigned int& out_xsize, unsigned int& out_ysize, unsigned int& out_zsize, 
-	unsigned int& out_data_size) 
+bool compute_header_data(int argc, VALUE* argv, rb_Table_Struct_Header& header) 
 {
 	switch(argc)
 	{
 		case 1:
-			out_xsize = NUM2ULONG(argv[0]);
-			out_ysize = 1;
-			out_zsize = 1;
+			header.xsize = NUM2ULONG(argv[0]);
+			header.ysize = 1;
+			header.zsize = 1;
 			break;
 		case 2:
-			out_xsize = NUM2ULONG(argv[0]);
-			out_ysize = NUM2ULONG(argv[1]);
-			out_zsize = 1;
+			header.xsize = NUM2ULONG(argv[0]);
+			header.ysize = NUM2ULONG(argv[1]);
+			header.zsize = 1;
 			break;
 		case 3:
-			out_xsize = NUM2ULONG(argv[0]);
-			out_ysize = NUM2ULONG(argv[1]);
-			out_zsize = NUM2ULONG(argv[2]);
+			header.xsize = NUM2ULONG(argv[0]);
+			header.ysize = NUM2ULONG(argv[1]);
+			header.zsize = NUM2ULONG(argv[2]);
 			break;
 		default:
-			return true;
+			return false;
 	}
-	if(out_xsize == 0)
-		out_xsize = 1;
-	if(out_ysize == 0)
-		out_ysize = 1;
-	if(out_zsize == 0)
-		out_zsize = 1;
-	out_dim = argc;
-	out_data_size = out_xsize * out_ysize * out_zsize;
-	return false;
+	if(header.xsize == 0)
+		header.xsize = 1;
+	if(header.ysize == 0)
+		header.ysize = 1;
+	if(header.zsize == 0)
+		header.zsize = 1;
+	header.dim = argc;
+	header.data_size = header.xsize * header.ysize * header.zsize;
+	return true;
 }
 
 VALUE rb_Table_initialize(int argc, VALUE* argv, VALUE self)
 {
 	auto& table = rb::Get<rb_Table_Struct>(self);
 	// First compute table header data
-	bool err = compute_header_data(argc, argv,
-		table.header.dim, table.header.xsize, table.header.ysize, table.header.zsize, table.header.data_size);
+	bool ok = compute_header_data(argc, argv, table.header);
 
-	if (err) {
+	if (!ok) {
 		rb_raise(rb_eRGSSError, "Table can be 1D, 2D or 3D but nothing else, requested dimension : %dD", argc);	
 		return Qnil;
 	}
@@ -192,31 +188,27 @@ VALUE rb_Table_resize(int argc, VALUE* argv, VALUE self)
 	auto& table = rb::Get<rb_Table_Struct>(self);
 	
 	// Recompute header data for table to be resized
-	unsigned int n_dim, n_xsize, n_ysize, n_zsize, n_data_size;
-	bool err = compute_header_data(argc, argv, n_dim, n_xsize, n_ysize, n_zsize, n_data_size);
-	if (err) {
+	rb_Table_Struct_Header resized_header;
+	bool ok = compute_header_data(argc, argv, resized_header);
+	if (!ok) {
 		rb_raise(rb_eRGSSError, "Table can be 1D, 2D or 3D but nothing else, requested dimension : %dD", argc);
 		return Qnil;
 	}
 
 	// Alloc resized data heap and zero-filled it
-	short* resized_data = new short[n_data_size]();
-	for (unsigned int i = 0; i < n_data_size; i++) 
+	short* resized_data = new short[resized_header.data_size]();
+	for (unsigned int i = 0; i < resized_header.data_size; i++) 
 	{
 		resized_data[i] = 0;
 	}
 	
 	// Copy data from source table's heap to resized data heap
 	table_copy(resized_data, table.heap,
-		n_xsize, n_ysize, n_zsize,
+		resized_header.xsize, resized_header.ysize, resized_header.zsize,
 		table.header.xsize, table.header.ysize, table.header.zsize);
 	
-	// Set source table's header values to newer values
-	table.header.dim = n_dim;
-	table.header.xsize = n_xsize;
-	table.header.ysize = n_ysize;
-	table.header.zsize = n_zsize;
-	table.header.data_size = n_data_size; 
+	// Set source table's header to resized header
+	table.header = resized_header;
 	// Set source table's heap to resized data heap
 	delete[] table.heap;
 	table.heap = resized_data;
