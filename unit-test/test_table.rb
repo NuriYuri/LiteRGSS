@@ -141,7 +141,7 @@ RSpec.describe Table do
     arr << table[0, 1, 1]
     expect(arr).to eq(Array.new(arr.size) { |i| i })
   end
-  
+
   it 'preserve the value on smaller resize (y)' do
     table = Marshal.load(data_table_with_values)
     table.resize(1, 1, 3)
