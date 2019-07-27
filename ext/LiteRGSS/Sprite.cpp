@@ -160,6 +160,8 @@ VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap)
 		const sf::IntRect rectorigin = sp.getTextureRect();
 		rect_copy(&rect->getRect(), &rectorigin);
 	}
+	if (sprite.rMirror)
+		rb_Sprite_setMirror(self, sprite.rMirror);
 	return self;
 }
 
