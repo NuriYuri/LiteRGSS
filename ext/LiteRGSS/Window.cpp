@@ -227,7 +227,7 @@ VALUE rb_Window_setWindowBuilder(VALUE self, VALUE val)
 		rb_raise(rb_eArgError, "Window Builder should be 6 Integer long.");
 	}
 	// Type check
-	for (long i = 0; i < 6; i++)
+	for (long i = 0; i < rb_array_len(val); i++)
 	{
 		NUM2ULONG(rb_ary_entry(val, i));
 	}

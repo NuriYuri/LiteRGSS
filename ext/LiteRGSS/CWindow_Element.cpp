@@ -31,8 +31,11 @@ void CWindow_Element::drawFast(sf::RenderTarget& target) const
 		sf::View originalView = sf::View(target.getView());
 		if (!NIL_P(rViewport))
 			drawCalculateView(target, targetView);
-		target.setView(targetView);
-		CView_Element::drawFast(target);
+		if(targetView.getViewport().height > 0 && targetView.getViewport().width > 0)
+		{
+			target.setView(targetView);
+			CView_Element::drawFast(target);
+		}
 
 		/* Draw cursor & reset view */
 		if(RTEST(rActive) && rCursorSkin != Qnil)
@@ -46,48 +49,68 @@ void CWindow_Element::drawFast(sf::RenderTarget& target) const
 
 void CWindow_Element::drawCalculateView(sf::RenderTarget & target, sf::View & targetView) const
 {
-	const sf::FloatRect originViewport = target.getView().getViewport();
-	sf::FloatRect targetViewport = sf::FloatRect(targetView.getViewport());
-	sf::Vector2f targetCenter = sf::Vector2f(targetView.getCenter());
-	sf::Vector2f targetSize = sf::Vector2f(targetView.getSize());
-	// Zoom adjustment
-	float zoom = NUM2DBL(rb::Get<CViewport_Element>(rViewport).rZoom);
-	targetViewport.left /= zoom;
-	targetViewport.top /= zoom;
-	targetViewport.width /= zoom;
-	targetViewport.height /= zoom;
-	// ---
-	targetViewport.left += originViewport.left;
-	targetViewport.top += originViewport.top;
-	float dx = targetViewport.left + targetViewport.width - (originViewport.left + originViewport.width);
+	auto& viewport = rb::Get<CViewport_Element>(rViewport);
+	const auto& vrect = viewport.getRect()->getRect();
+	const float zoom = NUM2DBL(viewport.rZoom);
+	const auto wox = NUM2LONG(rOX);
+	const auto woy = NUM2LONG(rOY);
+	const auto vx0 = vrect.width / 2 - (vrect.width / 2) / zoom; // <- When vp.zoom = 0.5, zoom = 2
+	const auto vy0 = vrect.height / 2 - (vrect.height / 2) / zoom;
+	const float sw = static_cast<float>(CGraphics::Get().screenWidth());
+	const float sh = static_cast<float>(CGraphics::Get().screenHeight());
+	auto center = targetView.getCenter();
+	auto size = targetView.getSize();
+	// Get the real view coordinate in pixel
+	auto wrect = sf::FloatRect(targetView.getViewport());
+	wrect.left *= sw;
+	wrect.top *= sh;
+	wrect.width *= sw;
+	wrect.height *= sh;
+	// Translate the window rect in the correct space according to the viewport properties
+	wrect.left -= viewport.getOx();
+	wrect.top -= viewport.getOy();
+	wrect.left /= zoom;
+	wrect.top /= zoom;
+	wrect.width /= zoom;
+	wrect.height /= zoom;
+	wrect.left += vx0;
+	wrect.top += vy0;
+	// Fix the top/left coordinate of the view in order to make it stay in the viewport
+	float dy = vrect.top - wrect.top;
+	if (dy > 0) // If dy > 0 then the window top is outside of the viewport, we need to remove dy from the height & add dy to the y
+	{
+		wrect.top += dy;
+		size.y -= dy * zoom;
+		wrect.height -= dy;
+		center.y = dy * zoom + wrect.height * zoom / 2;
+	}
+	float dx = vrect.left - wrect.left;
 	if (dx > 0)
 	{
-		targetCenter.x -= targetSize.x / 2;
-		targetSize.x *= ((targetViewport.width - dx) / targetViewport.width);
-		targetViewport.width -= dx;
-		targetCenter.x += targetSize.x / 2;
+		wrect.left += dx;
+		size.x -= dx * zoom;
+		wrect.width -= dx;
+		center.x = dx * zoom + wrect.width * zoom / 2;
 	}
-	dx = originViewport.left - targetViewport.left;
+	// Fix the bottom/right coordinate of the view in order to make it stay in the viewport
+	dy = (wrect.top + wrect.height) - (vrect.top + vrect.height);
+	if (dy > 0) // If dy > 0 then the window bottom is outside of the viewport, we need to remove dy from the height and adjust the center
+	{
+		wrect.height -= dy;
+		size.y -= dy * zoom;
+		center.y -= dy * zoom / 2;
+	}
+	dx = (wrect.left + wrect.width) - (vrect.left + vrect.width);
 	if (dx > 0)
 	{
-		targetViewport.left += dx;
+		wrect.width -= dx;
+		size.x -= dx * zoom;
+		center.x -= dx * zoom / 2;
 	}
-	float dy = targetViewport.top + targetViewport.height - (originViewport.top + originViewport.height);
-	if (dy > 0)
-	{
-		targetCenter.y -= targetSize.y / 2;
-		targetSize.y *= ((targetViewport.height - dy) / targetViewport.height);
-		targetViewport.height -= dy;
-		targetCenter.y += targetSize.y / 2;
-	}
-	dy = originViewport.top - targetViewport.top;
-	if (dy > 0)
-	{
-		targetViewport.top += dy;
-	}
-	targetView.setSize(targetSize);
-	targetView.setCenter(targetCenter);
-	targetView.setViewport(targetViewport);
+	// Set the view
+	targetView.setCenter(center);
+	targetView.setSize(size);
+	targetView.setViewport(sf::FloatRect(wrect.left / sw, wrect.top / sh, wrect.width / sw, wrect.height / sh));
 }
 
 sf::Texture * CWindow_Element::getTexture()
@@ -546,12 +569,21 @@ void CWindow_Element::updateView()
 {
 	if (NIL_P(rWindowBuilder))
 		return;
+	// Offset from the top left corner
 	long offset_x = NUM2LONG(rb_ary_entry(rWindowBuilder, 4));
+	long offset_x2 = offset_x;
 	long offset_y = NUM2LONG(rb_ary_entry(rWindowBuilder, 5));
+	long offset_y2 = offset_y;
+	// Offset from the bottom right corner
+	if(RARRAY_LEN(rWindowBuilder) == 8)
+	{
+		offset_x2 = NUM2LONG(rb_ary_entry(rWindowBuilder, 6));
+		offset_y2 = NUM2LONG(rb_ary_entry(rWindowBuilder, 7));
+	}
 	long x = NUM2LONG(rX) + offset_x;
 	long y = NUM2LONG(rY) + offset_y;
-	long width = NUM2LONG(rWidth) - 2 * offset_x;
-	long height = NUM2LONG(rHeight) - 2 * offset_y;
+	long width = NUM2LONG(rWidth) - offset_x - offset_x2;
+	long height = NUM2LONG(rHeight) - offset_y - offset_y2;
 	// Update rect
 	sf::IntRect& rect = rb::GetSafe<CRect_Element>(rRect, rb_cRect).getRect();
 	rect.left = x;
