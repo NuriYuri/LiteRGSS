@@ -75,6 +75,10 @@ void CWindow_Element::drawCalculateView(sf::RenderTarget & target, sf::View & ta
 	wrect.height /= zoom;
 	wrect.left += vx0;
 	wrect.top += vy0;
+	// attempt to fix viewport coordinate
+	wrect.left += vrect.left;
+	wrect.top += vrect.top;
+	// <-
 	// Fix the top/left coordinate of the view in order to make it stay in the viewport
 	float dy = vrect.top - wrect.top;
 	if (dy > 0) // If dy > 0 then the window top is outside of the viewport, we need to remove dy from the height & add dy to the y
