@@ -25,6 +25,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 	auto* render_states = getRenderState();
 	if (!visible)
 		return;
+	sf::View originalView = sf::View(target.getView());
 	if(render_states)
 	{
 		const sf::Color* col;
@@ -43,12 +44,14 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 		CView_Element::drawFast(*render);
 		render->display();
 		// Update internal texture & draw result to Window
-		render_sprite->setTexture(render->getTexture());
+		render_sprite->setTexture(render->getTexture(), !rect);
 		if (rect)
 		{
 			render_sprite->setTextureRect(rect->getRect());
 			render_sprite->setPosition(rect->getRect().left, rect->getRect().top);
 		}
+		else
+			render_sprite->setPosition(0, 0);
 		// Reset the target view
 		setupView(target);
 		// Draw the result
@@ -59,6 +62,7 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 		target.setView(view);
 		CView_Element::drawFast(target);
 	}
+	target.setView(originalView);
 }
 
 void CViewport_Element::setupView(sf::RenderTarget& target) const 
