@@ -31,7 +31,6 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 		const sf::Color* col;
 		CRect_Element* rect = getRect();
 		// Loading Target view
-		const sf::Vector2f view_size = view.getSize();
 		sf::View tview = view;
 		render->setView(tview);
 		// Clearing render
@@ -63,6 +62,49 @@ void CViewport_Element::draw(sf::RenderTarget& target) const
 		CView_Element::drawFast(target);
 	}
 	target.setView(originalView);
+}
+
+sf::Texture* CViewport_Element::snapToBitmap() const
+{
+	sf::RenderTexture localrender;
+	sf::View renderView;
+	localrender.create(view.getSize().x, view.getSize().y);
+	renderView.setSize(view.getSize());
+	renderView.setCenter(view.getCenter());
+	renderView.setViewport(sf::FloatRect(0.0f, 0.0f, 1.0f, 1.0f));
+	if(RTEST(rAngle))
+		renderView.setRotation(NUM2DBL(rAngle));
+	localrender.setView(renderView);
+	auto* render_states = getRenderState();
+	if(render_states)
+	{
+		const sf::Color* col;
+		CRect_Element* rect = getRect();
+		// Clearing render
+		if (render_states->shader)
+			col = check_up_color();
+		else
+			col = &sf::Color::Transparent;
+		localrender.clear(*col);
+		// Drawing sprites
+		CView_Element::drawFast(localrender);
+		localrender.display();
+		// Update internal texture & draw result to Window
+		sf::Texture copy = sf::Texture(localrender.getTexture());
+		render_sprite->setTexture(copy, !rect);
+		render_sprite->setPosition(0, 0);
+		// Draw the result
+		localrender.clear(sf::Color::Transparent);
+		localrender.draw(*render_sprite, *render_states);
+		localrender.display();
+	}
+	else
+	{
+		localrender.clear(sf::Color::Transparent);
+		CView_Element::drawFast(localrender);
+		localrender.display();
+	}
+	return new sf::Texture(localrender.getTexture());
 }
 
 void CViewport_Element::setupView(sf::RenderTarget& target) const 

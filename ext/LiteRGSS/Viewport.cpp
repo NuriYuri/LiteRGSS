@@ -3,6 +3,7 @@
 #include "CViewport_Element.h"
 #include "CRect_Element.h"
 #include "CTone_Element.h"
+#include "CBitmap_Element.h"
 
 VALUE rb_cViewport = Qnil;
 
@@ -53,6 +54,7 @@ void Init_Viewport()
 	rb_define_method(rb_cViewport, "blendmode=", _rbf rb_Viewport_setRenderState, 1);
 	rb_define_method(rb_cViewport, "reload_stack", _rbf rb_Viewport_ReloadStack, 0);
 	rb_define_method(rb_cViewport, "__index__", _rbf rb_Viewport_Index, 0);
+	rb_define_method(rb_cViewport, "snap_to_bitmap", _rbf rb_Viewport_snapToBitmap, 0);
 
 	rb_define_method(rb_cViewport, "clone", _rbf rb_Viewport_Copy, 0);
 	rb_define_method(rb_cViewport, "dup", _rbf rb_Viewport_Copy, 0);
@@ -381,6 +383,23 @@ VALUE rb_Viewport_Index(VALUE self)
 {
 	auto& viewport = rb::Get<CViewport_Element>(self);
 	return rb_uint2inum(viewport.getDrawPriority());
+}
+
+
+VALUE rb_Viewport_snapToBitmap(VALUE self)
+{
+	auto& viewport = rb::Get<CViewport_Element>(self);
+	VALUE bmp = rb_obj_alloc(rb_cBitmap);
+	CBitmap_Element* bitmap;
+	Data_Get_Struct(bmp, CBitmap_Element, bitmap);
+	if(bitmap == nullptr) {
+		return Qnil;
+	}
+	sf::Texture* texture = viewport.snapToBitmap();
+	sf::Texture& bmpTexture = bitmap->getTexture();
+	bmpTexture = *texture;
+	delete texture;
+	return bmp;
 }
 
 void Viewport_SetView(CViewport_Element& viewport, long x, long y, long width, long height)

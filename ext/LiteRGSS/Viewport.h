@@ -29,6 +29,7 @@ VALUE rb_Viewport_getRenderState(VALUE self);
 VALUE rb_Viewport_setRenderState(VALUE self, VALUE val);
 VALUE rb_Viewport_ReloadStack(VALUE self);
 VALUE rb_Viewport_Index(VALUE self);
+VALUE rb_Viewport_snapToBitmap(VALUE self);
 
 void Viewport_SetView(CViewport_Element& viewport, long x, long y, long width, long height);
 

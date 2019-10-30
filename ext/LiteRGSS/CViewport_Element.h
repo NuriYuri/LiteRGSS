@@ -40,6 +40,7 @@ class CViewport_Element : public CView_Element {
 		void create_render();
 		void setVisible(bool value);
 		bool getVisible() { return visible; };
+		sf::Texture* snapToBitmap() const;
 		/* Ruby Ivar */
 		VALUE rRect = Qnil;
 		VALUE rTone = Qnil;
