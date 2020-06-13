@@ -26,5 +26,6 @@ VALUE rb_Graphics_setBrightness(VALUE self, VALUE brightness);
 VALUE rb_Graphics_getShader(VALUE self);
 VALUE rb_Graphics_setShader(VALUE self, VALUE shader);
 VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height);
+VALUE rb_Graphics_get_ogl_version(VALUE self);
 
 #endif

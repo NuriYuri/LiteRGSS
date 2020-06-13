@@ -42,6 +42,8 @@ public:
 	void setShader(sf::RenderStates* shader);
 	void syncStackCppFromRuby();
 	void add(CDrawable_Element& element);
+	long getOGlMajor() { return m_oGlMajor; };
+	long getOGlMinor() { return m_oGlMinor; };
 
 	std::unique_ptr<sf::Shader> createUniqueShader() const;
 	sf::Shader* createNewShader() const;
@@ -58,6 +60,8 @@ private:
    
 	bool InsideGraphicsUpdate = false;
 	unsigned long frame_count = 0;
+	long m_oGlMajor = 2;
+	long m_oGlMinor = 0;
 
 	std::unique_ptr<sf::RenderWindow> game_window = nullptr;
 

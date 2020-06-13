@@ -38,7 +38,10 @@ void CGraphics::init() {
 	if(config.fullscreen) {
 		style = sf::Style::Fullscreen;
 	}
-	game_window = std::make_unique<sf::RenderWindow>(config.video.vmode, std::move(config.title), style);
+	
+	sf::ContextSettings settings = sf::ContextSettings(0, 0, 0, 4, 5);
+
+	game_window = std::make_unique<sf::RenderWindow>(config.video.vmode, std::move(config.title), style, settings);
 	game_window->setMouseCursorVisible(false);
 
 	m_draw.init(*game_window, config);
@@ -47,6 +50,11 @@ void CGraphics::init() {
 	/* Input adjustement */
 	L_Input_Reset_Clocks();
 	L_Input_Setusec_threshold(1000000 / config.frameRate);
+
+	/* Getting oGl Info */
+	sf::ContextSettings real = game_window->getSettings();
+	m_oGlMajor = real.majorVersion;
+	m_oGlMinor = real.minorVersion;
 }
 
 void CGraphics::updateSelf(VALUE self) {

@@ -37,6 +37,7 @@ void Init_Graphics()
 	rb_define_module_function(rb_mGraphics, "shader", _rbf rb_Graphics_getShader, 0);
 	rb_define_module_function(rb_mGraphics, "shader=", _rbf rb_Graphics_setShader, 1);
 	rb_define_module_function(rb_mGraphics, "resize_screen", _rbf rb_Graphics_resize_screen, 2);
+	rb_define_module_function(rb_mGraphics, "openGL_version", _rbf rb_Graphics_get_ogl_version, 0);
 	
 	rb_iGraphicsShader = rb_intern("@__GraphicsShader");
 	/* Store the max texture size */
@@ -176,4 +177,12 @@ VALUE rb_Graphics_resize_screen(VALUE self, VALUE width, VALUE height)
 	rb_const_set(rb_mConfig, sheight, INT2NUM(iheight));
 	CGraphics::Get().resizeScreen(iwidth, iheight);
 	return self;
+}
+
+VALUE rb_Graphics_get_ogl_version(VALUE self)
+{
+	VALUE result = rb_ary_new2(2);
+	rb_ary_push(result, LONG2NUM(CGraphics::Get().getOGlMajor()));
+	rb_ary_push(result, LONG2NUM(CGraphics::Get().getOGlMinor()));
+	return result;
 }
