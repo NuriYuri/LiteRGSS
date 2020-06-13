@@ -21,9 +21,6 @@ void CGraphicsDraw::init(sf::RenderWindow& window, const CGraphicsConfig& config
 
 	/* VSYNC choice */
 	m_gameWindow->setVerticalSyncEnabled(config.vSync);
-	if(!config.vSync) {
-		m_gameWindow->setFramerateLimit(config.frameRate);
-	}
 	
 	m_screenWidth = config.video.width;
 	m_screenHeight = config.video.height;
