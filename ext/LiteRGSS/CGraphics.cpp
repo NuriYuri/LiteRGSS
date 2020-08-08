@@ -39,9 +39,9 @@ void CGraphics::init() {
 		style = sf::Style::Fullscreen;
 	}
 	
-	sf::ContextSettings settings = sf::ContextSettings(0, 0, 0, 4, 5);
+	/*sf::ContextSettings settings = sf::ContextSettings(0, 0, 0, 4, 5);*/
 
-	game_window = std::make_unique<sf::RenderWindow>(config.video.vmode, std::move(config.title), style, settings);
+	game_window = std::make_unique<sf::RenderWindow>(config.video.vmode, std::move(config.title), style/*, settings*/);
 	game_window->setMouseCursorVisible(false);
 
 	m_draw.init(*game_window, config);
