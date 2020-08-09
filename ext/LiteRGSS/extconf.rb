@@ -18,4 +18,7 @@ if enable_config('debug')
     end
 end
 
+ASSEMBLE_CXX << ' -std=c++14'
+COMPILE_CXX << ' -std=c++14'
+
 create_makefile(ext_name)
