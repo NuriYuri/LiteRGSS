@@ -66,6 +66,22 @@ void CGraphicsSnapshot::takeSnapshotOn(sf::RenderWindow& window, sf::Texture& te
 		sh = sc_sz.y;
 	text.create(sw, sh);
 	text.update(window, x, y);
+	
+	sf::RenderTexture renderTexture;
+	auto blendMode = sf::BlendMode(
+		sf::BlendMode::One,
+		sf::BlendMode::Zero,
+		sf::BlendMode::Add,
+		sf::BlendMode::One,
+		sf::BlendMode::One,
+		sf::BlendMode::Add
+	);
+	renderTexture.create(text.getSize().x, text.getSize().y);
+	renderTexture.clear(sf::Color::Black); // Needs to be non-transparent to compensate the transparence issue of texture
+	renderTexture.draw(sf::Sprite(text), sf::RenderStates(blendMode));
+	renderTexture.display();
+	auto text2 = renderTexture.getTexture();
+	text.swap(text2);
 }
 
 void CGraphicsSnapshot::transitionBasic(VALUE self, long time) {
